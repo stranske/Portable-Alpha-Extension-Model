@@ -1,0 +1,42 @@
+{
+  "sha": "f2a1abdccc0db5218206917b9e8b45d11b636717",
+  "url": "https://github.com/stranske/Workflows/blob/main/.github/workflows/reusable-10-ci-python.yml",
+  "matches": [
+    {
+      "line": 458,
+      "text": "  lint-format:"
+    },
+    {
+      "line": 785,
+      "text": "          black --check --line-length 100 --exclude '(\\.venv|\\.workflows-lib|node_modules)' ."
+    },
+    {
+      "line": 2191,
+      "text": "          args=(\"--junitxml=pytest-junit.xml\")"
+    },
+    {
+      "line": 2199,
+      "text": "              args+=(\"--cov-config=pyproject.toml\")"
+    },
+    {
+      "line": 2201,
+      "text": "            args+=(\"--cov-report=xml:coverage.xml\")"
+    },
+    {
+      "line": 2202,
+      "text": "            args+=(\"--cov-report=term-missing\")"
+    },
+    {
+      "line": 2203,
+      "text": "            args+=(\"--cov-report=json:coverage.json\")"
+    },
+    {
+      "line": 2228,
+      "text": "            args+=(\"-n\" \"${PYTEST_WORKERS}\" \"--dist=loadgroup\")"
+    },
+    {
+      "line": 2450,
+      "text": "          pytest -p ci_test_growth \"${args[@]}\""
+    }
+  ]
+}

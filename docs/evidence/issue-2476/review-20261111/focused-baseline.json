@@ -1,0 +1,1168 @@
+{
+  "checked": "2026-11-11 UTC",
+  "revision": "55183acc9bf1dcf276899e4dc2e444a3d409e707",
+  "configuration": "pyproject.toml, Gate sources; diagnostic branch=true override",
+  "config_sha256": "58c569923b38388bdfc409901ce8dab00564b72fa2e10d102874cddc54eeabe7",
+  "coverage_meta": {
+    "format": 3,
+    "version": "7.17.2",
+    "timestamp": "2026-11-11T19:42:48.082009",
+    "branch_coverage": true,
+    "show_contexts": false
+  },
+  "full_report_sha256": "722882d460148bc7eb45ed13011e05aa27417e2ab736a67c9f53695f1c4bb3ad",
+  "command": "COVERAGE_FILE=/tmp/issue-2476-review/focused-baseline.coverage timeout 120s python -m pytest -q tests/test_coverage_round_2381.py tests/test_dashboard_results_previous_run.py tests/test_coverage_round_2476_facade.py tests/test_coverage_round_2476_evidence.py tests/test_coverage_round_2476_mutation_transcripts.py --cov --cov-config=pyproject.toml --cov-branch --cov-report=json:/tmp/issue-2476-review/focused-baseline.json --cov-report=term-missing -m 'not slow and not live_llm'",
+  "exit": 0,
+  "pytest_result": "84 passed, 17 warnings in 6.02s",
+  "targets": {
+    "pa_core/llm/result_explain.py": {
+      "summary": {
+        "covered_lines": 76,
+        "num_statements": 227,
+        "percent_covered": 30.091185410334347,
+        "percent_covered_display": "30",
+        "missing_lines": 151,
+        "excluded_lines": 9,
+        "percent_statements_covered": 33.480176211453745,
+        "percent_statements_covered_display": "33",
+        "num_branches": 102,
+        "num_partial_branches": 7,
+        "covered_branches": 23,
+        "missing_branches": 79,
+        "percent_branches_covered": 22.54901960784314,
+        "percent_branches_covered_display": "23"
+      },
+      "missing_lines": [
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        78,
+        79,
+        80,
+        81,
+        82,
+        83,
+        84,
+        85,
+        86,
+        87,
+        88,
+        89,
+        90,
+        94,
+        98,
+        101,
+        102,
+        103,
+        104,
+        105,
+        109,
+        110,
+        111,
+        112,
+        113,
+        114,
+        116,
+        117,
+        118,
+        119,
+        120,
+        121,
+        125,
+        126,
+        131,
+        136,
+        137,
+        138,
+        139,
+        140,
+        141,
+        142,
+        143,
+        149,
+        153,
+        154,
+        155,
+        156,
+        157,
+        161,
+        162,
+        163,
+        164,
+        165,
+        169,
+        170,
+        171,
+        172,
+        176,
+        181,
+        182,
+        184,
+        185,
+        186,
+        187,
+        188,
+        189,
+        190,
+        191,
+        192,
+        193,
+        198,
+        202,
+        203,
+        204,
+        205,
+        206,
+        207,
+        208,
+        209,
+        210,
+        211,
+        212,
+        214,
+        215,
+        216,
+        217,
+        218,
+        260,
+        261,
+        262,
+        263,
+        264,
+        268,
+        269,
+        270,
+        276,
+        315,
+        316,
+        318,
+        327,
+        328,
+        336,
+        341,
+        342,
+        344,
+        348,
+        349,
+        365,
+        366,
+        367,
+        369,
+        370,
+        371,
+        372,
+        373,
+        374,
+        375,
+        376,
+        377,
+        379,
+        380,
+        381,
+        382,
+        383,
+        384,
+        398,
+        399,
+        400,
+        401,
+        402,
+        403,
+        404,
+        417,
+        418,
+        445,
+        446,
+        447,
+        453,
+        456,
+        464,
+        469,
+        470,
+        471,
+        472
+      ],
+      "missing_branches": [
+        [
+          37,
+          38
+        ],
+        [
+          37,
+          39
+        ],
+        [
+          39,
+          40
+        ],
+        [
+          39,
+          41
+        ],
+        [
+          78,
+          79
+        ],
+        [
+          78,
+          80
+        ],
+        [
+          80,
+          81
+        ],
+        [
+          80,
+          82
+        ],
+        [
+          82,
+          83
+        ],
+        [
+          82,
+          84
+        ],
+        [
+          84,
+          85
+        ],
+        [
+          84,
+          86
+        ],
+        [
+          86,
+          87
+        ],
+        [
+          86,
+          88
+        ],
+        [
+          88,
+          89
+        ],
+        [
+          88,
+          90
+        ],
+        [
+          101,
+          102
+        ],
+        [
+          101,
+          105
+        ],
+        [
+          103,
+          101
+        ],
+        [
+          103,
+          104
+        ],
+        [
+          109,
+          110
+        ],
+        [
+          109,
+          111
+        ],
+        [
+          113,
+          114
+        ],
+        [
+          113,
+          116
+        ],
+        [
+          116,
+          117
+        ],
+        [
+          116,
+          121
+        ],
+        [
+          119,
+          120
+        ],
+        [
+          119,
+          121
+        ],
+        [
+          136,
+          137
+        ],
+        [
+          136,
+          149
+        ],
+        [
+          138,
+          139
+        ],
+        [
+          138,
+          140
+        ],
+        [
+          141,
+          142
+        ],
+        [
+          141,
+          143
+        ],
+        [
+          154,
+          155
+        ],
+        [
+          154,
+          156
+        ],
+        [
+          162,
+          163
+        ],
+        [
+          162,
+          164
+        ],
+        [
+          169,
+          170
+        ],
+        [
+          169,
+          171
+        ],
+        [
+          181,
+          182
+        ],
+        [
+          181,
+          184
+        ],
+        [
+          186,
+          187
+        ],
+        [
+          186,
+          188
+        ],
+        [
+          189,
+          190
+        ],
+        [
+          189,
+          198
+        ],
+        [
+          191,
+          192
+        ],
+        [
+          191,
+          193
+        ],
+        [
+          202,
+          203
+        ],
+        [
+          202,
+          204
+        ],
+        [
+          206,
+          207
+        ],
+        [
+          206,
+          208
+        ],
+        [
+          209,
+          210
+        ],
+        [
+          209,
+          211
+        ],
+        [
+          212,
+          214
+        ],
+        [
+          212,
+          218
+        ],
+        [
+          214,
+          215
+        ],
+        [
+          214,
+          218
+        ],
+        [
+          216,
+          214
+        ],
+        [
+          216,
+          217
+        ],
+        [
+          262,
+          263
+        ],
+        [
+          262,
+          264
+        ],
+        [
+          268,
+          269
+        ],
+        [
+          268,
+          270
+        ],
+        [
+          275,
+          276
+        ],
+        [
+          284,
+          279
+        ],
+        [
+          287,
+          289
+        ],
+        [
+          315,
+          316
+        ],
+        [
+          315,
+          318
+        ],
+        [
+          342,
+          344
+        ],
+        [
+          342,
+          369
+        ],
+        [
+          402,
+          403
+        ],
+        [
+          402,
+          417
+        ],
+        [
+          452,
+          453
+        ],
+        [
+          455,
+          456
+        ],
+        [
+          461,
+          458
+        ],
+        [
+          463,
+          464
+        ],
+        [
+          470,
+          471
+        ],
+        [
+          470,
+          472
+        ]
+      ]
+    },
+    "pa_core/pa.py": {
+      "summary": {
+        "covered_lines": 172,
+        "num_statements": 222,
+        "percent_covered": 74.13793103448276,
+        "percent_covered_display": "74",
+        "missing_lines": 50,
+        "excluded_lines": 4,
+        "percent_statements_covered": 77.47747747747748,
+        "percent_statements_covered_display": "77",
+        "num_branches": 68,
+        "num_partial_branches": 15,
+        "covered_branches": 43,
+        "missing_branches": 25,
+        "percent_branches_covered": 63.23529411764706,
+        "percent_branches_covered_display": "63"
+      },
+      "missing_lines": [
+        53,
+        54,
+        60,
+        63,
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        75,
+        91,
+        92,
+        93,
+        94,
+        95,
+        96,
+        97,
+        98,
+        105,
+        112,
+        113,
+        114,
+        115,
+        116,
+        117,
+        275,
+        281,
+        283,
+        285,
+        287,
+        331,
+        407,
+        410,
+        417,
+        418,
+        419,
+        424,
+        432,
+        440,
+        445,
+        446,
+        447,
+        448,
+        451,
+        454,
+        460,
+        461,
+        462
+      ],
+      "missing_branches": [
+        [
+          48,
+          44
+        ],
+        [
+          52,
+          53
+        ],
+        [
+          59,
+          60
+        ],
+        [
+          74,
+          75
+        ],
+        [
+          80,
+          84
+        ],
+        [
+          93,
+          94
+        ],
+        [
+          93,
+          95
+        ],
+        [
+          96,
+          97
+        ],
+        [
+          96,
+          98
+        ],
+        [
+          104,
+          105
+        ],
+        [
+          112,
+          113
+        ],
+        [
+          112,
+          114
+        ],
+        [
+          115,
+          116
+        ],
+        [
+          115,
+          117
+        ],
+        [
+          274,
+          275
+        ],
+        [
+          280,
+          281
+        ],
+        [
+          284,
+          285
+        ],
+        [
+          330,
+          331
+        ],
+        [
+          349,
+          -120
+        ],
+        [
+          406,
+          407
+        ],
+        [
+          409,
+          410
+        ],
+        [
+          416,
+          417
+        ],
+        [
+          422,
+          424
+        ],
+        [
+          445,
+          446
+        ],
+        [
+          445,
+          447
+        ]
+      ]
+    },
+    "pa_core/facade.py": {
+      "summary": {
+        "covered_lines": 311,
+        "num_statements": 333,
+        "percent_covered": 90.50772626931567,
+        "percent_covered_display": "91",
+        "missing_lines": 22,
+        "excluded_lines": 4,
+        "percent_statements_covered": 93.3933933933934,
+        "percent_statements_covered_display": "93",
+        "num_branches": 120,
+        "num_partial_branches": 21,
+        "covered_branches": 99,
+        "missing_branches": 21,
+        "percent_branches_covered": 82.5,
+        "percent_branches_covered_display": "82"
+      },
+      "missing_lines": [
+        78,
+        139,
+        140,
+        241,
+        243,
+        245,
+        247,
+        249,
+        251,
+        253,
+        435,
+        441,
+        448,
+        495,
+        496,
+        499,
+        544,
+        545,
+        750,
+        756,
+        759,
+        760
+      ],
+      "missing_branches": [
+        [
+          77,
+          78
+        ],
+        [
+          101,
+          104
+        ],
+        [
+          138,
+          139
+        ],
+        [
+          240,
+          241
+        ],
+        [
+          242,
+          243
+        ],
+        [
+          244,
+          245
+        ],
+        [
+          246,
+          247
+        ],
+        [
+          248,
+          249
+        ],
+        [
+          250,
+          251
+        ],
+        [
+          252,
+          253
+        ],
+        [
+          433,
+          435
+        ],
+        [
+          494,
+          495
+        ],
+        [
+          498,
+          499
+        ],
+        [
+          501,
+          546
+        ],
+        [
+          543,
+          544
+        ],
+        [
+          749,
+          750
+        ],
+        [
+          753,
+          758
+        ],
+        [
+          755,
+          756
+        ],
+        [
+          758,
+          759
+        ],
+        [
+          767,
+          773
+        ],
+        [
+          823,
+          825
+        ]
+      ]
+    },
+    "pa_core/units.py": {
+      "summary": {
+        "covered_lines": 48,
+        "num_statements": 81,
+        "percent_covered": 51.351351351351354,
+        "percent_covered_display": "51",
+        "missing_lines": 33,
+        "excluded_lines": 0,
+        "percent_statements_covered": 59.25925925925926,
+        "percent_statements_covered_display": "59",
+        "num_branches": 30,
+        "num_partial_branches": 5,
+        "covered_branches": 9,
+        "missing_branches": 21,
+        "percent_branches_covered": 30.0,
+        "percent_branches_covered_display": "30"
+      },
+      "missing_lines": [
+        146,
+        147,
+        148,
+        153,
+        159,
+        176,
+        177,
+        178,
+        189,
+        194,
+        195,
+        196,
+        197,
+        198,
+        199,
+        200,
+        211,
+        212,
+        213,
+        214,
+        215,
+        216,
+        217,
+        218,
+        219,
+        228,
+        229,
+        230,
+        237,
+        261,
+        273,
+        274,
+        275
+      ],
+      "missing_branches": [
+        [
+          146,
+          147
+        ],
+        [
+          146,
+          148
+        ],
+        [
+          152,
+          153
+        ],
+        [
+          174,
+          176
+        ],
+        [
+          176,
+          177
+        ],
+        [
+          176,
+          178
+        ],
+        [
+          187,
+          189
+        ],
+        [
+          196,
+          197
+        ],
+        [
+          196,
+          198
+        ],
+        [
+          198,
+          199
+        ],
+        [
+          198,
+          200
+        ],
+        [
+          213,
+          214
+        ],
+        [
+          213,
+          215
+        ],
+        [
+          215,
+          216
+        ],
+        [
+          215,
+          217
+        ],
+        [
+          217,
+          218
+        ],
+        [
+          217,
+          219
+        ],
+        [
+          227,
+          228
+        ],
+        [
+          236,
+          237
+        ],
+        [
+          273,
+          274
+        ],
+        [
+          273,
+          275
+        ]
+      ]
+    },
+    "pa_core/sim/internal_pa_financing.py": {
+      "summary": {
+        "covered_lines": 16,
+        "num_statements": 35,
+        "percent_covered": 41.509433962264154,
+        "percent_covered_display": "42",
+        "missing_lines": 19,
+        "excluded_lines": 0,
+        "percent_statements_covered": 45.714285714285715,
+        "percent_statements_covered_display": "46",
+        "num_branches": 18,
+        "num_partial_branches": 6,
+        "covered_branches": 6,
+        "missing_branches": 12,
+        "percent_branches_covered": 33.333333333333336,
+        "percent_branches_covered_display": "33"
+      },
+      "missing_lines": [
+        55,
+        57,
+        59,
+        63,
+        64,
+        65,
+        69,
+        70,
+        74,
+        75,
+        76,
+        80,
+        81,
+        82,
+        83,
+        84,
+        86,
+        87,
+        88
+      ],
+      "missing_branches": [
+        [
+          54,
+          55
+        ],
+        [
+          56,
+          57
+        ],
+        [
+          58,
+          59
+        ],
+        [
+          62,
+          63
+        ],
+        [
+          64,
+          65
+        ],
+        [
+          64,
+          69
+        ],
+        [
+          73,
+          74
+        ],
+        [
+          79,
+          80
+        ],
+        [
+          80,
+          81
+        ],
+        [
+          80,
+          82
+        ],
+        [
+          86,
+          87
+        ],
+        [
+          86,
+          88
+        ]
+      ]
+    },
+    "pa_core/manifest.py": {
+      "summary": {
+        "covered_lines": 0,
+        "num_statements": 61,
+        "percent_covered": 0.0,
+        "percent_covered_display": "0",
+        "missing_lines": 61,
+        "excluded_lines": 0,
+        "percent_statements_covered": 0.0,
+        "percent_statements_covered_display": "0",
+        "num_branches": 4,
+        "num_partial_branches": 0,
+        "covered_branches": 0,
+        "missing_branches": 4,
+        "percent_branches_covered": 0.0,
+        "percent_branches_covered_display": "0"
+      },
+      "missing_lines": [
+        1,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        12,
+        15,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        41,
+        44,
+        45,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        54,
+        55,
+        56,
+        58,
+        83,
+        84,
+        85,
+        88,
+        89,
+        90,
+        91,
+        92,
+        98,
+        99,
+        100,
+        101,
+        102,
+        103,
+        104,
+        105,
+        106,
+        107,
+        108,
+        125
+      ],
+      "missing_branches": [
+        [
+          90,
+          91
+        ],
+        [
+          90,
+          98
+        ],
+        [
+          104,
+          105
+        ],
+        [
+          104,
+          108
+        ]
+      ]
+    },
+    "dashboard/pages/4_Results.py": {
+      "summary": {
+        "covered_lines": 210,
+        "num_statements": 210,
+        "percent_covered": 99.64285714285714,
+        "percent_covered_display": "99",
+        "missing_lines": 0,
+        "excluded_lines": 0,
+        "percent_statements_covered": 100.0,
+        "percent_statements_covered_display": "100",
+        "num_branches": 70,
+        "num_partial_branches": 1,
+        "covered_branches": 69,
+        "missing_branches": 1,
+        "percent_branches_covered": 98.57142857142857,
+        "percent_branches_covered_display": "99"
+      },
+      "missing_lines": [],
+      "missing_branches": [
+        [
+          178,
+          180
+        ]
+      ]
+    }
+  },
+  "test_sha256": {
+    "tests/test_coverage_round_2381.py": "1912f0591502a59f77ab76dd774935df9960be7f06c660e6f3de4c591baba6dd",
+    "tests/test_dashboard_results_previous_run.py": "4bd88c2e1a9fe9f3adbe1cfd9b611c1bb7a704f85e0d2ed9eed8435edb50b46e",
+    "tests/test_coverage_round_2476_facade.py": "cd87267c6311fca0638087ad5b3a91d705dd6ad3083c0f87ff058bced8510728",
+    "tests/test_coverage_round_2476_evidence.py": "d5b975045c50f19599a86e4a3b7282149210f0918aa1b4236eff9fa3024b6512",
+    "tests/test_coverage_round_2476_mutation_transcripts.py": "ed0370e31c6a8b5b49a3e433856225850d68a743a9f584781f87b6646f12d352"
+  },
+  "report_scope": "Seven-target extraction from full raw report; summary and uncovered locations retained, function/class duplicate data omitted."
+}

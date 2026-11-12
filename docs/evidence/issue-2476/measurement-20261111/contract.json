@@ -1,0 +1,43 @@
+{
+  "checked": "2026-11-11",
+  "baseline_revision": "def0eec035bdccfdebce62c0116aa468ed6fdd2f",
+  "available_main_revision": "5be77e15c925f5354ab67e2a1749fe6187d2038c",
+  "historical_round_baseline": "bf424ec6ff58bb88b6431acf7809d42b2c59f95d",
+  "ranked_targets": [
+    "pa_core/llm/result_explain.py",
+    "pa_core/pa.py",
+    "pa_core/facade.py",
+    "pa_core/units.py",
+    "pa_core/sim/internal_pa_financing.py",
+    "pa_core/manifest.py",
+    "dashboard/pages/4_Results.py"
+  ],
+  "ranking_source": "https://github.com/stranske/Portable-Alpha-Extension-Model/issues/2381",
+  "reusable_workflow_blob": "e0e17babfda63e37739db2e82314ff97c835b1ad",
+  "gate_command": "python -m pytest --cov --cov-config=pyproject.toml --cov-report=xml:coverage.xml --cov-report=term-missing --cov-report=json:coverage.json -n auto --dist=loadgroup -m 'not slow and not live_llm'",
+  "local_command": "timeout -k 5s 180s python -m pytest --cov --cov-config=pyproject.toml --cov-report=xml:/tmp/issue-2476-measurement/baseline.xml --cov-report=term-missing --cov-report=json:/tmp/issue-2476-measurement/baseline.json -n auto --dist=loadgroup -m 'not slow and not live_llm' -vv",
+  "stop_rule": "One full-suite attempt per revision/configuration, terminate at 180s; maximum three repeats of any failing step. Focused acceptance must terminate within 120s. Do not claim reduction without completed comparable reports.",
+  "pr_reconciliation": {
+    "url": "https://github.com/stranske/Portable-Alpha-Extension-Model/pull/2498",
+    "state": "open",
+    "draft": false,
+    "update": "Tool rejected body update: requires approval, approval policy never. Existing four completed tasks retained; focused acceptance verified by 84 passing candidate tests in 3.23s; no additional coverage task checked."
+  },
+  "full_baseline_outcome": {
+    "exit_code": 124,
+    "timeout_seconds": 180,
+    "coverage_report_emitted": false,
+    "started_without_completion": [
+      "tests/test_cli.py::test_main_with_png"
+    ],
+    "interpretation": "Verbose log shows this node started without a completion line; renderer root cause not established. All other started nodes have completion lines. This timeout does not provide comparable Gate coverage."
+  },
+  "focused_baseline_scope": [
+    "tests/test_coverage_round_2381.py",
+    "tests/test_coverage_round_2417.py",
+    "tests/test_coverage_round_2421.py",
+    "tests/test_coverage_round_2476_facade.py",
+    "tests/test_result_explain.py"
+  ],
+  "target_one_saturation": "227/227 statements and 102/102 branches covered in ranked-baseline.json before test edits. No coverage increase is needed for target 1."
+}

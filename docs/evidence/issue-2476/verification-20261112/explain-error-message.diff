@@ -1,0 +1,5 @@
+--- dashboard/pages/4_Results.py
++++ dashboard/pages/4_Results.py
+@@ -161 +161 @@
+-        st.info("LLM features unavailable. Install .[llm] to enable Explain Results.")
++        st.info("")

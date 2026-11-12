@@ -1,0 +1,19 @@
+"""Preserve Black's CLI and checks; poll asyncio completions in this sandbox."""
+import asyncio
+import multiprocessing
+
+multiprocessing.set_start_method("fork")
+original_new_event_loop = asyncio.new_event_loop
+
+
+def new_event_loop():
+    loop = original_new_event_loop()
+
+    def poll_completions():
+        loop.call_later(0.05, poll_completions)
+
+    loop.call_soon(poll_completions)
+    return loop
+
+
+asyncio.new_event_loop = new_event_loop

@@ -1,0 +1,40 @@
+{
+  "ranked_targets": [
+    "pa_core/llm/result_explain.py",
+    "pa_core/pa.py",
+    "pa_core/facade.py",
+    "pa_core/units.py",
+    "pa_core/sim/internal_pa_financing.py",
+    "pa_core/manifest.py",
+    "dashboard/pages/4_Results.py"
+  ],
+  "ranking_source": "https://github.com/stranske/Portable-Alpha-Extension-Model/issues/2381",
+  "historical_round_baseline": "bf424ec6ff58bb88b6431acf7809d42b2c59f95d",
+  "gate_command": "python -m pytest --cov --cov-config=pyproject.toml --cov-report=xml:coverage.xml --cov-report=term-missing --cov-report=json:coverage.json -n auto --dist=loadgroup -m 'not slow and not live_llm'",
+  "checked": "2026-11-12",
+  "baseline_revision": "6c919c92c99049c6672256a7e1aa7ee3fb1189b1",
+  "available_main_revision": "5be77e15c925f5354ab67e2a1749fe6187d2038c",
+  "interpreter": "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+  "python": "3.14.10",
+  "configuration_sha256": "58c569923b38388bdfc409901ce8dab00564b72fa2e10d102874cddc54eeabe7",
+  "coverage_configuration": {
+    "run": {
+      "source": [
+        "pa_core",
+        "dashboard",
+        "design-system"
+      ],
+      "branch": false
+    }
+  },
+  "stop_rule": "One full Gate attempt per revision and configuration, limit 180 seconds. Focused acceptance limit 120 seconds. Do not claim comparable full-suite results after timeout or runner failure. Maximum three mutation attempts per assertion.",
+  "measured_source_revision": "bda7804e12971463fe8d28a2186759ee3f8e6411",
+  "full_baseline_outcome": {
+    "exit_code": 124,
+    "timeout_seconds": 180,
+    "coverage_report_emitted": false,
+    "observations": "A failure marker was printed at 38%; timeout at 97% progress. Failed and unfinished test identities are unknown because the default progress log has no node IDs. No passing baseline or coverage delta can be inferred."
+  },
+  "scope_note": "Gate coverage flags and sources retained from the archived discovery. The current reusable workflow adds a generated ci_test_growth observer and JUnit output; this local attempt did not load that observer and is not a complete reproduction of the current hosted Gate.",
+  "full_head_outcome": "Not attempted after the incomplete baseline; no comparable full-suite reduction claimed."
+}

@@ -1,0 +1,14 @@
+{
+  "command": [
+    "python",
+    "-m",
+    "pytest",
+    "tests/test_coverage_round_2381.py",
+    "-m",
+    "not slow and not live_llm",
+    "-q"
+  ],
+  "timeout_seconds": 120,
+  "exit_code": 0,
+  "wall_seconds": 7.383
+}

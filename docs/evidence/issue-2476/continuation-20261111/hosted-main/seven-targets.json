@@ -1,0 +1,6766 @@
+{
+  "baseline-gate": {
+    "run_id": 43154194839,
+    "revision": "bf424ec6ff58bb88b6431acf7809d42b2c59f95d",
+    "exit_code": 1,
+    "coverage_json_sha256": "cec8d75291370ba0946455da1efb802d4e084c9ce81c11451980a161f900fcd3",
+    "targets": {
+      "pa_core/llm/result_explain.py": {
+        "statement_count": 226,
+        "uncovered_statement_count": 4,
+        "uncovered_statement_lines": [
+          437,
+          438,
+          448,
+          456
+        ],
+        "branch_count": null,
+        "uncovered_branch_count": null,
+        "uncovered_branch_arcs": null,
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 4,
+            "total_statements": 226,
+            "branches": 7,
+            "total_branches": 102
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 4,
+            "total_statements": 226,
+            "branches": 7,
+            "total_branches": 102
+          },
+          "main_5be77e15": {
+            "statements": 0,
+            "total_statements": 227,
+            "branches": 4,
+            "total_branches": 102
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 0,
+            "total_statements": 227,
+            "branches": 0,
+            "total_branches": 102
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 0,
+            "total_statements": 227,
+            "branches": 0,
+            "total_branches": 102
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 4,
+            "branches": 3,
+            "combined_units": 7
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 0,
+            "branches": 4,
+            "combined_units": 4
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 4,
+            "branches": 7,
+            "combined_units": 11
+          }
+        }
+      },
+      "pa_core/pa.py": {
+        "statement_count": 222,
+        "uncovered_statement_count": 27,
+        "uncovered_statement_lines": [
+          94,
+          97,
+          105,
+          116,
+          122,
+          299,
+          334,
+          335,
+          337,
+          338,
+          339,
+          340,
+          342,
+          343,
+          344,
+          348,
+          349,
+          350,
+          365,
+          366,
+          368,
+          374,
+          422,
+          464,
+          466,
+          473,
+          474
+        ],
+        "branch_count": null,
+        "uncovered_branch_count": null,
+        "uncovered_branch_arcs": null,
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 27,
+            "total_statements": 222,
+            "branches": 24,
+            "total_branches": 68
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 27,
+            "total_statements": 222,
+            "branches": 24,
+            "total_branches": 68
+          },
+          "main_5be77e15": {
+            "statements": 0,
+            "total_statements": 222,
+            "branches": 2,
+            "total_branches": 68
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 0,
+            "total_statements": 222,
+            "branches": 1,
+            "total_branches": 68
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 0,
+            "total_statements": 222,
+            "branches": 1,
+            "total_branches": 68
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 27,
+            "branches": 22,
+            "combined_units": 49
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 0,
+            "branches": 1,
+            "combined_units": 1
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 27,
+            "branches": 23,
+            "combined_units": 50
+          }
+        }
+      },
+      "pa_core/facade.py": {
+        "statement_count": 332,
+        "uncovered_statement_count": 23,
+        "uncovered_statement_lines": [
+          50,
+          51,
+          63,
+          87,
+          88,
+          243,
+          245,
+          247,
+          363,
+          364,
+          365,
+          367,
+          430,
+          629,
+          630,
+          631,
+          633,
+          746,
+          752,
+          814,
+          815,
+          820,
+          823
+        ],
+        "branch_count": null,
+        "uncovered_branch_count": null,
+        "uncovered_branch_arcs": null,
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 23,
+            "total_statements": 332,
+            "branches": 22,
+            "total_branches": 120
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 23,
+            "total_statements": 332,
+            "branches": 22,
+            "total_branches": 120
+          },
+          "main_5be77e15": {
+            "statements": 2,
+            "total_statements": 332,
+            "branches": 8,
+            "total_branches": 120
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 2,
+            "total_statements": 337,
+            "branches": 2,
+            "total_branches": 124
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 2,
+            "total_statements": 337,
+            "branches": 2,
+            "total_branches": 124
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 21,
+            "branches": 14,
+            "combined_units": 35
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 0,
+            "branches": 6,
+            "combined_units": 6
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 21,
+            "branches": 20,
+            "combined_units": 41
+          }
+        }
+      },
+      "pa_core/units.py": {
+        "statement_count": 81,
+        "uncovered_statement_count": 13,
+        "uncovered_statement_lines": [
+          153,
+          177,
+          194,
+          195,
+          196,
+          197,
+          198,
+          199,
+          200,
+          214,
+          216,
+          218,
+          237
+        ],
+        "branch_count": null,
+        "uncovered_branch_count": null,
+        "uncovered_branch_arcs": null,
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 13,
+            "total_statements": 81,
+            "branches": 10,
+            "total_branches": 30
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 13,
+            "total_statements": 81,
+            "branches": 10,
+            "total_branches": 30
+          },
+          "main_5be77e15": {
+            "statements": 0,
+            "total_statements": 81,
+            "branches": 0,
+            "total_branches": 30
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 0,
+            "total_statements": 81,
+            "branches": 0,
+            "total_branches": 30
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 0,
+            "total_statements": 81,
+            "branches": 0,
+            "total_branches": 30
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 13,
+            "branches": 10,
+            "combined_units": 23
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 13,
+            "branches": 10,
+            "combined_units": 23
+          }
+        }
+      },
+      "pa_core/sim/internal_pa_financing.py": {
+        "statement_count": 35,
+        "uncovered_statement_count": 4,
+        "uncovered_statement_lines": [
+          55,
+          57,
+          59,
+          81
+        ],
+        "branch_count": null,
+        "uncovered_branch_count": null,
+        "uncovered_branch_arcs": null,
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 4,
+            "total_statements": 35,
+            "branches": 4,
+            "total_branches": 18
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 4,
+            "total_statements": 35,
+            "branches": 4,
+            "total_branches": 18
+          },
+          "main_5be77e15": {
+            "statements": 0,
+            "total_statements": 35,
+            "branches": 0,
+            "total_branches": 18
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 0,
+            "total_statements": 35,
+            "branches": 0,
+            "total_branches": 18
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 0,
+            "total_statements": 35,
+            "branches": 0,
+            "total_branches": 18
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 4,
+            "branches": 4,
+            "combined_units": 8
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 4,
+            "branches": 4,
+            "combined_units": 8
+          }
+        }
+      },
+      "pa_core/manifest.py": {
+        "statement_count": 61,
+        "uncovered_statement_count": 2,
+        "uncovered_statement_lines": [
+          88,
+          89
+        ],
+        "branch_count": null,
+        "uncovered_branch_count": null,
+        "uncovered_branch_arcs": null,
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 2,
+            "total_statements": 61,
+            "branches": 0,
+            "total_branches": 4
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 2,
+            "total_statements": 61,
+            "branches": 0,
+            "total_branches": 4
+          },
+          "main_5be77e15": {
+            "statements": 0,
+            "total_statements": 61,
+            "branches": 0,
+            "total_branches": 4
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 0,
+            "total_statements": 61,
+            "branches": 0,
+            "total_branches": 4
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 0,
+            "total_statements": 61,
+            "branches": 0,
+            "total_branches": 4
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 2,
+            "branches": 0,
+            "combined_units": 2
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 2,
+            "branches": 0,
+            "combined_units": 2
+          }
+        }
+      },
+      "dashboard/pages/4_Results.py": {
+        "statement_count": 210,
+        "uncovered_statement_count": 136,
+        "uncovered_statement_lines": [
+          51,
+          54,
+          57,
+          67,
+          160,
+          161,
+          178,
+          179,
+          193,
+          197,
+          198,
+          199,
+          200,
+          201,
+          202,
+          203,
+          206,
+          207,
+          208,
+          209,
+          210,
+          211,
+          212,
+          213,
+          214,
+          215,
+          217,
+          219,
+          220,
+          221,
+          222,
+          223,
+          224,
+          225,
+          226,
+          227,
+          230,
+          231,
+          236,
+          237,
+          242,
+          243,
+          244,
+          250,
+          251,
+          253,
+          254,
+          255,
+          257,
+          258,
+          260,
+          261,
+          262,
+          263,
+          264,
+          266,
+          267,
+          269,
+          270,
+          271,
+          272,
+          273,
+          274,
+          275,
+          276,
+          278,
+          279,
+          282,
+          284,
+          286,
+          287,
+          294,
+          295,
+          296,
+          299,
+          303,
+          305,
+          307,
+          308,
+          310,
+          312,
+          313,
+          314,
+          315,
+          316,
+          322,
+          323,
+          330,
+          331,
+          332,
+          333,
+          334,
+          339,
+          341,
+          342,
+          343,
+          344,
+          345,
+          346,
+          347,
+          348,
+          349,
+          350,
+          351,
+          352,
+          353,
+          358,
+          359,
+          360,
+          361,
+          362,
+          364,
+          365,
+          366,
+          367,
+          368,
+          369,
+          370,
+          372,
+          384,
+          385,
+          387,
+          388,
+          390,
+          398,
+          399,
+          404,
+          407,
+          411,
+          412,
+          413,
+          414,
+          416,
+          417,
+          418,
+          422
+        ],
+        "branch_count": null,
+        "uncovered_branch_count": null,
+        "uncovered_branch_arcs": null,
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 136,
+            "total_statements": 210,
+            "branches": 56,
+            "total_branches": 70
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 78,
+            "total_statements": 210,
+            "branches": 42,
+            "total_branches": 70
+          },
+          "main_5be77e15": {
+            "statements": 18,
+            "total_statements": 210,
+            "branches": 16,
+            "total_branches": 70
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 0,
+            "total_statements": 210,
+            "branches": 1,
+            "total_branches": 70
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 0,
+            "total_statements": 210,
+            "branches": 1,
+            "total_branches": 70
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 58,
+            "branches": 14,
+            "combined_units": 72
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 60,
+            "branches": 26,
+            "combined_units": 86
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 18,
+            "branches": 15,
+            "combined_units": 33
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 136,
+            "branches": 55,
+            "combined_units": 191
+          }
+        }
+      }
+    },
+    "branch_coverage": false
+  },
+  "baseline-branch": {
+    "run_id": 43154194839,
+    "revision": "bf424ec6ff58bb88b6431acf7809d42b2c59f95d",
+    "exit_code": 1,
+    "coverage_json_sha256": "e5ff49d4bd2e780529eac84e0e5f6322de6ac9a74ffa96f2e5a9a6310569e6d9",
+    "targets": {
+      "pa_core/llm/result_explain.py": {
+        "statement_count": 226,
+        "uncovered_statement_count": 4,
+        "uncovered_statement_lines": [
+          437,
+          438,
+          448,
+          456
+        ],
+        "branch_count": 102,
+        "uncovered_branch_count": 7,
+        "uncovered_branch_arcs": [
+          [
+            224,
+            223
+          ],
+          [
+            277,
+            289
+          ],
+          [
+            282,
+            279
+          ],
+          [
+            447,
+            448
+          ],
+          [
+            451,
+            450
+          ],
+          [
+            453,
+            450
+          ],
+          [
+            455,
+            456
+          ]
+        ],
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 4,
+            "total_statements": 226,
+            "branches": 7,
+            "total_branches": 102
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 4,
+            "total_statements": 226,
+            "branches": 7,
+            "total_branches": 102
+          },
+          "main_5be77e15": {
+            "statements": 0,
+            "total_statements": 227,
+            "branches": 4,
+            "total_branches": 102
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 0,
+            "total_statements": 227,
+            "branches": 0,
+            "total_branches": 102
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 0,
+            "total_statements": 227,
+            "branches": 0,
+            "total_branches": 102
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 4,
+            "branches": 3,
+            "combined_units": 7
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 0,
+            "branches": 4,
+            "combined_units": 4
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 4,
+            "branches": 7,
+            "combined_units": 11
+          }
+        }
+      },
+      "pa_core/pa.py": {
+        "statement_count": 222,
+        "uncovered_statement_count": 27,
+        "uncovered_statement_lines": [
+          94,
+          97,
+          105,
+          116,
+          122,
+          299,
+          334,
+          335,
+          337,
+          338,
+          339,
+          340,
+          342,
+          343,
+          344,
+          348,
+          349,
+          350,
+          365,
+          366,
+          368,
+          374,
+          422,
+          464,
+          466,
+          473,
+          474
+        ],
+        "branch_count": 68,
+        "uncovered_branch_count": 24,
+        "uncovered_branch_arcs": [
+          [
+            93,
+            94
+          ],
+          [
+            96,
+            97
+          ],
+          [
+            104,
+            105
+          ],
+          [
+            115,
+            116
+          ],
+          [
+            121,
+            122
+          ],
+          [
+            298,
+            299
+          ],
+          [
+            329,
+            331
+          ],
+          [
+            333,
+            334
+          ],
+          [
+            337,
+            338
+          ],
+          [
+            337,
+            348
+          ],
+          [
+            339,
+            340
+          ],
+          [
+            339,
+            342
+          ],
+          [
+            342,
+            -120
+          ],
+          [
+            342,
+            343
+          ],
+          [
+            348,
+            -120
+          ],
+          [
+            348,
+            349
+          ],
+          [
+            351,
+            464
+          ],
+          [
+            363,
+            365
+          ],
+          [
+            365,
+            366
+          ],
+          [
+            365,
+            368
+          ],
+          [
+            370,
+            374
+          ],
+          [
+            405,
+            407
+          ],
+          [
+            408,
+            410
+          ],
+          [
+            421,
+            422
+          ]
+        ],
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 27,
+            "total_statements": 222,
+            "branches": 24,
+            "total_branches": 68
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 27,
+            "total_statements": 222,
+            "branches": 24,
+            "total_branches": 68
+          },
+          "main_5be77e15": {
+            "statements": 0,
+            "total_statements": 222,
+            "branches": 2,
+            "total_branches": 68
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 0,
+            "total_statements": 222,
+            "branches": 1,
+            "total_branches": 68
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 0,
+            "total_statements": 222,
+            "branches": 1,
+            "total_branches": 68
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 27,
+            "branches": 22,
+            "combined_units": 49
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 0,
+            "branches": 1,
+            "combined_units": 1
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 27,
+            "branches": 23,
+            "combined_units": 50
+          }
+        }
+      },
+      "pa_core/facade.py": {
+        "statement_count": 332,
+        "uncovered_statement_count": 23,
+        "uncovered_statement_lines": [
+          50,
+          51,
+          63,
+          87,
+          88,
+          243,
+          245,
+          247,
+          363,
+          364,
+          365,
+          367,
+          430,
+          629,
+          630,
+          631,
+          633,
+          746,
+          752,
+          814,
+          815,
+          820,
+          823
+        ],
+        "branch_count": 120,
+        "uncovered_branch_count": 22,
+        "uncovered_branch_arcs": [
+          [
+            62,
+            63
+          ],
+          [
+            242,
+            243
+          ],
+          [
+            244,
+            245
+          ],
+          [
+            246,
+            247
+          ],
+          [
+            362,
+            363
+          ],
+          [
+            364,
+            365
+          ],
+          [
+            364,
+            369
+          ],
+          [
+            366,
+            367
+          ],
+          [
+            429,
+            430
+          ],
+          [
+            490,
+            493
+          ],
+          [
+            501,
+            527
+          ],
+          [
+            504,
+            527
+          ],
+          [
+            628,
+            629
+          ],
+          [
+            630,
+            631
+          ],
+          [
+            630,
+            635
+          ],
+          [
+            632,
+            633
+          ],
+          [
+            745,
+            746
+          ],
+          [
+            751,
+            752
+          ],
+          [
+            780,
+            785
+          ],
+          [
+            804,
+            814
+          ],
+          [
+            819,
+            820
+          ],
+          [
+            822,
+            823
+          ]
+        ],
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 23,
+            "total_statements": 332,
+            "branches": 22,
+            "total_branches": 120
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 23,
+            "total_statements": 332,
+            "branches": 22,
+            "total_branches": 120
+          },
+          "main_5be77e15": {
+            "statements": 2,
+            "total_statements": 332,
+            "branches": 8,
+            "total_branches": 120
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 2,
+            "total_statements": 337,
+            "branches": 2,
+            "total_branches": 124
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 2,
+            "total_statements": 337,
+            "branches": 2,
+            "total_branches": 124
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 21,
+            "branches": 14,
+            "combined_units": 35
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 0,
+            "branches": 6,
+            "combined_units": 6
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 21,
+            "branches": 20,
+            "combined_units": 41
+          }
+        }
+      },
+      "pa_core/units.py": {
+        "statement_count": 81,
+        "uncovered_statement_count": 13,
+        "uncovered_statement_lines": [
+          153,
+          177,
+          194,
+          195,
+          196,
+          197,
+          198,
+          199,
+          200,
+          214,
+          216,
+          218,
+          237
+        ],
+        "branch_count": 30,
+        "uncovered_branch_count": 10,
+        "uncovered_branch_arcs": [
+          [
+            152,
+            153
+          ],
+          [
+            176,
+            177
+          ],
+          [
+            196,
+            197
+          ],
+          [
+            196,
+            198
+          ],
+          [
+            198,
+            199
+          ],
+          [
+            198,
+            200
+          ],
+          [
+            213,
+            214
+          ],
+          [
+            215,
+            216
+          ],
+          [
+            217,
+            218
+          ],
+          [
+            236,
+            237
+          ]
+        ],
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 13,
+            "total_statements": 81,
+            "branches": 10,
+            "total_branches": 30
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 13,
+            "total_statements": 81,
+            "branches": 10,
+            "total_branches": 30
+          },
+          "main_5be77e15": {
+            "statements": 0,
+            "total_statements": 81,
+            "branches": 0,
+            "total_branches": 30
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 0,
+            "total_statements": 81,
+            "branches": 0,
+            "total_branches": 30
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 0,
+            "total_statements": 81,
+            "branches": 0,
+            "total_branches": 30
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 13,
+            "branches": 10,
+            "combined_units": 23
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 13,
+            "branches": 10,
+            "combined_units": 23
+          }
+        }
+      },
+      "pa_core/sim/internal_pa_financing.py": {
+        "statement_count": 35,
+        "uncovered_statement_count": 4,
+        "uncovered_statement_lines": [
+          55,
+          57,
+          59,
+          81
+        ],
+        "branch_count": 18,
+        "uncovered_branch_count": 4,
+        "uncovered_branch_arcs": [
+          [
+            54,
+            55
+          ],
+          [
+            56,
+            57
+          ],
+          [
+            58,
+            59
+          ],
+          [
+            80,
+            81
+          ]
+        ],
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 4,
+            "total_statements": 35,
+            "branches": 4,
+            "total_branches": 18
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 4,
+            "total_statements": 35,
+            "branches": 4,
+            "total_branches": 18
+          },
+          "main_5be77e15": {
+            "statements": 0,
+            "total_statements": 35,
+            "branches": 0,
+            "total_branches": 18
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 0,
+            "total_statements": 35,
+            "branches": 0,
+            "total_branches": 18
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 0,
+            "total_statements": 35,
+            "branches": 0,
+            "total_branches": 18
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 4,
+            "branches": 4,
+            "combined_units": 8
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 4,
+            "branches": 4,
+            "combined_units": 8
+          }
+        }
+      },
+      "pa_core/manifest.py": {
+        "statement_count": 61,
+        "uncovered_statement_count": 2,
+        "uncovered_statement_lines": [
+          88,
+          89
+        ],
+        "branch_count": 4,
+        "uncovered_branch_count": 0,
+        "uncovered_branch_arcs": [],
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 2,
+            "total_statements": 61,
+            "branches": 0,
+            "total_branches": 4
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 2,
+            "total_statements": 61,
+            "branches": 0,
+            "total_branches": 4
+          },
+          "main_5be77e15": {
+            "statements": 0,
+            "total_statements": 61,
+            "branches": 0,
+            "total_branches": 4
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 0,
+            "total_statements": 61,
+            "branches": 0,
+            "total_branches": 4
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 0,
+            "total_statements": 61,
+            "branches": 0,
+            "total_branches": 4
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 2,
+            "branches": 0,
+            "combined_units": 2
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 2,
+            "branches": 0,
+            "combined_units": 2
+          }
+        }
+      },
+      "dashboard/pages/4_Results.py": {
+        "statement_count": 210,
+        "uncovered_statement_count": 136,
+        "uncovered_statement_lines": [
+          51,
+          54,
+          57,
+          67,
+          160,
+          161,
+          178,
+          179,
+          193,
+          197,
+          198,
+          199,
+          200,
+          201,
+          202,
+          203,
+          206,
+          207,
+          208,
+          209,
+          210,
+          211,
+          212,
+          213,
+          214,
+          215,
+          217,
+          219,
+          220,
+          221,
+          222,
+          223,
+          224,
+          225,
+          226,
+          227,
+          230,
+          231,
+          236,
+          237,
+          242,
+          243,
+          244,
+          250,
+          251,
+          253,
+          254,
+          255,
+          257,
+          258,
+          260,
+          261,
+          262,
+          263,
+          264,
+          266,
+          267,
+          269,
+          270,
+          271,
+          272,
+          273,
+          274,
+          275,
+          276,
+          278,
+          279,
+          282,
+          284,
+          286,
+          287,
+          294,
+          295,
+          296,
+          299,
+          303,
+          305,
+          307,
+          308,
+          310,
+          312,
+          313,
+          314,
+          315,
+          316,
+          322,
+          323,
+          330,
+          331,
+          332,
+          333,
+          334,
+          339,
+          341,
+          342,
+          343,
+          344,
+          345,
+          346,
+          347,
+          348,
+          349,
+          350,
+          351,
+          352,
+          353,
+          358,
+          359,
+          360,
+          361,
+          362,
+          364,
+          365,
+          366,
+          367,
+          368,
+          369,
+          370,
+          372,
+          384,
+          385,
+          387,
+          388,
+          390,
+          398,
+          399,
+          404,
+          407,
+          411,
+          412,
+          413,
+          414,
+          416,
+          417,
+          418,
+          422
+        ],
+        "branch_count": 70,
+        "uncovered_branch_count": 56,
+        "uncovered_branch_arcs": [
+          [
+            50,
+            51
+          ],
+          [
+            53,
+            54
+          ],
+          [
+            56,
+            57
+          ],
+          [
+            66,
+            67
+          ],
+          [
+            175,
+            178
+          ],
+          [
+            178,
+            179
+          ],
+          [
+            178,
+            180
+          ],
+          [
+            189,
+            193
+          ],
+          [
+            191,
+            193
+          ],
+          [
+            200,
+            201
+          ],
+          [
+            200,
+            203
+          ],
+          [
+            208,
+            209
+          ],
+          [
+            208,
+            217
+          ],
+          [
+            212,
+            213
+          ],
+          [
+            212,
+            217
+          ],
+          [
+            222,
+            223
+          ],
+          [
+            222,
+            224
+          ],
+          [
+            224,
+            225
+          ],
+          [
+            224,
+            226
+          ],
+          [
+            226,
+            227
+          ],
+          [
+            226,
+            230
+          ],
+          [
+            230,
+            231
+          ],
+          [
+            230,
+            236
+          ],
+          [
+            236,
+            237
+          ],
+          [
+            236,
+            242
+          ],
+          [
+            243,
+            244
+          ],
+          [
+            243,
+            250
+          ],
+          [
+            253,
+            254
+          ],
+          [
+            253,
+            257
+          ],
+          [
+            257,
+            258
+          ],
+          [
+            257,
+            260
+          ],
+          [
+            269,
+            270
+          ],
+          [
+            269,
+            278
+          ],
+          [
+            272,
+            273
+          ],
+          [
+            272,
+            274
+          ],
+          [
+            274,
+            269
+          ],
+          [
+            274,
+            275
+          ],
+          [
+            295,
+            296
+          ],
+          [
+            295,
+            303
+          ],
+          [
+            344,
+            345
+          ],
+          [
+            344,
+            350
+          ],
+          [
+            346,
+            347
+          ],
+          [
+            346,
+            350
+          ],
+          [
+            348,
+            349
+          ],
+          [
+            348,
+            350
+          ],
+          [
+            350,
+            351
+          ],
+          [
+            350,
+            364
+          ],
+          [
+            358,
+            359
+          ],
+          [
+            358,
+            364
+          ],
+          [
+            367,
+            368
+          ],
+          [
+            367,
+            372
+          ],
+          [
+            399,
+            404
+          ],
+          [
+            399,
+            411
+          ],
+          [
+            416,
+            -196
+          ],
+          [
+            416,
+            417
+          ],
+          [
+            421,
+            422
+          ]
+        ],
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 136,
+            "total_statements": 210,
+            "branches": 56,
+            "total_branches": 70
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 78,
+            "total_statements": 210,
+            "branches": 42,
+            "total_branches": 70
+          },
+          "main_5be77e15": {
+            "statements": 18,
+            "total_statements": 210,
+            "branches": 16,
+            "total_branches": 70
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 0,
+            "total_statements": 210,
+            "branches": 1,
+            "total_branches": 70
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 0,
+            "total_statements": 210,
+            "branches": 1,
+            "total_branches": 70
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 58,
+            "branches": 14,
+            "combined_units": 72
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 60,
+            "branches": 26,
+            "combined_units": 86
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 18,
+            "branches": 15,
+            "combined_units": 33
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 136,
+            "branches": 55,
+            "combined_units": 191
+          }
+        }
+      }
+    },
+    "branch_coverage": true
+  },
+  "after-2384-gate": {
+    "run_id": 43154194839,
+    "revision": "1b7f97a1c640ef69efe6a6750cf93f23a105000e",
+    "exit_code": 1,
+    "coverage_json_sha256": "72dc924121d6b831c72602370d121ebf47ba19c5d3bfa1f5f3f12416f8eba050",
+    "targets": {
+      "pa_core/llm/result_explain.py": {
+        "statement_count": 226,
+        "uncovered_statement_count": 4,
+        "uncovered_statement_lines": [
+          437,
+          438,
+          448,
+          456
+        ],
+        "branch_count": null,
+        "uncovered_branch_count": null,
+        "uncovered_branch_arcs": null,
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 4,
+            "total_statements": 226,
+            "branches": 7,
+            "total_branches": 102
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 4,
+            "total_statements": 226,
+            "branches": 7,
+            "total_branches": 102
+          },
+          "main_5be77e15": {
+            "statements": 0,
+            "total_statements": 227,
+            "branches": 4,
+            "total_branches": 102
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 0,
+            "total_statements": 227,
+            "branches": 0,
+            "total_branches": 102
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 0,
+            "total_statements": 227,
+            "branches": 0,
+            "total_branches": 102
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 4,
+            "branches": 3,
+            "combined_units": 7
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 0,
+            "branches": 4,
+            "combined_units": 4
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 4,
+            "branches": 7,
+            "combined_units": 11
+          }
+        }
+      },
+      "pa_core/pa.py": {
+        "statement_count": 222,
+        "uncovered_statement_count": 27,
+        "uncovered_statement_lines": [
+          94,
+          97,
+          105,
+          116,
+          122,
+          299,
+          334,
+          335,
+          337,
+          338,
+          339,
+          340,
+          342,
+          343,
+          344,
+          348,
+          349,
+          350,
+          365,
+          366,
+          368,
+          374,
+          422,
+          464,
+          466,
+          473,
+          474
+        ],
+        "branch_count": null,
+        "uncovered_branch_count": null,
+        "uncovered_branch_arcs": null,
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 27,
+            "total_statements": 222,
+            "branches": 24,
+            "total_branches": 68
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 27,
+            "total_statements": 222,
+            "branches": 24,
+            "total_branches": 68
+          },
+          "main_5be77e15": {
+            "statements": 0,
+            "total_statements": 222,
+            "branches": 2,
+            "total_branches": 68
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 0,
+            "total_statements": 222,
+            "branches": 1,
+            "total_branches": 68
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 0,
+            "total_statements": 222,
+            "branches": 1,
+            "total_branches": 68
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 27,
+            "branches": 22,
+            "combined_units": 49
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 0,
+            "branches": 1,
+            "combined_units": 1
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 27,
+            "branches": 23,
+            "combined_units": 50
+          }
+        }
+      },
+      "pa_core/facade.py": {
+        "statement_count": 332,
+        "uncovered_statement_count": 23,
+        "uncovered_statement_lines": [
+          50,
+          51,
+          63,
+          87,
+          88,
+          243,
+          245,
+          247,
+          363,
+          364,
+          365,
+          367,
+          430,
+          629,
+          630,
+          631,
+          633,
+          746,
+          752,
+          814,
+          815,
+          820,
+          823
+        ],
+        "branch_count": null,
+        "uncovered_branch_count": null,
+        "uncovered_branch_arcs": null,
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 23,
+            "total_statements": 332,
+            "branches": 22,
+            "total_branches": 120
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 23,
+            "total_statements": 332,
+            "branches": 22,
+            "total_branches": 120
+          },
+          "main_5be77e15": {
+            "statements": 2,
+            "total_statements": 332,
+            "branches": 8,
+            "total_branches": 120
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 2,
+            "total_statements": 337,
+            "branches": 2,
+            "total_branches": 124
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 2,
+            "total_statements": 337,
+            "branches": 2,
+            "total_branches": 124
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 21,
+            "branches": 14,
+            "combined_units": 35
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 0,
+            "branches": 6,
+            "combined_units": 6
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 21,
+            "branches": 20,
+            "combined_units": 41
+          }
+        }
+      },
+      "pa_core/units.py": {
+        "statement_count": 81,
+        "uncovered_statement_count": 13,
+        "uncovered_statement_lines": [
+          153,
+          177,
+          194,
+          195,
+          196,
+          197,
+          198,
+          199,
+          200,
+          214,
+          216,
+          218,
+          237
+        ],
+        "branch_count": null,
+        "uncovered_branch_count": null,
+        "uncovered_branch_arcs": null,
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 13,
+            "total_statements": 81,
+            "branches": 10,
+            "total_branches": 30
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 13,
+            "total_statements": 81,
+            "branches": 10,
+            "total_branches": 30
+          },
+          "main_5be77e15": {
+            "statements": 0,
+            "total_statements": 81,
+            "branches": 0,
+            "total_branches": 30
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 0,
+            "total_statements": 81,
+            "branches": 0,
+            "total_branches": 30
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 0,
+            "total_statements": 81,
+            "branches": 0,
+            "total_branches": 30
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 13,
+            "branches": 10,
+            "combined_units": 23
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 13,
+            "branches": 10,
+            "combined_units": 23
+          }
+        }
+      },
+      "pa_core/sim/internal_pa_financing.py": {
+        "statement_count": 35,
+        "uncovered_statement_count": 4,
+        "uncovered_statement_lines": [
+          55,
+          57,
+          59,
+          81
+        ],
+        "branch_count": null,
+        "uncovered_branch_count": null,
+        "uncovered_branch_arcs": null,
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 4,
+            "total_statements": 35,
+            "branches": 4,
+            "total_branches": 18
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 4,
+            "total_statements": 35,
+            "branches": 4,
+            "total_branches": 18
+          },
+          "main_5be77e15": {
+            "statements": 0,
+            "total_statements": 35,
+            "branches": 0,
+            "total_branches": 18
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 0,
+            "total_statements": 35,
+            "branches": 0,
+            "total_branches": 18
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 0,
+            "total_statements": 35,
+            "branches": 0,
+            "total_branches": 18
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 4,
+            "branches": 4,
+            "combined_units": 8
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 4,
+            "branches": 4,
+            "combined_units": 8
+          }
+        }
+      },
+      "pa_core/manifest.py": {
+        "statement_count": 61,
+        "uncovered_statement_count": 2,
+        "uncovered_statement_lines": [
+          88,
+          89
+        ],
+        "branch_count": null,
+        "uncovered_branch_count": null,
+        "uncovered_branch_arcs": null,
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 2,
+            "total_statements": 61,
+            "branches": 0,
+            "total_branches": 4
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 2,
+            "total_statements": 61,
+            "branches": 0,
+            "total_branches": 4
+          },
+          "main_5be77e15": {
+            "statements": 0,
+            "total_statements": 61,
+            "branches": 0,
+            "total_branches": 4
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 0,
+            "total_statements": 61,
+            "branches": 0,
+            "total_branches": 4
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 0,
+            "total_statements": 61,
+            "branches": 0,
+            "total_branches": 4
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 2,
+            "branches": 0,
+            "combined_units": 2
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 2,
+            "branches": 0,
+            "combined_units": 2
+          }
+        }
+      },
+      "dashboard/pages/4_Results.py": {
+        "statement_count": 210,
+        "uncovered_statement_count": 78,
+        "uncovered_statement_lines": [
+          51,
+          54,
+          57,
+          67,
+          160,
+          161,
+          178,
+          179,
+          193,
+          201,
+          202,
+          209,
+          210,
+          211,
+          212,
+          213,
+          214,
+          215,
+          224,
+          225,
+          257,
+          258,
+          260,
+          261,
+          294,
+          295,
+          296,
+          299,
+          303,
+          313,
+          314,
+          315,
+          316,
+          322,
+          323,
+          331,
+          332,
+          333,
+          334,
+          339,
+          341,
+          342,
+          343,
+          344,
+          345,
+          346,
+          347,
+          348,
+          349,
+          350,
+          351,
+          352,
+          353,
+          358,
+          359,
+          360,
+          361,
+          362,
+          364,
+          365,
+          366,
+          367,
+          368,
+          369,
+          370,
+          372,
+          388,
+          398,
+          399,
+          404,
+          407,
+          411,
+          412,
+          413,
+          414,
+          417,
+          418,
+          422
+        ],
+        "branch_count": null,
+        "uncovered_branch_count": null,
+        "uncovered_branch_arcs": null,
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 136,
+            "total_statements": 210,
+            "branches": 56,
+            "total_branches": 70
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 78,
+            "total_statements": 210,
+            "branches": 42,
+            "total_branches": 70
+          },
+          "main_5be77e15": {
+            "statements": 18,
+            "total_statements": 210,
+            "branches": 16,
+            "total_branches": 70
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 0,
+            "total_statements": 210,
+            "branches": 1,
+            "total_branches": 70
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 0,
+            "total_statements": 210,
+            "branches": 1,
+            "total_branches": 70
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 58,
+            "branches": 14,
+            "combined_units": 72
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 60,
+            "branches": 26,
+            "combined_units": 86
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 18,
+            "branches": 15,
+            "combined_units": 33
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 136,
+            "branches": 55,
+            "combined_units": 191
+          }
+        }
+      }
+    },
+    "branch_coverage": false
+  },
+  "after-2384-branch": {
+    "run_id": 43154194839,
+    "revision": "1b7f97a1c640ef69efe6a6750cf93f23a105000e",
+    "exit_code": 1,
+    "coverage_json_sha256": "24524385d5263d48b00f9733c11c0db2a928e061c416bf2c65d54154e7900252",
+    "targets": {
+      "pa_core/llm/result_explain.py": {
+        "statement_count": 226,
+        "uncovered_statement_count": 4,
+        "uncovered_statement_lines": [
+          437,
+          438,
+          448,
+          456
+        ],
+        "branch_count": 102,
+        "uncovered_branch_count": 7,
+        "uncovered_branch_arcs": [
+          [
+            224,
+            223
+          ],
+          [
+            277,
+            289
+          ],
+          [
+            282,
+            279
+          ],
+          [
+            447,
+            448
+          ],
+          [
+            451,
+            450
+          ],
+          [
+            453,
+            450
+          ],
+          [
+            455,
+            456
+          ]
+        ],
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 4,
+            "total_statements": 226,
+            "branches": 7,
+            "total_branches": 102
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 4,
+            "total_statements": 226,
+            "branches": 7,
+            "total_branches": 102
+          },
+          "main_5be77e15": {
+            "statements": 0,
+            "total_statements": 227,
+            "branches": 4,
+            "total_branches": 102
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 0,
+            "total_statements": 227,
+            "branches": 0,
+            "total_branches": 102
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 0,
+            "total_statements": 227,
+            "branches": 0,
+            "total_branches": 102
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 4,
+            "branches": 3,
+            "combined_units": 7
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 0,
+            "branches": 4,
+            "combined_units": 4
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 4,
+            "branches": 7,
+            "combined_units": 11
+          }
+        }
+      },
+      "pa_core/pa.py": {
+        "statement_count": 222,
+        "uncovered_statement_count": 27,
+        "uncovered_statement_lines": [
+          94,
+          97,
+          105,
+          116,
+          122,
+          299,
+          334,
+          335,
+          337,
+          338,
+          339,
+          340,
+          342,
+          343,
+          344,
+          348,
+          349,
+          350,
+          365,
+          366,
+          368,
+          374,
+          422,
+          464,
+          466,
+          473,
+          474
+        ],
+        "branch_count": 68,
+        "uncovered_branch_count": 24,
+        "uncovered_branch_arcs": [
+          [
+            93,
+            94
+          ],
+          [
+            96,
+            97
+          ],
+          [
+            104,
+            105
+          ],
+          [
+            115,
+            116
+          ],
+          [
+            121,
+            122
+          ],
+          [
+            298,
+            299
+          ],
+          [
+            329,
+            331
+          ],
+          [
+            333,
+            334
+          ],
+          [
+            337,
+            338
+          ],
+          [
+            337,
+            348
+          ],
+          [
+            339,
+            340
+          ],
+          [
+            339,
+            342
+          ],
+          [
+            342,
+            -120
+          ],
+          [
+            342,
+            343
+          ],
+          [
+            348,
+            -120
+          ],
+          [
+            348,
+            349
+          ],
+          [
+            351,
+            464
+          ],
+          [
+            363,
+            365
+          ],
+          [
+            365,
+            366
+          ],
+          [
+            365,
+            368
+          ],
+          [
+            370,
+            374
+          ],
+          [
+            405,
+            407
+          ],
+          [
+            408,
+            410
+          ],
+          [
+            421,
+            422
+          ]
+        ],
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 27,
+            "total_statements": 222,
+            "branches": 24,
+            "total_branches": 68
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 27,
+            "total_statements": 222,
+            "branches": 24,
+            "total_branches": 68
+          },
+          "main_5be77e15": {
+            "statements": 0,
+            "total_statements": 222,
+            "branches": 2,
+            "total_branches": 68
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 0,
+            "total_statements": 222,
+            "branches": 1,
+            "total_branches": 68
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 0,
+            "total_statements": 222,
+            "branches": 1,
+            "total_branches": 68
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 27,
+            "branches": 22,
+            "combined_units": 49
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 0,
+            "branches": 1,
+            "combined_units": 1
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 27,
+            "branches": 23,
+            "combined_units": 50
+          }
+        }
+      },
+      "pa_core/facade.py": {
+        "statement_count": 332,
+        "uncovered_statement_count": 23,
+        "uncovered_statement_lines": [
+          50,
+          51,
+          63,
+          87,
+          88,
+          243,
+          245,
+          247,
+          363,
+          364,
+          365,
+          367,
+          430,
+          629,
+          630,
+          631,
+          633,
+          746,
+          752,
+          814,
+          815,
+          820,
+          823
+        ],
+        "branch_count": 120,
+        "uncovered_branch_count": 22,
+        "uncovered_branch_arcs": [
+          [
+            62,
+            63
+          ],
+          [
+            242,
+            243
+          ],
+          [
+            244,
+            245
+          ],
+          [
+            246,
+            247
+          ],
+          [
+            362,
+            363
+          ],
+          [
+            364,
+            365
+          ],
+          [
+            364,
+            369
+          ],
+          [
+            366,
+            367
+          ],
+          [
+            429,
+            430
+          ],
+          [
+            490,
+            493
+          ],
+          [
+            501,
+            527
+          ],
+          [
+            504,
+            527
+          ],
+          [
+            628,
+            629
+          ],
+          [
+            630,
+            631
+          ],
+          [
+            630,
+            635
+          ],
+          [
+            632,
+            633
+          ],
+          [
+            745,
+            746
+          ],
+          [
+            751,
+            752
+          ],
+          [
+            780,
+            785
+          ],
+          [
+            804,
+            814
+          ],
+          [
+            819,
+            820
+          ],
+          [
+            822,
+            823
+          ]
+        ],
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 23,
+            "total_statements": 332,
+            "branches": 22,
+            "total_branches": 120
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 23,
+            "total_statements": 332,
+            "branches": 22,
+            "total_branches": 120
+          },
+          "main_5be77e15": {
+            "statements": 2,
+            "total_statements": 332,
+            "branches": 8,
+            "total_branches": 120
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 2,
+            "total_statements": 337,
+            "branches": 2,
+            "total_branches": 124
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 2,
+            "total_statements": 337,
+            "branches": 2,
+            "total_branches": 124
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 21,
+            "branches": 14,
+            "combined_units": 35
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 0,
+            "branches": 6,
+            "combined_units": 6
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 21,
+            "branches": 20,
+            "combined_units": 41
+          }
+        }
+      },
+      "pa_core/units.py": {
+        "statement_count": 81,
+        "uncovered_statement_count": 13,
+        "uncovered_statement_lines": [
+          153,
+          177,
+          194,
+          195,
+          196,
+          197,
+          198,
+          199,
+          200,
+          214,
+          216,
+          218,
+          237
+        ],
+        "branch_count": 30,
+        "uncovered_branch_count": 10,
+        "uncovered_branch_arcs": [
+          [
+            152,
+            153
+          ],
+          [
+            176,
+            177
+          ],
+          [
+            196,
+            197
+          ],
+          [
+            196,
+            198
+          ],
+          [
+            198,
+            199
+          ],
+          [
+            198,
+            200
+          ],
+          [
+            213,
+            214
+          ],
+          [
+            215,
+            216
+          ],
+          [
+            217,
+            218
+          ],
+          [
+            236,
+            237
+          ]
+        ],
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 13,
+            "total_statements": 81,
+            "branches": 10,
+            "total_branches": 30
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 13,
+            "total_statements": 81,
+            "branches": 10,
+            "total_branches": 30
+          },
+          "main_5be77e15": {
+            "statements": 0,
+            "total_statements": 81,
+            "branches": 0,
+            "total_branches": 30
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 0,
+            "total_statements": 81,
+            "branches": 0,
+            "total_branches": 30
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 0,
+            "total_statements": 81,
+            "branches": 0,
+            "total_branches": 30
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 13,
+            "branches": 10,
+            "combined_units": 23
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 13,
+            "branches": 10,
+            "combined_units": 23
+          }
+        }
+      },
+      "pa_core/sim/internal_pa_financing.py": {
+        "statement_count": 35,
+        "uncovered_statement_count": 4,
+        "uncovered_statement_lines": [
+          55,
+          57,
+          59,
+          81
+        ],
+        "branch_count": 18,
+        "uncovered_branch_count": 4,
+        "uncovered_branch_arcs": [
+          [
+            54,
+            55
+          ],
+          [
+            56,
+            57
+          ],
+          [
+            58,
+            59
+          ],
+          [
+            80,
+            81
+          ]
+        ],
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 4,
+            "total_statements": 35,
+            "branches": 4,
+            "total_branches": 18
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 4,
+            "total_statements": 35,
+            "branches": 4,
+            "total_branches": 18
+          },
+          "main_5be77e15": {
+            "statements": 0,
+            "total_statements": 35,
+            "branches": 0,
+            "total_branches": 18
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 0,
+            "total_statements": 35,
+            "branches": 0,
+            "total_branches": 18
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 0,
+            "total_statements": 35,
+            "branches": 0,
+            "total_branches": 18
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 4,
+            "branches": 4,
+            "combined_units": 8
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 4,
+            "branches": 4,
+            "combined_units": 8
+          }
+        }
+      },
+      "pa_core/manifest.py": {
+        "statement_count": 61,
+        "uncovered_statement_count": 2,
+        "uncovered_statement_lines": [
+          88,
+          89
+        ],
+        "branch_count": 4,
+        "uncovered_branch_count": 0,
+        "uncovered_branch_arcs": [],
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 2,
+            "total_statements": 61,
+            "branches": 0,
+            "total_branches": 4
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 2,
+            "total_statements": 61,
+            "branches": 0,
+            "total_branches": 4
+          },
+          "main_5be77e15": {
+            "statements": 0,
+            "total_statements": 61,
+            "branches": 0,
+            "total_branches": 4
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 0,
+            "total_statements": 61,
+            "branches": 0,
+            "total_branches": 4
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 0,
+            "total_statements": 61,
+            "branches": 0,
+            "total_branches": 4
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 2,
+            "branches": 0,
+            "combined_units": 2
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 2,
+            "branches": 0,
+            "combined_units": 2
+          }
+        }
+      },
+      "dashboard/pages/4_Results.py": {
+        "statement_count": 210,
+        "uncovered_statement_count": 78,
+        "uncovered_statement_lines": [
+          51,
+          54,
+          57,
+          67,
+          160,
+          161,
+          178,
+          179,
+          193,
+          201,
+          202,
+          209,
+          210,
+          211,
+          212,
+          213,
+          214,
+          215,
+          224,
+          225,
+          257,
+          258,
+          260,
+          261,
+          294,
+          295,
+          296,
+          299,
+          303,
+          313,
+          314,
+          315,
+          316,
+          322,
+          323,
+          331,
+          332,
+          333,
+          334,
+          339,
+          341,
+          342,
+          343,
+          344,
+          345,
+          346,
+          347,
+          348,
+          349,
+          350,
+          351,
+          352,
+          353,
+          358,
+          359,
+          360,
+          361,
+          362,
+          364,
+          365,
+          366,
+          367,
+          368,
+          369,
+          370,
+          372,
+          388,
+          398,
+          399,
+          404,
+          407,
+          411,
+          412,
+          413,
+          414,
+          417,
+          418,
+          422
+        ],
+        "branch_count": 70,
+        "uncovered_branch_count": 42,
+        "uncovered_branch_arcs": [
+          [
+            50,
+            51
+          ],
+          [
+            53,
+            54
+          ],
+          [
+            56,
+            57
+          ],
+          [
+            66,
+            67
+          ],
+          [
+            175,
+            178
+          ],
+          [
+            178,
+            179
+          ],
+          [
+            178,
+            180
+          ],
+          [
+            189,
+            193
+          ],
+          [
+            191,
+            193
+          ],
+          [
+            200,
+            201
+          ],
+          [
+            208,
+            209
+          ],
+          [
+            212,
+            213
+          ],
+          [
+            212,
+            217
+          ],
+          [
+            222,
+            224
+          ],
+          [
+            224,
+            225
+          ],
+          [
+            224,
+            226
+          ],
+          [
+            226,
+            230
+          ],
+          [
+            230,
+            236
+          ],
+          [
+            236,
+            242
+          ],
+          [
+            243,
+            250
+          ],
+          [
+            253,
+            257
+          ],
+          [
+            257,
+            258
+          ],
+          [
+            257,
+            260
+          ],
+          [
+            274,
+            269
+          ],
+          [
+            295,
+            296
+          ],
+          [
+            295,
+            303
+          ],
+          [
+            344,
+            345
+          ],
+          [
+            344,
+            350
+          ],
+          [
+            346,
+            347
+          ],
+          [
+            346,
+            350
+          ],
+          [
+            348,
+            349
+          ],
+          [
+            348,
+            350
+          ],
+          [
+            350,
+            351
+          ],
+          [
+            350,
+            364
+          ],
+          [
+            358,
+            359
+          ],
+          [
+            358,
+            364
+          ],
+          [
+            367,
+            368
+          ],
+          [
+            367,
+            372
+          ],
+          [
+            399,
+            404
+          ],
+          [
+            399,
+            411
+          ],
+          [
+            416,
+            417
+          ],
+          [
+            421,
+            422
+          ]
+        ],
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 136,
+            "total_statements": 210,
+            "branches": 56,
+            "total_branches": 70
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 78,
+            "total_statements": 210,
+            "branches": 42,
+            "total_branches": 70
+          },
+          "main_5be77e15": {
+            "statements": 18,
+            "total_statements": 210,
+            "branches": 16,
+            "total_branches": 70
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 0,
+            "total_statements": 210,
+            "branches": 1,
+            "total_branches": 70
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 0,
+            "total_statements": 210,
+            "branches": 1,
+            "total_branches": 70
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 58,
+            "branches": 14,
+            "combined_units": 72
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 60,
+            "branches": 26,
+            "combined_units": 86
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 18,
+            "branches": 15,
+            "combined_units": 33
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 136,
+            "branches": 55,
+            "combined_units": 191
+          }
+        }
+      }
+    },
+    "branch_coverage": true
+  },
+  "main-gate": {
+    "revision": "5be77e15c925f5354ab67e2a1749fe6187d2038c",
+    "exit_code": 0,
+    "coverage_json_sha256": "6ae74e96ecd63f2fcb33cbd0c90cde7b88f3266f8364587b4d594dcefbb28610",
+    "targets": {
+      "pa_core/llm/result_explain.py": {
+        "statement_count": 227,
+        "uncovered_statement_count": 0,
+        "uncovered_statement_lines": [],
+        "branch_count": null,
+        "uncovered_branch_count": null,
+        "uncovered_branch_arcs": null,
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 4,
+            "total_statements": 226,
+            "branches": 7,
+            "total_branches": 102
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 4,
+            "total_statements": 226,
+            "branches": 7,
+            "total_branches": 102
+          },
+          "main_5be77e15": {
+            "statements": 0,
+            "total_statements": 227,
+            "branches": 4,
+            "total_branches": 102
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 0,
+            "total_statements": 227,
+            "branches": 0,
+            "total_branches": 102
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 0,
+            "total_statements": 227,
+            "branches": 0,
+            "total_branches": 102
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 4,
+            "branches": 3,
+            "combined_units": 7
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 0,
+            "branches": 4,
+            "combined_units": 4
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 4,
+            "branches": 7,
+            "combined_units": 11
+          }
+        }
+      },
+      "pa_core/pa.py": {
+        "statement_count": 222,
+        "uncovered_statement_count": 0,
+        "uncovered_statement_lines": [],
+        "branch_count": null,
+        "uncovered_branch_count": null,
+        "uncovered_branch_arcs": null,
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 27,
+            "total_statements": 222,
+            "branches": 24,
+            "total_branches": 68
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 27,
+            "total_statements": 222,
+            "branches": 24,
+            "total_branches": 68
+          },
+          "main_5be77e15": {
+            "statements": 0,
+            "total_statements": 222,
+            "branches": 2,
+            "total_branches": 68
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 0,
+            "total_statements": 222,
+            "branches": 1,
+            "total_branches": 68
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 0,
+            "total_statements": 222,
+            "branches": 1,
+            "total_branches": 68
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 27,
+            "branches": 22,
+            "combined_units": 49
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 0,
+            "branches": 1,
+            "combined_units": 1
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 27,
+            "branches": 23,
+            "combined_units": 50
+          }
+        }
+      },
+      "pa_core/facade.py": {
+        "statement_count": 332,
+        "uncovered_statement_count": 2,
+        "uncovered_statement_lines": [
+          746,
+          752
+        ],
+        "branch_count": null,
+        "uncovered_branch_count": null,
+        "uncovered_branch_arcs": null,
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 23,
+            "total_statements": 332,
+            "branches": 22,
+            "total_branches": 120
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 23,
+            "total_statements": 332,
+            "branches": 22,
+            "total_branches": 120
+          },
+          "main_5be77e15": {
+            "statements": 2,
+            "total_statements": 332,
+            "branches": 8,
+            "total_branches": 120
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 2,
+            "total_statements": 337,
+            "branches": 2,
+            "total_branches": 124
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 2,
+            "total_statements": 337,
+            "branches": 2,
+            "total_branches": 124
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 21,
+            "branches": 14,
+            "combined_units": 35
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 0,
+            "branches": 6,
+            "combined_units": 6
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 21,
+            "branches": 20,
+            "combined_units": 41
+          }
+        }
+      },
+      "pa_core/units.py": {
+        "statement_count": 81,
+        "uncovered_statement_count": 0,
+        "uncovered_statement_lines": [],
+        "branch_count": null,
+        "uncovered_branch_count": null,
+        "uncovered_branch_arcs": null,
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 13,
+            "total_statements": 81,
+            "branches": 10,
+            "total_branches": 30
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 13,
+            "total_statements": 81,
+            "branches": 10,
+            "total_branches": 30
+          },
+          "main_5be77e15": {
+            "statements": 0,
+            "total_statements": 81,
+            "branches": 0,
+            "total_branches": 30
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 0,
+            "total_statements": 81,
+            "branches": 0,
+            "total_branches": 30
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 0,
+            "total_statements": 81,
+            "branches": 0,
+            "total_branches": 30
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 13,
+            "branches": 10,
+            "combined_units": 23
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 13,
+            "branches": 10,
+            "combined_units": 23
+          }
+        }
+      },
+      "pa_core/sim/internal_pa_financing.py": {
+        "statement_count": 35,
+        "uncovered_statement_count": 0,
+        "uncovered_statement_lines": [],
+        "branch_count": null,
+        "uncovered_branch_count": null,
+        "uncovered_branch_arcs": null,
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 4,
+            "total_statements": 35,
+            "branches": 4,
+            "total_branches": 18
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 4,
+            "total_statements": 35,
+            "branches": 4,
+            "total_branches": 18
+          },
+          "main_5be77e15": {
+            "statements": 0,
+            "total_statements": 35,
+            "branches": 0,
+            "total_branches": 18
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 0,
+            "total_statements": 35,
+            "branches": 0,
+            "total_branches": 18
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 0,
+            "total_statements": 35,
+            "branches": 0,
+            "total_branches": 18
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 4,
+            "branches": 4,
+            "combined_units": 8
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 4,
+            "branches": 4,
+            "combined_units": 8
+          }
+        }
+      },
+      "pa_core/manifest.py": {
+        "statement_count": 61,
+        "uncovered_statement_count": 0,
+        "uncovered_statement_lines": [],
+        "branch_count": null,
+        "uncovered_branch_count": null,
+        "uncovered_branch_arcs": null,
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 2,
+            "total_statements": 61,
+            "branches": 0,
+            "total_branches": 4
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 2,
+            "total_statements": 61,
+            "branches": 0,
+            "total_branches": 4
+          },
+          "main_5be77e15": {
+            "statements": 0,
+            "total_statements": 61,
+            "branches": 0,
+            "total_branches": 4
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 0,
+            "total_statements": 61,
+            "branches": 0,
+            "total_branches": 4
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 0,
+            "total_statements": 61,
+            "branches": 0,
+            "total_branches": 4
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 2,
+            "branches": 0,
+            "combined_units": 2
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 2,
+            "branches": 0,
+            "combined_units": 2
+          }
+        }
+      },
+      "dashboard/pages/4_Results.py": {
+        "statement_count": 210,
+        "uncovered_statement_count": 18,
+        "uncovered_statement_lines": [
+          214,
+          215,
+          360,
+          361,
+          362,
+          367,
+          368,
+          398,
+          399,
+          404,
+          407,
+          411,
+          412,
+          413,
+          414,
+          417,
+          418,
+          422
+        ],
+        "branch_count": null,
+        "uncovered_branch_count": null,
+        "uncovered_branch_arcs": null,
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 136,
+            "total_statements": 210,
+            "branches": 56,
+            "total_branches": 70
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 78,
+            "total_statements": 210,
+            "branches": 42,
+            "total_branches": 70
+          },
+          "main_5be77e15": {
+            "statements": 18,
+            "total_statements": 210,
+            "branches": 16,
+            "total_branches": 70
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 0,
+            "total_statements": 210,
+            "branches": 1,
+            "total_branches": 70
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 0,
+            "total_statements": 210,
+            "branches": 1,
+            "total_branches": 70
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 58,
+            "branches": 14,
+            "combined_units": 72
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 60,
+            "branches": 26,
+            "combined_units": 86
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 18,
+            "branches": 15,
+            "combined_units": 33
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 136,
+            "branches": 55,
+            "combined_units": 191
+          }
+        }
+      }
+    },
+    "branch_coverage": false
+  },
+  "main-branch": {
+    "revision": "5be77e15c925f5354ab67e2a1749fe6187d2038c",
+    "exit_code": 0,
+    "coverage_json_sha256": "0f8f76dba22d081b7fb0397a2939eefcaa04a4554b2bcf77454489be1bac35f8",
+    "targets": {
+      "pa_core/llm/result_explain.py": {
+        "statement_count": 227,
+        "uncovered_statement_count": 0,
+        "uncovered_statement_lines": [],
+        "branch_count": 102,
+        "uncovered_branch_count": 4,
+        "uncovered_branch_arcs": [
+          [
+            224,
+            223
+          ],
+          [
+            277,
+            289
+          ],
+          [
+            282,
+            279
+          ],
+          [
+            459,
+            458
+          ]
+        ],
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 4,
+            "total_statements": 226,
+            "branches": 7,
+            "total_branches": 102
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 4,
+            "total_statements": 226,
+            "branches": 7,
+            "total_branches": 102
+          },
+          "main_5be77e15": {
+            "statements": 0,
+            "total_statements": 227,
+            "branches": 4,
+            "total_branches": 102
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 0,
+            "total_statements": 227,
+            "branches": 0,
+            "total_branches": 102
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 0,
+            "total_statements": 227,
+            "branches": 0,
+            "total_branches": 102
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 4,
+            "branches": 3,
+            "combined_units": 7
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 0,
+            "branches": 4,
+            "combined_units": 4
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 4,
+            "branches": 7,
+            "combined_units": 11
+          }
+        }
+      },
+      "pa_core/pa.py": {
+        "statement_count": 222,
+        "uncovered_statement_count": 0,
+        "uncovered_statement_lines": [],
+        "branch_count": 68,
+        "uncovered_branch_count": 2,
+        "uncovered_branch_arcs": [
+          [
+            330,
+            332
+          ],
+          [
+            349,
+            -120
+          ]
+        ],
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 27,
+            "total_statements": 222,
+            "branches": 24,
+            "total_branches": 68
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 27,
+            "total_statements": 222,
+            "branches": 24,
+            "total_branches": 68
+          },
+          "main_5be77e15": {
+            "statements": 0,
+            "total_statements": 222,
+            "branches": 2,
+            "total_branches": 68
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 0,
+            "total_statements": 222,
+            "branches": 1,
+            "total_branches": 68
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 0,
+            "total_statements": 222,
+            "branches": 1,
+            "total_branches": 68
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 27,
+            "branches": 22,
+            "combined_units": 49
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 0,
+            "branches": 1,
+            "combined_units": 1
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 27,
+            "branches": 23,
+            "combined_units": 50
+          }
+        }
+      },
+      "pa_core/facade.py": {
+        "statement_count": 332,
+        "uncovered_statement_count": 2,
+        "uncovered_statement_lines": [
+          746,
+          752
+        ],
+        "branch_count": 120,
+        "uncovered_branch_count": 8,
+        "uncovered_branch_arcs": [
+          [
+            364,
+            369
+          ],
+          [
+            490,
+            493
+          ],
+          [
+            501,
+            527
+          ],
+          [
+            504,
+            527
+          ],
+          [
+            630,
+            635
+          ],
+          [
+            745,
+            746
+          ],
+          [
+            751,
+            752
+          ],
+          [
+            780,
+            785
+          ]
+        ],
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 23,
+            "total_statements": 332,
+            "branches": 22,
+            "total_branches": 120
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 23,
+            "total_statements": 332,
+            "branches": 22,
+            "total_branches": 120
+          },
+          "main_5be77e15": {
+            "statements": 2,
+            "total_statements": 332,
+            "branches": 8,
+            "total_branches": 120
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 2,
+            "total_statements": 337,
+            "branches": 2,
+            "total_branches": 124
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 2,
+            "total_statements": 337,
+            "branches": 2,
+            "total_branches": 124
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 21,
+            "branches": 14,
+            "combined_units": 35
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 0,
+            "branches": 6,
+            "combined_units": 6
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 21,
+            "branches": 20,
+            "combined_units": 41
+          }
+        }
+      },
+      "pa_core/units.py": {
+        "statement_count": 81,
+        "uncovered_statement_count": 0,
+        "uncovered_statement_lines": [],
+        "branch_count": 30,
+        "uncovered_branch_count": 0,
+        "uncovered_branch_arcs": [],
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 13,
+            "total_statements": 81,
+            "branches": 10,
+            "total_branches": 30
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 13,
+            "total_statements": 81,
+            "branches": 10,
+            "total_branches": 30
+          },
+          "main_5be77e15": {
+            "statements": 0,
+            "total_statements": 81,
+            "branches": 0,
+            "total_branches": 30
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 0,
+            "total_statements": 81,
+            "branches": 0,
+            "total_branches": 30
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 0,
+            "total_statements": 81,
+            "branches": 0,
+            "total_branches": 30
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 13,
+            "branches": 10,
+            "combined_units": 23
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 13,
+            "branches": 10,
+            "combined_units": 23
+          }
+        }
+      },
+      "pa_core/sim/internal_pa_financing.py": {
+        "statement_count": 35,
+        "uncovered_statement_count": 0,
+        "uncovered_statement_lines": [],
+        "branch_count": 18,
+        "uncovered_branch_count": 0,
+        "uncovered_branch_arcs": [],
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 4,
+            "total_statements": 35,
+            "branches": 4,
+            "total_branches": 18
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 4,
+            "total_statements": 35,
+            "branches": 4,
+            "total_branches": 18
+          },
+          "main_5be77e15": {
+            "statements": 0,
+            "total_statements": 35,
+            "branches": 0,
+            "total_branches": 18
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 0,
+            "total_statements": 35,
+            "branches": 0,
+            "total_branches": 18
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 0,
+            "total_statements": 35,
+            "branches": 0,
+            "total_branches": 18
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 4,
+            "branches": 4,
+            "combined_units": 8
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 4,
+            "branches": 4,
+            "combined_units": 8
+          }
+        }
+      },
+      "pa_core/manifest.py": {
+        "statement_count": 61,
+        "uncovered_statement_count": 0,
+        "uncovered_statement_lines": [],
+        "branch_count": 4,
+        "uncovered_branch_count": 0,
+        "uncovered_branch_arcs": [],
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 2,
+            "total_statements": 61,
+            "branches": 0,
+            "total_branches": 4
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 2,
+            "total_statements": 61,
+            "branches": 0,
+            "total_branches": 4
+          },
+          "main_5be77e15": {
+            "statements": 0,
+            "total_statements": 61,
+            "branches": 0,
+            "total_branches": 4
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 0,
+            "total_statements": 61,
+            "branches": 0,
+            "total_branches": 4
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 0,
+            "total_statements": 61,
+            "branches": 0,
+            "total_branches": 4
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 2,
+            "branches": 0,
+            "combined_units": 2
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 2,
+            "branches": 0,
+            "combined_units": 2
+          }
+        }
+      },
+      "dashboard/pages/4_Results.py": {
+        "statement_count": 210,
+        "uncovered_statement_count": 18,
+        "uncovered_statement_lines": [
+          214,
+          215,
+          360,
+          361,
+          362,
+          367,
+          368,
+          398,
+          399,
+          404,
+          407,
+          411,
+          412,
+          413,
+          414,
+          417,
+          418,
+          422
+        ],
+        "branch_count": 70,
+        "uncovered_branch_count": 16,
+        "uncovered_branch_arcs": [
+          [
+            178,
+            180
+          ],
+          [
+            212,
+            217
+          ],
+          [
+            224,
+            226
+          ],
+          [
+            226,
+            230
+          ],
+          [
+            274,
+            269
+          ],
+          [
+            344,
+            350
+          ],
+          [
+            346,
+            350
+          ],
+          [
+            348,
+            350
+          ],
+          [
+            350,
+            364
+          ],
+          [
+            358,
+            364
+          ],
+          [
+            367,
+            368
+          ],
+          [
+            367,
+            372
+          ],
+          [
+            399,
+            404
+          ],
+          [
+            399,
+            411
+          ],
+          [
+            416,
+            417
+          ],
+          [
+            421,
+            422
+          ]
+        ],
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 136,
+            "total_statements": 210,
+            "branches": 56,
+            "total_branches": 70
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 78,
+            "total_statements": 210,
+            "branches": 42,
+            "total_branches": 70
+          },
+          "main_5be77e15": {
+            "statements": 18,
+            "total_statements": 210,
+            "branches": 16,
+            "total_branches": 70
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 0,
+            "total_statements": 210,
+            "branches": 1,
+            "total_branches": 70
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 0,
+            "total_statements": 210,
+            "branches": 1,
+            "total_branches": 70
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 58,
+            "branches": 14,
+            "combined_units": 72
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 60,
+            "branches": 26,
+            "combined_units": 86
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 18,
+            "branches": 15,
+            "combined_units": 33
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 136,
+            "branches": 55,
+            "combined_units": 191
+          }
+        }
+      }
+    },
+    "branch_coverage": true
+  },
+  "merge-gate": {
+    "revision": "ab96b5b495547fcad317da7c135d9b082aa0e150",
+    "exit_code": 0,
+    "coverage_json_sha256": "85309af6249d1df3044be0959b4289319eb5a0ed9f4427949ab80a8d3cd2331a",
+    "targets": {
+      "pa_core/llm/result_explain.py": {
+        "statement_count": 227,
+        "uncovered_statement_count": 0,
+        "uncovered_statement_lines": [],
+        "branch_count": null,
+        "uncovered_branch_count": null,
+        "uncovered_branch_arcs": null,
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 4,
+            "total_statements": 226,
+            "branches": 7,
+            "total_branches": 102
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 4,
+            "total_statements": 226,
+            "branches": 7,
+            "total_branches": 102
+          },
+          "main_5be77e15": {
+            "statements": 0,
+            "total_statements": 227,
+            "branches": 4,
+            "total_branches": 102
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 0,
+            "total_statements": 227,
+            "branches": 0,
+            "total_branches": 102
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 0,
+            "total_statements": 227,
+            "branches": 0,
+            "total_branches": 102
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 4,
+            "branches": 3,
+            "combined_units": 7
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 0,
+            "branches": 4,
+            "combined_units": 4
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 4,
+            "branches": 7,
+            "combined_units": 11
+          }
+        }
+      },
+      "pa_core/pa.py": {
+        "statement_count": 222,
+        "uncovered_statement_count": 0,
+        "uncovered_statement_lines": [],
+        "branch_count": null,
+        "uncovered_branch_count": null,
+        "uncovered_branch_arcs": null,
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 27,
+            "total_statements": 222,
+            "branches": 24,
+            "total_branches": 68
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 27,
+            "total_statements": 222,
+            "branches": 24,
+            "total_branches": 68
+          },
+          "main_5be77e15": {
+            "statements": 0,
+            "total_statements": 222,
+            "branches": 2,
+            "total_branches": 68
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 0,
+            "total_statements": 222,
+            "branches": 1,
+            "total_branches": 68
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 0,
+            "total_statements": 222,
+            "branches": 1,
+            "total_branches": 68
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 27,
+            "branches": 22,
+            "combined_units": 49
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 0,
+            "branches": 1,
+            "combined_units": 1
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 27,
+            "branches": 23,
+            "combined_units": 50
+          }
+        }
+      },
+      "pa_core/facade.py": {
+        "statement_count": 337,
+        "uncovered_statement_count": 2,
+        "uncovered_statement_lines": [
+          751,
+          757
+        ],
+        "branch_count": null,
+        "uncovered_branch_count": null,
+        "uncovered_branch_arcs": null,
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 23,
+            "total_statements": 332,
+            "branches": 22,
+            "total_branches": 120
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 23,
+            "total_statements": 332,
+            "branches": 22,
+            "total_branches": 120
+          },
+          "main_5be77e15": {
+            "statements": 2,
+            "total_statements": 332,
+            "branches": 8,
+            "total_branches": 120
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 2,
+            "total_statements": 337,
+            "branches": 2,
+            "total_branches": 124
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 2,
+            "total_statements": 337,
+            "branches": 2,
+            "total_branches": 124
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 21,
+            "branches": 14,
+            "combined_units": 35
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 0,
+            "branches": 6,
+            "combined_units": 6
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 21,
+            "branches": 20,
+            "combined_units": 41
+          }
+        }
+      },
+      "pa_core/units.py": {
+        "statement_count": 81,
+        "uncovered_statement_count": 0,
+        "uncovered_statement_lines": [],
+        "branch_count": null,
+        "uncovered_branch_count": null,
+        "uncovered_branch_arcs": null,
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 13,
+            "total_statements": 81,
+            "branches": 10,
+            "total_branches": 30
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 13,
+            "total_statements": 81,
+            "branches": 10,
+            "total_branches": 30
+          },
+          "main_5be77e15": {
+            "statements": 0,
+            "total_statements": 81,
+            "branches": 0,
+            "total_branches": 30
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 0,
+            "total_statements": 81,
+            "branches": 0,
+            "total_branches": 30
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 0,
+            "total_statements": 81,
+            "branches": 0,
+            "total_branches": 30
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 13,
+            "branches": 10,
+            "combined_units": 23
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 13,
+            "branches": 10,
+            "combined_units": 23
+          }
+        }
+      },
+      "pa_core/sim/internal_pa_financing.py": {
+        "statement_count": 35,
+        "uncovered_statement_count": 0,
+        "uncovered_statement_lines": [],
+        "branch_count": null,
+        "uncovered_branch_count": null,
+        "uncovered_branch_arcs": null,
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 4,
+            "total_statements": 35,
+            "branches": 4,
+            "total_branches": 18
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 4,
+            "total_statements": 35,
+            "branches": 4,
+            "total_branches": 18
+          },
+          "main_5be77e15": {
+            "statements": 0,
+            "total_statements": 35,
+            "branches": 0,
+            "total_branches": 18
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 0,
+            "total_statements": 35,
+            "branches": 0,
+            "total_branches": 18
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 0,
+            "total_statements": 35,
+            "branches": 0,
+            "total_branches": 18
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 4,
+            "branches": 4,
+            "combined_units": 8
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 4,
+            "branches": 4,
+            "combined_units": 8
+          }
+        }
+      },
+      "pa_core/manifest.py": {
+        "statement_count": 61,
+        "uncovered_statement_count": 0,
+        "uncovered_statement_lines": [],
+        "branch_count": null,
+        "uncovered_branch_count": null,
+        "uncovered_branch_arcs": null,
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 2,
+            "total_statements": 61,
+            "branches": 0,
+            "total_branches": 4
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 2,
+            "total_statements": 61,
+            "branches": 0,
+            "total_branches": 4
+          },
+          "main_5be77e15": {
+            "statements": 0,
+            "total_statements": 61,
+            "branches": 0,
+            "total_branches": 4
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 0,
+            "total_statements": 61,
+            "branches": 0,
+            "total_branches": 4
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 0,
+            "total_statements": 61,
+            "branches": 0,
+            "total_branches": 4
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 2,
+            "branches": 0,
+            "combined_units": 2
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 2,
+            "branches": 0,
+            "combined_units": 2
+          }
+        }
+      },
+      "dashboard/pages/4_Results.py": {
+        "statement_count": 210,
+        "uncovered_statement_count": 0,
+        "uncovered_statement_lines": [],
+        "branch_count": null,
+        "uncovered_branch_count": null,
+        "uncovered_branch_arcs": null,
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 136,
+            "total_statements": 210,
+            "branches": 56,
+            "total_branches": 70
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 78,
+            "total_statements": 210,
+            "branches": 42,
+            "total_branches": 70
+          },
+          "main_5be77e15": {
+            "statements": 18,
+            "total_statements": 210,
+            "branches": 16,
+            "total_branches": 70
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 0,
+            "total_statements": 210,
+            "branches": 1,
+            "total_branches": 70
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 0,
+            "total_statements": 210,
+            "branches": 1,
+            "total_branches": 70
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 58,
+            "branches": 14,
+            "combined_units": 72
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 60,
+            "branches": 26,
+            "combined_units": 86
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 18,
+            "branches": 15,
+            "combined_units": 33
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 136,
+            "branches": 55,
+            "combined_units": 191
+          }
+        }
+      }
+    },
+    "branch_coverage": false
+  },
+  "merge-branch": {
+    "revision": "ab96b5b495547fcad317da7c135d9b082aa0e150",
+    "exit_code": 0,
+    "coverage_json_sha256": "414951a385214bad67a60a1274fdb40104696eda3efb2bb1e1d62208820a83b1",
+    "targets": {
+      "pa_core/llm/result_explain.py": {
+        "statement_count": 227,
+        "uncovered_statement_count": 0,
+        "uncovered_statement_lines": [],
+        "branch_count": 102,
+        "uncovered_branch_count": 0,
+        "uncovered_branch_arcs": [],
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 4,
+            "total_statements": 226,
+            "branches": 7,
+            "total_branches": 102
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 4,
+            "total_statements": 226,
+            "branches": 7,
+            "total_branches": 102
+          },
+          "main_5be77e15": {
+            "statements": 0,
+            "total_statements": 227,
+            "branches": 4,
+            "total_branches": 102
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 0,
+            "total_statements": 227,
+            "branches": 0,
+            "total_branches": 102
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 0,
+            "total_statements": 227,
+            "branches": 0,
+            "total_branches": 102
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 4,
+            "branches": 3,
+            "combined_units": 7
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 0,
+            "branches": 4,
+            "combined_units": 4
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 4,
+            "branches": 7,
+            "combined_units": 11
+          }
+        }
+      },
+      "pa_core/pa.py": {
+        "statement_count": 222,
+        "uncovered_statement_count": 0,
+        "uncovered_statement_lines": [],
+        "branch_count": 68,
+        "uncovered_branch_count": 1,
+        "uncovered_branch_arcs": [
+          [
+            349,
+            -120
+          ]
+        ],
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 27,
+            "total_statements": 222,
+            "branches": 24,
+            "total_branches": 68
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 27,
+            "total_statements": 222,
+            "branches": 24,
+            "total_branches": 68
+          },
+          "main_5be77e15": {
+            "statements": 0,
+            "total_statements": 222,
+            "branches": 2,
+            "total_branches": 68
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 0,
+            "total_statements": 222,
+            "branches": 1,
+            "total_branches": 68
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 0,
+            "total_statements": 222,
+            "branches": 1,
+            "total_branches": 68
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 27,
+            "branches": 22,
+            "combined_units": 49
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 0,
+            "branches": 1,
+            "combined_units": 1
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 27,
+            "branches": 23,
+            "combined_units": 50
+          }
+        }
+      },
+      "pa_core/facade.py": {
+        "statement_count": 337,
+        "uncovered_statement_count": 2,
+        "uncovered_statement_lines": [
+          751,
+          757
+        ],
+        "branch_count": 124,
+        "uncovered_branch_count": 2,
+        "uncovered_branch_arcs": [
+          [
+            750,
+            751
+          ],
+          [
+            756,
+            757
+          ]
+        ],
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 23,
+            "total_statements": 332,
+            "branches": 22,
+            "total_branches": 120
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 23,
+            "total_statements": 332,
+            "branches": 22,
+            "total_branches": 120
+          },
+          "main_5be77e15": {
+            "statements": 2,
+            "total_statements": 332,
+            "branches": 8,
+            "total_branches": 120
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 2,
+            "total_statements": 337,
+            "branches": 2,
+            "total_branches": 124
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 2,
+            "total_statements": 337,
+            "branches": 2,
+            "total_branches": 124
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 21,
+            "branches": 14,
+            "combined_units": 35
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 0,
+            "branches": 6,
+            "combined_units": 6
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 21,
+            "branches": 20,
+            "combined_units": 41
+          }
+        }
+      },
+      "pa_core/units.py": {
+        "statement_count": 81,
+        "uncovered_statement_count": 0,
+        "uncovered_statement_lines": [],
+        "branch_count": 30,
+        "uncovered_branch_count": 0,
+        "uncovered_branch_arcs": [],
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 13,
+            "total_statements": 81,
+            "branches": 10,
+            "total_branches": 30
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 13,
+            "total_statements": 81,
+            "branches": 10,
+            "total_branches": 30
+          },
+          "main_5be77e15": {
+            "statements": 0,
+            "total_statements": 81,
+            "branches": 0,
+            "total_branches": 30
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 0,
+            "total_statements": 81,
+            "branches": 0,
+            "total_branches": 30
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 0,
+            "total_statements": 81,
+            "branches": 0,
+            "total_branches": 30
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 13,
+            "branches": 10,
+            "combined_units": 23
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 13,
+            "branches": 10,
+            "combined_units": 23
+          }
+        }
+      },
+      "pa_core/sim/internal_pa_financing.py": {
+        "statement_count": 35,
+        "uncovered_statement_count": 0,
+        "uncovered_statement_lines": [],
+        "branch_count": 18,
+        "uncovered_branch_count": 0,
+        "uncovered_branch_arcs": [],
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 4,
+            "total_statements": 35,
+            "branches": 4,
+            "total_branches": 18
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 4,
+            "total_statements": 35,
+            "branches": 4,
+            "total_branches": 18
+          },
+          "main_5be77e15": {
+            "statements": 0,
+            "total_statements": 35,
+            "branches": 0,
+            "total_branches": 18
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 0,
+            "total_statements": 35,
+            "branches": 0,
+            "total_branches": 18
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 0,
+            "total_statements": 35,
+            "branches": 0,
+            "total_branches": 18
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 4,
+            "branches": 4,
+            "combined_units": 8
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 4,
+            "branches": 4,
+            "combined_units": 8
+          }
+        }
+      },
+      "pa_core/manifest.py": {
+        "statement_count": 61,
+        "uncovered_statement_count": 0,
+        "uncovered_statement_lines": [],
+        "branch_count": 4,
+        "uncovered_branch_count": 0,
+        "uncovered_branch_arcs": [],
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 2,
+            "total_statements": 61,
+            "branches": 0,
+            "total_branches": 4
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 2,
+            "total_statements": 61,
+            "branches": 0,
+            "total_branches": 4
+          },
+          "main_5be77e15": {
+            "statements": 0,
+            "total_statements": 61,
+            "branches": 0,
+            "total_branches": 4
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 0,
+            "total_statements": 61,
+            "branches": 0,
+            "total_branches": 4
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 0,
+            "total_statements": 61,
+            "branches": 0,
+            "total_branches": 4
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 2,
+            "branches": 0,
+            "combined_units": 2
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 2,
+            "branches": 0,
+            "combined_units": 2
+          }
+        }
+      },
+      "dashboard/pages/4_Results.py": {
+        "statement_count": 210,
+        "uncovered_statement_count": 0,
+        "uncovered_statement_lines": [],
+        "branch_count": 70,
+        "uncovered_branch_count": 1,
+        "uncovered_branch_arcs": [
+          [
+            178,
+            180
+          ]
+        ],
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 136,
+            "total_statements": 210,
+            "branches": 56,
+            "total_branches": 70
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 78,
+            "total_statements": 210,
+            "branches": 42,
+            "total_branches": 70
+          },
+          "main_5be77e15": {
+            "statements": 18,
+            "total_statements": 210,
+            "branches": 16,
+            "total_branches": 70
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 0,
+            "total_statements": 210,
+            "branches": 1,
+            "total_branches": 70
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 0,
+            "total_statements": 210,
+            "branches": 1,
+            "total_branches": 70
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 58,
+            "branches": 14,
+            "combined_units": 72
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 60,
+            "branches": 26,
+            "combined_units": 86
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 18,
+            "branches": 15,
+            "combined_units": 33
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 136,
+            "branches": 55,
+            "combined_units": 191
+          }
+        }
+      }
+    },
+    "branch_coverage": true
+  },
+  "delivered-merge-gate": {
+    "run_id": 43154194839,
+    "revision": "d0e8f8058a0c8f32babf4460390bd2073ed5389a",
+    "exit_code": 0,
+    "coverage_json_sha256": "3aec18683652e7c6cc2d1b1dc8fe8175601507c7819bbe0b739eb8ff3f6dd4f8",
+    "targets": {
+      "pa_core/llm/result_explain.py": {
+        "statement_count": 227,
+        "uncovered_statement_count": 0,
+        "uncovered_statement_lines": [],
+        "branch_count": null,
+        "uncovered_branch_count": null,
+        "uncovered_branch_arcs": null,
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 4,
+            "total_statements": 226,
+            "branches": 7,
+            "total_branches": 102
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 4,
+            "total_statements": 226,
+            "branches": 7,
+            "total_branches": 102
+          },
+          "main_5be77e15": {
+            "statements": 0,
+            "total_statements": 227,
+            "branches": 4,
+            "total_branches": 102
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 0,
+            "total_statements": 227,
+            "branches": 0,
+            "total_branches": 102
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 0,
+            "total_statements": 227,
+            "branches": 0,
+            "total_branches": 102
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 4,
+            "branches": 3,
+            "combined_units": 7
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 0,
+            "branches": 4,
+            "combined_units": 4
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 4,
+            "branches": 7,
+            "combined_units": 11
+          }
+        }
+      },
+      "pa_core/pa.py": {
+        "statement_count": 222,
+        "uncovered_statement_count": 0,
+        "uncovered_statement_lines": [],
+        "branch_count": null,
+        "uncovered_branch_count": null,
+        "uncovered_branch_arcs": null,
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 27,
+            "total_statements": 222,
+            "branches": 24,
+            "total_branches": 68
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 27,
+            "total_statements": 222,
+            "branches": 24,
+            "total_branches": 68
+          },
+          "main_5be77e15": {
+            "statements": 0,
+            "total_statements": 222,
+            "branches": 2,
+            "total_branches": 68
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 0,
+            "total_statements": 222,
+            "branches": 1,
+            "total_branches": 68
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 0,
+            "total_statements": 222,
+            "branches": 1,
+            "total_branches": 68
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 27,
+            "branches": 22,
+            "combined_units": 49
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 0,
+            "branches": 1,
+            "combined_units": 1
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 27,
+            "branches": 23,
+            "combined_units": 50
+          }
+        }
+      },
+      "pa_core/facade.py": {
+        "statement_count": 337,
+        "uncovered_statement_count": 2,
+        "uncovered_statement_lines": [
+          751,
+          757
+        ],
+        "branch_count": null,
+        "uncovered_branch_count": null,
+        "uncovered_branch_arcs": null,
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 23,
+            "total_statements": 332,
+            "branches": 22,
+            "total_branches": 120
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 23,
+            "total_statements": 332,
+            "branches": 22,
+            "total_branches": 120
+          },
+          "main_5be77e15": {
+            "statements": 2,
+            "total_statements": 332,
+            "branches": 8,
+            "total_branches": 120
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 2,
+            "total_statements": 337,
+            "branches": 2,
+            "total_branches": 124
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 2,
+            "total_statements": 337,
+            "branches": 2,
+            "total_branches": 124
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 21,
+            "branches": 14,
+            "combined_units": 35
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 0,
+            "branches": 6,
+            "combined_units": 6
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 21,
+            "branches": 20,
+            "combined_units": 41
+          }
+        }
+      },
+      "pa_core/units.py": {
+        "statement_count": 81,
+        "uncovered_statement_count": 0,
+        "uncovered_statement_lines": [],
+        "branch_count": null,
+        "uncovered_branch_count": null,
+        "uncovered_branch_arcs": null,
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 13,
+            "total_statements": 81,
+            "branches": 10,
+            "total_branches": 30
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 13,
+            "total_statements": 81,
+            "branches": 10,
+            "total_branches": 30
+          },
+          "main_5be77e15": {
+            "statements": 0,
+            "total_statements": 81,
+            "branches": 0,
+            "total_branches": 30
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 0,
+            "total_statements": 81,
+            "branches": 0,
+            "total_branches": 30
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 0,
+            "total_statements": 81,
+            "branches": 0,
+            "total_branches": 30
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 13,
+            "branches": 10,
+            "combined_units": 23
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 13,
+            "branches": 10,
+            "combined_units": 23
+          }
+        }
+      },
+      "pa_core/sim/internal_pa_financing.py": {
+        "statement_count": 35,
+        "uncovered_statement_count": 0,
+        "uncovered_statement_lines": [],
+        "branch_count": null,
+        "uncovered_branch_count": null,
+        "uncovered_branch_arcs": null,
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 4,
+            "total_statements": 35,
+            "branches": 4,
+            "total_branches": 18
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 4,
+            "total_statements": 35,
+            "branches": 4,
+            "total_branches": 18
+          },
+          "main_5be77e15": {
+            "statements": 0,
+            "total_statements": 35,
+            "branches": 0,
+            "total_branches": 18
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 0,
+            "total_statements": 35,
+            "branches": 0,
+            "total_branches": 18
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 0,
+            "total_statements": 35,
+            "branches": 0,
+            "total_branches": 18
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 4,
+            "branches": 4,
+            "combined_units": 8
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 4,
+            "branches": 4,
+            "combined_units": 8
+          }
+        }
+      },
+      "pa_core/manifest.py": {
+        "statement_count": 61,
+        "uncovered_statement_count": 0,
+        "uncovered_statement_lines": [],
+        "branch_count": null,
+        "uncovered_branch_count": null,
+        "uncovered_branch_arcs": null,
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 2,
+            "total_statements": 61,
+            "branches": 0,
+            "total_branches": 4
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 2,
+            "total_statements": 61,
+            "branches": 0,
+            "total_branches": 4
+          },
+          "main_5be77e15": {
+            "statements": 0,
+            "total_statements": 61,
+            "branches": 0,
+            "total_branches": 4
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 0,
+            "total_statements": 61,
+            "branches": 0,
+            "total_branches": 4
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 0,
+            "total_statements": 61,
+            "branches": 0,
+            "total_branches": 4
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 2,
+            "branches": 0,
+            "combined_units": 2
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 2,
+            "branches": 0,
+            "combined_units": 2
+          }
+        }
+      },
+      "dashboard/pages/4_Results.py": {
+        "statement_count": 210,
+        "uncovered_statement_count": 0,
+        "uncovered_statement_lines": [],
+        "branch_count": null,
+        "uncovered_branch_count": null,
+        "uncovered_branch_arcs": null,
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 136,
+            "total_statements": 210,
+            "branches": 56,
+            "total_branches": 70
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 78,
+            "total_statements": 210,
+            "branches": 42,
+            "total_branches": 70
+          },
+          "main_5be77e15": {
+            "statements": 18,
+            "total_statements": 210,
+            "branches": 16,
+            "total_branches": 70
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 0,
+            "total_statements": 210,
+            "branches": 1,
+            "total_branches": 70
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 0,
+            "total_statements": 210,
+            "branches": 1,
+            "total_branches": 70
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 58,
+            "branches": 14,
+            "combined_units": 72
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 60,
+            "branches": 26,
+            "combined_units": 86
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 18,
+            "branches": 15,
+            "combined_units": 33
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 136,
+            "branches": 55,
+            "combined_units": 191
+          }
+        }
+      }
+    },
+    "branch_coverage": false
+  },
+  "delivered-merge-branch": {
+    "run_id": 43154194839,
+    "revision": "d0e8f8058a0c8f32babf4460390bd2073ed5389a",
+    "exit_code": 0,
+    "coverage_json_sha256": "cd37dc7c8dc54b4ce90415c41b0a4721f135d530fe8864cc9af48562c2245e1b",
+    "targets": {
+      "pa_core/llm/result_explain.py": {
+        "statement_count": 227,
+        "uncovered_statement_count": 0,
+        "uncovered_statement_lines": [],
+        "branch_count": 102,
+        "uncovered_branch_count": 0,
+        "uncovered_branch_arcs": [],
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 4,
+            "total_statements": 226,
+            "branches": 7,
+            "total_branches": 102
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 4,
+            "total_statements": 226,
+            "branches": 7,
+            "total_branches": 102
+          },
+          "main_5be77e15": {
+            "statements": 0,
+            "total_statements": 227,
+            "branches": 4,
+            "total_branches": 102
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 0,
+            "total_statements": 227,
+            "branches": 0,
+            "total_branches": 102
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 0,
+            "total_statements": 227,
+            "branches": 0,
+            "total_branches": 102
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 4,
+            "branches": 3,
+            "combined_units": 7
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 0,
+            "branches": 4,
+            "combined_units": 4
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 4,
+            "branches": 7,
+            "combined_units": 11
+          }
+        }
+      },
+      "pa_core/pa.py": {
+        "statement_count": 222,
+        "uncovered_statement_count": 0,
+        "uncovered_statement_lines": [],
+        "branch_count": 68,
+        "uncovered_branch_count": 1,
+        "uncovered_branch_arcs": [
+          [
+            349,
+            -120
+          ]
+        ],
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 27,
+            "total_statements": 222,
+            "branches": 24,
+            "total_branches": 68
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 27,
+            "total_statements": 222,
+            "branches": 24,
+            "total_branches": 68
+          },
+          "main_5be77e15": {
+            "statements": 0,
+            "total_statements": 222,
+            "branches": 2,
+            "total_branches": 68
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 0,
+            "total_statements": 222,
+            "branches": 1,
+            "total_branches": 68
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 0,
+            "total_statements": 222,
+            "branches": 1,
+            "total_branches": 68
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 27,
+            "branches": 22,
+            "combined_units": 49
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 0,
+            "branches": 1,
+            "combined_units": 1
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 27,
+            "branches": 23,
+            "combined_units": 50
+          }
+        }
+      },
+      "pa_core/facade.py": {
+        "statement_count": 337,
+        "uncovered_statement_count": 2,
+        "uncovered_statement_lines": [
+          751,
+          757
+        ],
+        "branch_count": 124,
+        "uncovered_branch_count": 2,
+        "uncovered_branch_arcs": [
+          [
+            750,
+            751
+          ],
+          [
+            756,
+            757
+          ]
+        ],
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 23,
+            "total_statements": 332,
+            "branches": 22,
+            "total_branches": 120
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 23,
+            "total_statements": 332,
+            "branches": 22,
+            "total_branches": 120
+          },
+          "main_5be77e15": {
+            "statements": 2,
+            "total_statements": 332,
+            "branches": 8,
+            "total_branches": 120
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 2,
+            "total_statements": 337,
+            "branches": 2,
+            "total_branches": 124
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 2,
+            "total_statements": 337,
+            "branches": 2,
+            "total_branches": 124
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 21,
+            "branches": 14,
+            "combined_units": 35
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 0,
+            "branches": 6,
+            "combined_units": 6
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 21,
+            "branches": 20,
+            "combined_units": 41
+          }
+        }
+      },
+      "pa_core/units.py": {
+        "statement_count": 81,
+        "uncovered_statement_count": 0,
+        "uncovered_statement_lines": [],
+        "branch_count": 30,
+        "uncovered_branch_count": 0,
+        "uncovered_branch_arcs": [],
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 13,
+            "total_statements": 81,
+            "branches": 10,
+            "total_branches": 30
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 13,
+            "total_statements": 81,
+            "branches": 10,
+            "total_branches": 30
+          },
+          "main_5be77e15": {
+            "statements": 0,
+            "total_statements": 81,
+            "branches": 0,
+            "total_branches": 30
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 0,
+            "total_statements": 81,
+            "branches": 0,
+            "total_branches": 30
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 0,
+            "total_statements": 81,
+            "branches": 0,
+            "total_branches": 30
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 13,
+            "branches": 10,
+            "combined_units": 23
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 13,
+            "branches": 10,
+            "combined_units": 23
+          }
+        }
+      },
+      "pa_core/sim/internal_pa_financing.py": {
+        "statement_count": 35,
+        "uncovered_statement_count": 0,
+        "uncovered_statement_lines": [],
+        "branch_count": 18,
+        "uncovered_branch_count": 0,
+        "uncovered_branch_arcs": [],
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 4,
+            "total_statements": 35,
+            "branches": 4,
+            "total_branches": 18
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 4,
+            "total_statements": 35,
+            "branches": 4,
+            "total_branches": 18
+          },
+          "main_5be77e15": {
+            "statements": 0,
+            "total_statements": 35,
+            "branches": 0,
+            "total_branches": 18
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 0,
+            "total_statements": 35,
+            "branches": 0,
+            "total_branches": 18
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 0,
+            "total_statements": 35,
+            "branches": 0,
+            "total_branches": 18
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 4,
+            "branches": 4,
+            "combined_units": 8
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 4,
+            "branches": 4,
+            "combined_units": 8
+          }
+        }
+      },
+      "pa_core/manifest.py": {
+        "statement_count": 61,
+        "uncovered_statement_count": 0,
+        "uncovered_statement_lines": [],
+        "branch_count": 4,
+        "uncovered_branch_count": 0,
+        "uncovered_branch_arcs": [],
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 2,
+            "total_statements": 61,
+            "branches": 0,
+            "total_branches": 4
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 2,
+            "total_statements": 61,
+            "branches": 0,
+            "total_branches": 4
+          },
+          "main_5be77e15": {
+            "statements": 0,
+            "total_statements": 61,
+            "branches": 0,
+            "total_branches": 4
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 0,
+            "total_statements": 61,
+            "branches": 0,
+            "total_branches": 4
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 0,
+            "total_statements": 61,
+            "branches": 0,
+            "total_branches": 4
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 2,
+            "branches": 0,
+            "combined_units": 2
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 2,
+            "branches": 0,
+            "combined_units": 2
+          }
+        }
+      },
+      "dashboard/pages/4_Results.py": {
+        "statement_count": 210,
+        "uncovered_statement_count": 0,
+        "uncovered_statement_lines": [],
+        "branch_count": 70,
+        "uncovered_branch_count": 1,
+        "uncovered_branch_arcs": [
+          [
+            178,
+            180
+          ]
+        ],
+        "per_step_uncovered": {
+          "baseline_bf424ec6": {
+            "statements": 136,
+            "total_statements": 210,
+            "branches": 56,
+            "total_branches": 70
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 78,
+            "total_statements": 210,
+            "branches": 42,
+            "total_branches": 70
+          },
+          "main_5be77e15": {
+            "statements": 18,
+            "total_statements": 210,
+            "branches": 16,
+            "total_branches": 70
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 0,
+            "total_statements": 210,
+            "branches": 1,
+            "total_branches": 70
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 0,
+            "total_statements": 210,
+            "branches": 1,
+            "total_branches": 70
+          }
+        },
+        "per_step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 58,
+            "branches": 14,
+            "combined_units": 72
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 60,
+            "branches": 26,
+            "combined_units": 86
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 18,
+            "branches": 15,
+            "combined_units": 33
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 136,
+            "branches": 55,
+            "combined_units": 191
+          }
+        }
+      }
+    },
+    "branch_coverage": true
+  },
+  "round-reconciliation": {
+    "runs": {
+      "hosted_main_and_ab96b5b4": 43122605282,
+      "hosted_baseline_2384_and_d0e8f805": 43154194839
+    },
+    "revisions": {
+      "round_baseline": "bf424ec6ff58bb88b6431acf7809d42b2c59f95d",
+      "after_2384": "1b7f97a1c640ef69efe6a6750cf93f23a105000e",
+      "main": "5be77e15c925f5354ab67e2a1749fe6187d2038c",
+      "prospective_merge_ab96b5b4": "ab96b5b495547fcad317da7c135d9b082aa0e150",
+      "delivered_merge_d0e8f805": "d0e8f8058a0c8f32babf4460390bd2073ed5389a"
+    },
+    "command": "python -m pytest --cov --cov-config=pyproject.toml --cov-report=xml:coverage.xml --cov-report=term-missing --cov-report=json:coverage.json -n auto --dist=loadgroup -m 'not slow and not live_llm'",
+    "branch_supplement_flag": "--cov-branch",
+    "dependency_resolution": "runner-local via each checkout's .github/workflows/autofix-versions.env and requirements.lock on ubuntu-latest Python 3.14.10",
+    "step_totals": {
+      "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+        "statements": 58,
+        "branches": 14,
+        "combined_units": 72
+      },
+      "after_2384_1b7f97a1_to_main_5be77e15": {
+        "statements": 131,
+        "branches": 79,
+        "combined_units": 210
+      },
+      "main_5be77e15_to_delivered_merge_d0e8f805": {
+        "statements": 18,
+        "branches": 26,
+        "combined_units": 44
+      },
+      "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+        "statements": 207,
+        "branches": 119,
+        "combined_units": 326
+      }
+    },
+    "targets": {
+      "pa_core/llm/result_explain.py": {
+        "uncovered_counts": {
+          "baseline_bf424ec6": {
+            "statements": 4,
+            "total_statements": 226,
+            "branches": 7,
+            "total_branches": 102
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 4,
+            "total_statements": 226,
+            "branches": 7,
+            "total_branches": 102
+          },
+          "main_5be77e15": {
+            "statements": 0,
+            "total_statements": 227,
+            "branches": 4,
+            "total_branches": 102
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 0,
+            "total_statements": 227,
+            "branches": 0,
+            "total_branches": 102
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 0,
+            "total_statements": 227,
+            "branches": 0,
+            "total_branches": 102
+          }
+        },
+        "step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 4,
+            "branches": 3,
+            "combined_units": 7
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 0,
+            "branches": 4,
+            "combined_units": 4
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 4,
+            "branches": 7,
+            "combined_units": 11
+          }
+        }
+      },
+      "pa_core/pa.py": {
+        "uncovered_counts": {
+          "baseline_bf424ec6": {
+            "statements": 27,
+            "total_statements": 222,
+            "branches": 24,
+            "total_branches": 68
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 27,
+            "total_statements": 222,
+            "branches": 24,
+            "total_branches": 68
+          },
+          "main_5be77e15": {
+            "statements": 0,
+            "total_statements": 222,
+            "branches": 2,
+            "total_branches": 68
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 0,
+            "total_statements": 222,
+            "branches": 1,
+            "total_branches": 68
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 0,
+            "total_statements": 222,
+            "branches": 1,
+            "total_branches": 68
+          }
+        },
+        "step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 27,
+            "branches": 22,
+            "combined_units": 49
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 0,
+            "branches": 1,
+            "combined_units": 1
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 27,
+            "branches": 23,
+            "combined_units": 50
+          }
+        }
+      },
+      "pa_core/facade.py": {
+        "uncovered_counts": {
+          "baseline_bf424ec6": {
+            "statements": 23,
+            "total_statements": 332,
+            "branches": 22,
+            "total_branches": 120
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 23,
+            "total_statements": 332,
+            "branches": 22,
+            "total_branches": 120
+          },
+          "main_5be77e15": {
+            "statements": 2,
+            "total_statements": 332,
+            "branches": 8,
+            "total_branches": 120
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 2,
+            "total_statements": 337,
+            "branches": 2,
+            "total_branches": 124
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 2,
+            "total_statements": 337,
+            "branches": 2,
+            "total_branches": 124
+          }
+        },
+        "step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 21,
+            "branches": 14,
+            "combined_units": 35
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 0,
+            "branches": 6,
+            "combined_units": 6
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 21,
+            "branches": 20,
+            "combined_units": 41
+          }
+        }
+      },
+      "pa_core/units.py": {
+        "uncovered_counts": {
+          "baseline_bf424ec6": {
+            "statements": 13,
+            "total_statements": 81,
+            "branches": 10,
+            "total_branches": 30
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 13,
+            "total_statements": 81,
+            "branches": 10,
+            "total_branches": 30
+          },
+          "main_5be77e15": {
+            "statements": 0,
+            "total_statements": 81,
+            "branches": 0,
+            "total_branches": 30
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 0,
+            "total_statements": 81,
+            "branches": 0,
+            "total_branches": 30
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 0,
+            "total_statements": 81,
+            "branches": 0,
+            "total_branches": 30
+          }
+        },
+        "step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 13,
+            "branches": 10,
+            "combined_units": 23
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 13,
+            "branches": 10,
+            "combined_units": 23
+          }
+        }
+      },
+      "pa_core/sim/internal_pa_financing.py": {
+        "uncovered_counts": {
+          "baseline_bf424ec6": {
+            "statements": 4,
+            "total_statements": 35,
+            "branches": 4,
+            "total_branches": 18
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 4,
+            "total_statements": 35,
+            "branches": 4,
+            "total_branches": 18
+          },
+          "main_5be77e15": {
+            "statements": 0,
+            "total_statements": 35,
+            "branches": 0,
+            "total_branches": 18
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 0,
+            "total_statements": 35,
+            "branches": 0,
+            "total_branches": 18
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 0,
+            "total_statements": 35,
+            "branches": 0,
+            "total_branches": 18
+          }
+        },
+        "step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 4,
+            "branches": 4,
+            "combined_units": 8
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 4,
+            "branches": 4,
+            "combined_units": 8
+          }
+        }
+      },
+      "pa_core/manifest.py": {
+        "uncovered_counts": {
+          "baseline_bf424ec6": {
+            "statements": 2,
+            "total_statements": 61,
+            "branches": 0,
+            "total_branches": 4
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 2,
+            "total_statements": 61,
+            "branches": 0,
+            "total_branches": 4
+          },
+          "main_5be77e15": {
+            "statements": 0,
+            "total_statements": 61,
+            "branches": 0,
+            "total_branches": 4
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 0,
+            "total_statements": 61,
+            "branches": 0,
+            "total_branches": 4
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 0,
+            "total_statements": 61,
+            "branches": 0,
+            "total_branches": 4
+          }
+        },
+        "step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 2,
+            "branches": 0,
+            "combined_units": 2
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 0,
+            "branches": 0,
+            "combined_units": 0
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 2,
+            "branches": 0,
+            "combined_units": 2
+          }
+        }
+      },
+      "dashboard/pages/4_Results.py": {
+        "uncovered_counts": {
+          "baseline_bf424ec6": {
+            "statements": 136,
+            "total_statements": 210,
+            "branches": 56,
+            "total_branches": 70
+          },
+          "after_2384_1b7f97a1": {
+            "statements": 78,
+            "total_statements": 210,
+            "branches": 42,
+            "total_branches": 70
+          },
+          "main_5be77e15": {
+            "statements": 18,
+            "total_statements": 210,
+            "branches": 16,
+            "total_branches": 70
+          },
+          "prospective_merge_ab96b5b4": {
+            "statements": 0,
+            "total_statements": 210,
+            "branches": 1,
+            "total_branches": 70
+          },
+          "delivered_merge_d0e8f805": {
+            "statements": 0,
+            "total_statements": 210,
+            "branches": 1,
+            "total_branches": 70
+          }
+        },
+        "step_reductions": {
+          "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 58,
+            "branches": 14,
+            "combined_units": 72
+          },
+          "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 60,
+            "branches": 26,
+            "combined_units": 86
+          },
+          "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 18,
+            "branches": 15,
+            "combined_units": 33
+          },
+          "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 136,
+            "branches": 55,
+            "combined_units": 191
+          }
+        }
+      }
+    }
+  }
+}

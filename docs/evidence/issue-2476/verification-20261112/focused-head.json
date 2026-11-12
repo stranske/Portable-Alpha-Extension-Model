@@ -1,0 +1,267 @@
+{
+  "revision": "bda7804e12971463fe8d28a2186759ee3f8e6411",
+  "kind": "focused branch diagnostic; not whole-suite Gate coverage",
+  "command": "COVERAGE_FILE=/tmp/issue-2476-20261112/focused-head.coverage timeout -k 5s 120s python -m pytest tests/test_coverage_round_2381.py tests/test_coverage_round_2417.py tests/test_coverage_round_2421.py tests/test_coverage_round_2476_facade.py tests/test_result_explain.py tests/test_dashboard_results_previous_run.py --cov --cov-config=pyproject.toml --cov-branch --cov-report=json:/tmp/issue-2476-20261112/focused-head.json --cov-report=term-missing -m 'not slow and not live_llm' -q",
+  "exit_code": 0,
+  "passed": 153,
+  "configuration_sha256": "58c569923b38388bdfc409901ce8dab00564b72fa2e10d102874cddc54eeabe7",
+  "test_scope": [
+    "tests/test_coverage_round_2381.py",
+    "tests/test_coverage_round_2417.py",
+    "tests/test_coverage_round_2421.py",
+    "tests/test_coverage_round_2476_facade.py",
+    "tests/test_result_explain.py",
+    "tests/test_dashboard_results_previous_run.py"
+  ],
+  "input_sha256": {
+    "pyproject.toml": "58c569923b38388bdfc409901ce8dab00564b72fa2e10d102874cddc54eeabe7",
+    "pa_core/llm/result_explain.py": "7aa78795d0cbdcf65de0a218f0f890f1f0aac3398c732d452e159dc25bca9841",
+    "pa_core/pa.py": "5e038fb6a878c8d482f7ca1856ca74a4e7fd1b71099a7517025dba2fd153ddb9",
+    "pa_core/facade.py": "a08e6e6638f0b3f669bd756d32ee40525d0d291c9433e3e1cd477f23951e7e6f",
+    "pa_core/units.py": "4dac096784e2f79f663e0daf42a7ad037ee19a4bae55a5c43d02d573ff1810b5",
+    "pa_core/sim/internal_pa_financing.py": "40d4cad40f4ae20195787d9e0ea64ecf057c8a640dfbd2bfb0e02e3fa8a667ba",
+    "pa_core/manifest.py": "a70912cdff0423b49827f77798a16f0b878eaa9eb2b4fbd5ccb22dd0f11a484d",
+    "dashboard/pages/4_Results.py": "868b7ae750bd4a5e1832849f310729ea5a0a753c0609a45eee9fef5c1f9618d9",
+    "tests/test_coverage_round_2381.py": "1bd2fbf8227be745b691a609e72c5daa47ac821f43bbdca49f7b0b856b5987d6",
+    "tests/test_coverage_round_2417.py": "ac7264a384469d3962d61eecdb68f2d5e4c468b6759293dfbc2d9e58d3d1a4ce",
+    "tests/test_coverage_round_2421.py": "f0169a0195ed20c34859a258583847843cb0dfd9eea329829c2d1af8480fa7fd",
+    "tests/test_coverage_round_2476_facade.py": "11ec5c65e4093f4a2d7de2ec3674e0baf35adcbe3c22fcc4c969b1d90fc41394",
+    "tests/test_result_explain.py": "55aebae62633578161f6d3a0f817d6b9e5f29ec8d22f546ff9145a14b53cc666",
+    "tests/test_dashboard_results_previous_run.py": "4bd88c2e1a9fe9f3adbe1cfd9b611c1bb7a704f85e0d2ed9eed8435edb50b46e"
+  },
+  "coverage_metadata": {
+    "format": 3,
+    "version": "7.17.2",
+    "timestamp": "2026-11-12T00:52:19.769758",
+    "branch_coverage": true,
+    "show_contexts": false
+  },
+  "raw_coverage_sha256": "5d30df36387484b8a3efd9f269d1a17878937f1dbf106fa32aef4db6c67c79f8",
+  "raw_coverage_artifact": "focused-head.coverage.json.gz",
+  "targets": {
+    "pa_core/llm/result_explain.py": {
+      "statements": 227,
+      "missing_statements": 0,
+      "missing_statement_lines": [],
+      "branches": 102,
+      "missing_branches": 0,
+      "missing_branch_arcs": []
+    },
+    "pa_core/pa.py": {
+      "statements": 222,
+      "missing_statements": 19,
+      "missing_statement_lines": [
+        53,
+        54,
+        60,
+        63,
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        275,
+        281,
+        283,
+        285,
+        287,
+        331,
+        407,
+        410
+      ],
+      "branches": 68,
+      "missing_branches": 10,
+      "missing_branch_arcs": [
+        [
+          52,
+          53
+        ],
+        [
+          59,
+          60
+        ],
+        [
+          80,
+          84
+        ],
+        [
+          274,
+          275
+        ],
+        [
+          280,
+          281
+        ],
+        [
+          284,
+          285
+        ],
+        [
+          330,
+          331
+        ],
+        [
+          349,
+          -120
+        ],
+        [
+          406,
+          407
+        ],
+        [
+          409,
+          410
+        ]
+      ]
+    },
+    "pa_core/facade.py": {
+      "statements": 337,
+      "missing_statements": 15,
+      "missing_statement_lines": [
+        78,
+        140,
+        141,
+        436,
+        442,
+        449,
+        496,
+        497,
+        500,
+        545,
+        546,
+        751,
+        757,
+        760,
+        761
+      ],
+      "branches": 124,
+      "missing_branches": 14,
+      "missing_branch_arcs": [
+        [
+          77,
+          78
+        ],
+        [
+          101,
+          104
+        ],
+        [
+          139,
+          140
+        ],
+        [
+          434,
+          436
+        ],
+        [
+          495,
+          496
+        ],
+        [
+          499,
+          500
+        ],
+        [
+          502,
+          547
+        ],
+        [
+          544,
+          545
+        ],
+        [
+          750,
+          751
+        ],
+        [
+          754,
+          759
+        ],
+        [
+          756,
+          757
+        ],
+        [
+          759,
+          760
+        ],
+        [
+          768,
+          774
+        ],
+        [
+          824,
+          826
+        ]
+      ]
+    },
+    "pa_core/units.py": {
+      "statements": 81,
+      "missing_statements": 3,
+      "missing_statement_lines": [
+        147,
+        178,
+        219
+      ],
+      "branches": 30,
+      "missing_branches": 3,
+      "missing_branch_arcs": [
+        [
+          146,
+          147
+        ],
+        [
+          176,
+          178
+        ],
+        [
+          217,
+          219
+        ]
+      ]
+    },
+    "pa_core/sim/internal_pa_financing.py": {
+      "statements": 35,
+      "missing_statements": 0,
+      "missing_statement_lines": [],
+      "branches": 18,
+      "missing_branches": 0,
+      "missing_branch_arcs": []
+    },
+    "pa_core/manifest.py": {
+      "statements": 61,
+      "missing_statements": 2,
+      "missing_statement_lines": [
+        91,
+        92
+      ],
+      "branches": 4,
+      "missing_branches": 2,
+      "missing_branch_arcs": [
+        [
+          90,
+          91
+        ],
+        [
+          104,
+          108
+        ]
+      ]
+    },
+    "dashboard/pages/4_Results.py": {
+      "statements": 210,
+      "missing_statements": 0,
+      "missing_statement_lines": [],
+      "branches": 70,
+      "missing_branches": 1,
+      "missing_branch_arcs": [
+        [
+          178,
+          180
+        ]
+      ]
+    }
+  }
+}

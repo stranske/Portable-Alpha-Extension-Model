@@ -1,0 +1,78 @@
+[
+  {
+    "label": "accept-duplicates",
+    "production_path": "pa_core/facade.py",
+    "test_node": "tests/test_coverage_round_2476_facade.py::test_serialize_agent_semantics_mixed_series_rejects_duplicate_labels",
+    "command": "timeout -k 5s 120s /opt/hostedtoolcache/Python/3.14.10/x64/bin/python -m pytest tests/test_coverage_round_2476_facade.py::test_serialize_agent_semantics_mixed_series_rejects_duplicate_labels -m 'not slow and not live_llm' -q",
+    "before_sha256": "a08e6e6638f0b3f669bd756d32ee40525d0d291c9433e3e1cd477f23951e7e6f",
+    "mutated_sha256": "9d9ca8a940d50ddca709bc86fdf4dab6ae961b167704f5169566ca1a7600c802",
+    "red_exit": 1,
+    "red_wall_seconds": 3.513,
+    "restored_sha256": "a08e6e6638f0b3f669bd756d32ee40525d0d291c9433e3e1cd477f23951e7e6f",
+    "green_exit": 0,
+    "green_wall_seconds": 3.405,
+    "named_failures": [
+      "tests/test_coverage_round_2476_facade.py::test_serialize_agent_semantics_mixed_series_rejects_duplicate_labels[series-first-list]",
+      "tests/test_coverage_round_2476_facade.py::test_serialize_agent_semantics_mixed_series_rejects_duplicate_labels[series-first-tuple]",
+      "tests/test_coverage_round_2476_facade.py::test_serialize_agent_semantics_mixed_series_rejects_duplicate_labels[dict-first-list]",
+      "tests/test_coverage_round_2476_facade.py::test_serialize_agent_semantics_mixed_series_rejects_duplicate_labels[dict-first-tuple]"
+    ]
+  },
+  {
+    "label": "replace-rejected-input",
+    "production_path": "pa_core/facade.py",
+    "test_node": "tests/test_coverage_round_2476_facade.py::test_serialize_agent_semantics_mixed_series_rejects_duplicate_labels",
+    "command": "timeout -k 5s 120s /opt/hostedtoolcache/Python/3.14.10/x64/bin/python -m pytest tests/test_coverage_round_2476_facade.py::test_serialize_agent_semantics_mixed_series_rejects_duplicate_labels -m 'not slow and not live_llm' -q",
+    "before_sha256": "a08e6e6638f0b3f669bd756d32ee40525d0d291c9433e3e1cd477f23951e7e6f",
+    "mutated_sha256": "3b71347c5a8fb77de6e4cacff668d3d225e1bb861860ea4186eb8cdb0689d104",
+    "red_exit": 1,
+    "red_wall_seconds": 3.5,
+    "restored_sha256": "a08e6e6638f0b3f669bd756d32ee40525d0d291c9433e3e1cd477f23951e7e6f",
+    "green_exit": 0,
+    "green_wall_seconds": 3.37,
+    "named_failures": [
+      "tests/test_coverage_round_2476_facade.py::test_serialize_agent_semantics_mixed_series_rejects_duplicate_labels[series-first-list]",
+      "tests/test_coverage_round_2476_facade.py::test_serialize_agent_semantics_mixed_series_rejects_duplicate_labels[series-first-tuple]",
+      "tests/test_coverage_round_2476_facade.py::test_serialize_agent_semantics_mixed_series_rejects_duplicate_labels[dict-first-list]",
+      "tests/test_coverage_round_2476_facade.py::test_serialize_agent_semantics_mixed_series_rejects_duplicate_labels[dict-first-tuple]"
+    ]
+  },
+  {
+    "label": "alter-series-before-rejection",
+    "production_path": "pa_core/facade.py",
+    "test_node": "tests/test_coverage_round_2476_facade.py::test_serialize_agent_semantics_mixed_series_rejects_duplicate_labels",
+    "command": "timeout -k 5s 120s /opt/hostedtoolcache/Python/3.14.10/x64/bin/python -m pytest tests/test_coverage_round_2476_facade.py::test_serialize_agent_semantics_mixed_series_rejects_duplicate_labels -m 'not slow and not live_llm' -q",
+    "before_sha256": "a08e6e6638f0b3f669bd756d32ee40525d0d291c9433e3e1cd477f23951e7e6f",
+    "mutated_sha256": "cda1f20337f402147b5ed3011e482f745238ce615a55808a6495736fd4a722a0",
+    "red_exit": 1,
+    "red_wall_seconds": 3.579,
+    "restored_sha256": "a08e6e6638f0b3f669bd756d32ee40525d0d291c9433e3e1cd477f23951e7e6f",
+    "green_exit": 0,
+    "green_wall_seconds": 3.362,
+    "named_failures": [
+      "tests/test_coverage_round_2476_facade.py::test_serialize_agent_semantics_mixed_series_rejects_duplicate_labels[series-first-list]",
+      "tests/test_coverage_round_2476_facade.py::test_serialize_agent_semantics_mixed_series_rejects_duplicate_labels[series-first-tuple]",
+      "tests/test_coverage_round_2476_facade.py::test_serialize_agent_semantics_mixed_series_rejects_duplicate_labels[dict-first-list]",
+      "tests/test_coverage_round_2476_facade.py::test_serialize_agent_semantics_mixed_series_rejects_duplicate_labels[dict-first-tuple]"
+    ]
+  },
+  {
+    "label": "alter-mapping-before-rejection",
+    "production_path": "pa_core/facade.py",
+    "test_node": "tests/test_coverage_round_2476_facade.py::test_serialize_agent_semantics_mixed_series_rejects_duplicate_labels",
+    "command": "timeout -k 5s 120s /opt/hostedtoolcache/Python/3.14.10/x64/bin/python -m pytest tests/test_coverage_round_2476_facade.py::test_serialize_agent_semantics_mixed_series_rejects_duplicate_labels -m 'not slow and not live_llm' -q",
+    "before_sha256": "a08e6e6638f0b3f669bd756d32ee40525d0d291c9433e3e1cd477f23951e7e6f",
+    "mutated_sha256": "aedaefaae7d217b82e18c2b1fc11ee5c0618586c8100568762d06cf911365851",
+    "red_exit": 1,
+    "red_wall_seconds": 3.487,
+    "restored_sha256": "a08e6e6638f0b3f669bd756d32ee40525d0d291c9433e3e1cd477f23951e7e6f",
+    "green_exit": 0,
+    "green_wall_seconds": 3.354,
+    "named_failures": [
+      "tests/test_coverage_round_2476_facade.py::test_serialize_agent_semantics_mixed_series_rejects_duplicate_labels[series-first-list]",
+      "tests/test_coverage_round_2476_facade.py::test_serialize_agent_semantics_mixed_series_rejects_duplicate_labels[series-first-tuple]",
+      "tests/test_coverage_round_2476_facade.py::test_serialize_agent_semantics_mixed_series_rejects_duplicate_labels[dict-first-list]",
+      "tests/test_coverage_round_2476_facade.py::test_serialize_agent_semantics_mixed_series_rejects_duplicate_labels[dict-first-tuple]"
+    ]
+  }
+]

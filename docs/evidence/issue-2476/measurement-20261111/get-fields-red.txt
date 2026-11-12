@@ -1,0 +1,84 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+________________________ test_pa_registry_list_and_get _________________________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7d3281ea6650>
+capsys = <_pytest.capture.CaptureFixture object at 0x7d3281f11940>
+
+    def test_pa_registry_list_and_get(monkeypatch, capsys) -> None:
+        monkeypatch.setattr("pa_core.scenario_registry.list", lambda: [])
+        pa_entry.main(["registry", "list"])
+        assert "No registered scenarios" in capsys.readouterr().out
+
+        summary = _ScenarioSummary("abc", "2026-01-01", 0, "v1")
+        unseeded = _ScenarioSummary("def", "2026-01-02", None, "v2")
+        monkeypatch.setattr("pa_core.scenario_registry.list", lambda: [summary, unseeded])
+        capsys.readouterr()
+        pa_entry.main(["registry", "list"])
+        assert capsys.readouterr().out.splitlines() == [
+            "abc\t2026-01-01\tseed=0\tcode=v1",
+            "def\t2026-01-02\tseed=none\tcode=v2",
+        ]
+
+        record = _ScenarioRecord("abc", "2026-01-01", 0, "v1")
+        requested_ids: list[str] = []
+
+        def get_scenario(scenario_id: str) -> _ScenarioRecord:
+            requested_ids.append(scenario_id)
+            return record
+
+        monkeypatch.setattr("pa_core.scenario_registry.get", get_scenario)
+        capsys.readouterr()
+        pa_entry.main(["registry", "get", "abc"])
+        assert requested_ids == ["abc"]
+>       assert json.loads(capsys.readouterr().out) == {
+            "scenario_id": "abc",
+            "created_at": "2026-01-01",
+            "seed": 0,
+            "code_version": "v1",
+            "index_hash": "hash",
+        }
+E       AssertionError: assert {'scenario_id': 'abc'} == {'scenario_id...n': 'v1', ...}
+E
+E         Omitting 1 identical items, use -vv to show
+E         Right contains 4 more items:
+E         {'code_version': 'v1',
+E          'created_at': '2026-01-01',
+E          'index_hash': 'hash',
+E          'seed': 0}
+E
+E         Full diff: (-: missing in left side, +: extra in left side)
+E           {
+E               'scenario_id': 'abc',
+E         -     'created_at': '2026-01-01',
+E         -     'seed': 0,
+E         -     'code_version': 'v1',
+E         -     'index_hash': 'hash',
+E           }
+
+tests/test_coverage_round_2381.py:468: AssertionError
+=============================== warnings summary ===============================
+../../../../../opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/langsmith/_internal/_beta_decorator.py:92: 13 warnings
+  /opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/langsmith/_internal/_beta_decorator.py:92: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(func):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_coverage_round_2381.py::test_pa_registry_list_and_get - AssertionError: assert {'scenario_id': 'abc'} == {'scenario_id...n': 'v1', ...}
+
+  Omitting 1 identical items, use -vv to show
+  Right contains 4 more items:
+  {'code_version': 'v1',
+   'created_at': '2026-01-01',
+   'index_hash': 'hash',
+   'seed': 0}
+
+  Full diff: (-: missing in left side, +: extra in left side)
+    {
+        'scenario_id': 'abc',
+  -     'created_at': '2026-01-01',
+  -     'seed': 0,
+  -     'code_version': 'v1',
+  -     'index_hash': 'hash',
+    }
+1 failed, 13 warnings in 1.74s

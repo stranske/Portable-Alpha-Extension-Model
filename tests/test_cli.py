@@ -1,5 +1,7 @@
 from pathlib import Path
+from unittest.mock import create_autospec
 
+import plotly.graph_objects as go
 import yaml
 
 from pa_core.cli import main
@@ -26,6 +28,13 @@ def test_main_with_yaml(tmp_path):
 
 
 def test_main_with_png(tmp_path, monkeypatch):
+    """Run the CLI and image backend while isolating the external browser renderer."""
+
+    def write_image(figure, path, **_kwargs):
+        Path(path).write_bytes(b"rendered-png")
+
+    renderer = create_autospec(go.Figure.write_image, side_effect=write_image)
+    monkeypatch.setattr(go.Figure, "write_image", renderer)
     cfg = {"N_SIMULATIONS": 2, "N_MONTHS": 1, "financing_mode": "broadcast"}
     cfg_path = tmp_path / "cfg.yaml"
     cfg_path.write_text(yaml.safe_dump(cfg))
@@ -44,6 +53,13 @@ def test_main_with_png(tmp_path, monkeypatch):
         ]
     )
     assert out_file.exists()
+    renderer.assert_called_once()
+    figure, image_path = renderer.call_args.args
+    assert isinstance(figure, go.Figure)
+    assert figure.data
+    assert image_path == out_file.with_suffix(".png")
+    assert renderer.call_args.kwargs == {}
+    assert image_path.read_bytes() == b"rendered-png"
 
 
 def test_main_with_bundle(tmp_path):

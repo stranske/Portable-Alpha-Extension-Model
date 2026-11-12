@@ -1,0 +1,78 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+____ test_render_comparison_panel_shows_info_when_previous_run_unavailable _____
+
+    def test_render_comparison_panel_shows_info_when_previous_run_unavailable() -> None:
+        module = _load_results_module()
+        fake_st = _ResultsStreamlit()
+        render_comparison = module["_render_comparison_panel"]
+        render_comparison.__globals__["st"] = fake_st
+        render_panel = _CallRecorder("comparison")
+        availability = render_comparison(
+            summary=pd.DataFrame({"monthly_TE": [0.01]}),
+            manifest_data={"seed": 1},
+            xlsx="current.xlsx",
+            render_panel=render_panel,
+        )
+        assert availability.available is False
+        assert availability.prior_manifest_path is None
+        expected_message = (
+            "Comparison unavailable: missing artifact `manifest_data['previous_run']`. "
+            "Expected file path to prior `manifest.json` in the current manifest."
+        )
+        assert availability.message == expected_message
+        assert fake_st.infos == [expected_message]
+        assert fake_st.subheaders == ["LLM Comparison"]
+>       assert render_panel.calls == []
+E       AssertionError: assert [((), {'summa...navailable'})] == []
+E
+E         Left contains one more item: ((), {'summary_df':    monthly_TE\n0        0.01, 'manifest_data': {'seed': 1}, 'run_key': 'unavailable'})
+E
+E         Full diff: (-: missing in left side, +: extra in left side)
+E         - []
+E         + [
+E         +     (
+E         +         (),
+E         +         {
+E         +             'summary_df':    monthly_TE
+E         + 0        0.01,
+E         +             'manifest_data': {
+E         +                 'seed': 1,
+E         +             },
+E         +             'run_key': 'unavailable',
+E         +         },
+E         +     ),
+E         + ]
+
+tests/test_coverage_round_2381.py:410: AssertionError
+----------------------------- Captured stderr call -----------------------------
+2026-11-12 00:51:32.392 WARNING streamlit.runtime.caching.cache_data_api: No runtime found, using MemoryCacheStorageManager
+------------------------------ Captured log call -------------------------------
+WARNING  streamlit.runtime.caching.cache_data_api:cache_data_api.py:445 No runtime found, using MemoryCacheStorageManager
+=============================== warnings summary ===============================
+../../../../../opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/langsmith/_internal/_beta_decorator.py:92: 13 warnings
+  /opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/langsmith/_internal/_beta_decorator.py:92: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(func):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_coverage_round_2381.py::test_render_comparison_panel_shows_info_when_previous_run_unavailable - AssertionError: assert [((), {'summa...navailable'})] == []
+
+  Left contains one more item: ((), {'summary_df':    monthly_TE\n0        0.01, 'manifest_data': {'seed': 1}, 'run_key': 'unavailable'})
+
+  Full diff: (-: missing in left side, +: extra in left side)
+  - []
+  + [
+  +     (
+  +         (),
+  +         {
+  +             'summary_df':    monthly_TE
+  + 0        0.01,
+  +             'manifest_data': {
+  +                 'seed': 1,
+  +             },
+  +             'run_key': 'unavailable',
+  +         },
+  +     ),
+  + ]
+1 failed, 13 warnings in 1.74s

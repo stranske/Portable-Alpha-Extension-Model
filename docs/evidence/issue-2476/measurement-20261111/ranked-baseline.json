@@ -1,0 +1,454 @@
+{
+  "checked": "2026-11-11",
+  "revision": "def0eec035bdccfdebce62c0116aa468ed6fdd2f",
+  "scope": "Focused ranked test modules; NOT the whole Gate suite",
+  "command": [
+    "python",
+    "-m",
+    "pytest",
+    "tests/test_coverage_round_2381.py",
+    "tests/test_coverage_round_2417.py",
+    "tests/test_coverage_round_2421.py",
+    "tests/test_coverage_round_2476_facade.py",
+    "tests/test_result_explain.py",
+    "--cov",
+    "--cov-config=pyproject.toml",
+    "--cov-branch",
+    "--cov-report=json:/tmp/issue-2476-measurement/ranked-baseline.json",
+    "--cov-report=term-missing",
+    "-n",
+    "auto",
+    "--dist=loadgroup",
+    "-m",
+    "not slow and not live_llm",
+    "-q"
+  ],
+  "timeout_seconds": 120,
+  "exit_code": 0,
+  "result": "134 passed, 48 warnings in 9.89s",
+  "pyproject_sha256": "58c569923b38388bdfc409901ce8dab00564b72fa2e10d102874cddc54eeabe7",
+  "test_sha256": {
+    "tests/test_coverage_round_2381.py": "9e9475e2e425f69ee7a1e098db98023574c5295245000a5d43a352196855a265",
+    "tests/test_coverage_round_2417.py": "ac7264a384469d3962d61eecdb68f2d5e4c468b6759293dfbc2d9e58d3d1a4ce",
+    "tests/test_coverage_round_2421.py": "f0169a0195ed20c34859a258583847843cb0dfd9eea329829c2d1af8480fa7fd",
+    "tests/test_coverage_round_2476_facade.py": "cd87267c6311fca0638087ad5b3a91d705dd6ad3083c0f87ff058bced8510728",
+    "tests/test_result_explain.py": "55aebae62633578161f6d3a0f817d6b9e5f29ec8d22f546ff9145a14b53cc666"
+  },
+  "coverage_meta": {
+    "format": 3,
+    "version": "7.17.2",
+    "timestamp": "2026-11-11T21:06:39.088029",
+    "branch_coverage": true,
+    "show_contexts": false
+  },
+  "targets": {
+    "pa_core/llm/result_explain.py": {
+      "summary": {
+        "covered_lines": 227,
+        "num_statements": 227,
+        "percent_covered": 100.0,
+        "percent_covered_display": "100",
+        "missing_lines": 0,
+        "excluded_lines": 9,
+        "percent_statements_covered": 100.0,
+        "percent_statements_covered_display": "100",
+        "num_branches": 102,
+        "num_partial_branches": 0,
+        "covered_branches": 102,
+        "missing_branches": 0,
+        "percent_branches_covered": 100.0,
+        "percent_branches_covered_display": "100"
+      },
+      "missing_lines": [],
+      "excluded_lines": [
+        405,
+        406,
+        407,
+        408,
+        409,
+        410,
+        413,
+        414,
+        415
+      ],
+      "missing_branches": []
+    },
+    "pa_core/pa.py": {
+      "summary": {
+        "covered_lines": 188,
+        "num_statements": 222,
+        "percent_covered": 83.44827586206897,
+        "percent_covered_display": "83",
+        "missing_lines": 34,
+        "excluded_lines": 4,
+        "percent_statements_covered": 84.68468468468468,
+        "percent_statements_covered_display": "85",
+        "num_branches": 68,
+        "num_partial_branches": 12,
+        "covered_branches": 54,
+        "missing_branches": 14,
+        "percent_branches_covered": 79.41176470588235,
+        "percent_branches_covered_display": "79"
+      },
+      "missing_lines": [
+        53,
+        54,
+        60,
+        63,
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        275,
+        281,
+        283,
+        285,
+        287,
+        331,
+        407,
+        410,
+        417,
+        418,
+        419,
+        424,
+        432,
+        440,
+        445,
+        446,
+        447,
+        448,
+        451,
+        454,
+        460,
+        461,
+        462
+      ],
+      "excluded_lines": [
+        21,
+        22,
+        478,
+        479
+      ],
+      "missing_branches": [
+        [
+          52,
+          53
+        ],
+        [
+          59,
+          60
+        ],
+        [
+          80,
+          84
+        ],
+        [
+          274,
+          275
+        ],
+        [
+          280,
+          281
+        ],
+        [
+          284,
+          285
+        ],
+        [
+          330,
+          331
+        ],
+        [
+          349,
+          -120
+        ],
+        [
+          406,
+          407
+        ],
+        [
+          409,
+          410
+        ],
+        [
+          416,
+          417
+        ],
+        [
+          422,
+          424
+        ],
+        [
+          445,
+          446
+        ],
+        [
+          445,
+          447
+        ]
+      ]
+    },
+    "pa_core/facade.py": {
+      "summary": {
+        "covered_lines": 318,
+        "num_statements": 333,
+        "percent_covered": 93.59823399558499,
+        "percent_covered_display": "94",
+        "missing_lines": 15,
+        "excluded_lines": 4,
+        "percent_statements_covered": 95.49549549549549,
+        "percent_statements_covered_display": "95",
+        "num_branches": 120,
+        "num_partial_branches": 14,
+        "covered_branches": 106,
+        "missing_branches": 14,
+        "percent_branches_covered": 88.33333333333333,
+        "percent_branches_covered_display": "88"
+      },
+      "missing_lines": [
+        78,
+        139,
+        140,
+        435,
+        441,
+        448,
+        495,
+        496,
+        499,
+        544,
+        545,
+        750,
+        756,
+        759,
+        760
+      ],
+      "excluded_lines": [
+        35,
+        36,
+        37,
+        39
+      ],
+      "missing_branches": [
+        [
+          77,
+          78
+        ],
+        [
+          101,
+          104
+        ],
+        [
+          138,
+          139
+        ],
+        [
+          433,
+          435
+        ],
+        [
+          494,
+          495
+        ],
+        [
+          498,
+          499
+        ],
+        [
+          501,
+          546
+        ],
+        [
+          543,
+          544
+        ],
+        [
+          749,
+          750
+        ],
+        [
+          753,
+          758
+        ],
+        [
+          755,
+          756
+        ],
+        [
+          758,
+          759
+        ],
+        [
+          767,
+          773
+        ],
+        [
+          823,
+          825
+        ]
+      ]
+    },
+    "pa_core/units.py": {
+      "summary": {
+        "covered_lines": 78,
+        "num_statements": 81,
+        "percent_covered": 94.5945945945946,
+        "percent_covered_display": "95",
+        "missing_lines": 3,
+        "excluded_lines": 0,
+        "percent_statements_covered": 96.29629629629629,
+        "percent_statements_covered_display": "96",
+        "num_branches": 30,
+        "num_partial_branches": 3,
+        "covered_branches": 27,
+        "missing_branches": 3,
+        "percent_branches_covered": 90.0,
+        "percent_branches_covered_display": "90"
+      },
+      "missing_lines": [
+        147,
+        178,
+        219
+      ],
+      "excluded_lines": [],
+      "missing_branches": [
+        [
+          146,
+          147
+        ],
+        [
+          176,
+          178
+        ],
+        [
+          217,
+          219
+        ]
+      ]
+    },
+    "pa_core/sim/internal_pa_financing.py": {
+      "summary": {
+        "covered_lines": 35,
+        "num_statements": 35,
+        "percent_covered": 100.0,
+        "percent_covered_display": "100",
+        "missing_lines": 0,
+        "excluded_lines": 0,
+        "percent_statements_covered": 100.0,
+        "percent_statements_covered_display": "100",
+        "num_branches": 18,
+        "num_partial_branches": 0,
+        "covered_branches": 18,
+        "missing_branches": 0,
+        "percent_branches_covered": 100.0,
+        "percent_branches_covered_display": "100"
+      },
+      "missing_lines": [],
+      "excluded_lines": [],
+      "missing_branches": []
+    },
+    "pa_core/manifest.py": {
+      "summary": {
+        "covered_lines": 59,
+        "num_statements": 61,
+        "percent_covered": 93.84615384615384,
+        "percent_covered_display": "94",
+        "missing_lines": 2,
+        "excluded_lines": 0,
+        "percent_statements_covered": 96.72131147540983,
+        "percent_statements_covered_display": "97",
+        "num_branches": 4,
+        "num_partial_branches": 2,
+        "covered_branches": 2,
+        "missing_branches": 2,
+        "percent_branches_covered": 50.0,
+        "percent_branches_covered_display": "50"
+      },
+      "missing_lines": [
+        91,
+        92
+      ],
+      "excluded_lines": [],
+      "missing_branches": [
+        [
+          90,
+          91
+        ],
+        [
+          104,
+          108
+        ]
+      ]
+    },
+    "dashboard/pages/4_Results.py": {
+      "summary": {
+        "covered_lines": 193,
+        "num_statements": 210,
+        "percent_covered": 91.42857142857143,
+        "percent_covered_display": "91",
+        "missing_lines": 17,
+        "excluded_lines": 0,
+        "percent_statements_covered": 91.9047619047619,
+        "percent_statements_covered_display": "92",
+        "num_branches": 70,
+        "num_partial_branches": 5,
+        "covered_branches": 63,
+        "missing_branches": 7,
+        "percent_branches_covered": 90.0,
+        "percent_branches_covered_display": "90"
+      },
+      "missing_lines": [
+        85,
+        86,
+        96,
+        97,
+        100,
+        101,
+        102,
+        103,
+        112,
+        113,
+        114,
+        119,
+        127,
+        143,
+        176,
+        177,
+        260
+      ],
+      "excluded_lines": [],
+      "missing_branches": [
+        [
+          95,
+          96
+        ],
+        [
+          112,
+          113
+        ],
+        [
+          112,
+          127
+        ],
+        [
+          133,
+          143
+        ],
+        [
+          175,
+          176
+        ],
+        [
+          178,
+          180
+        ],
+        [
+          257,
+          260
+        ]
+      ]
+    }
+  }
+}

@@ -1,0 +1,5 @@
+--- dashboard/pages/4_Results.py
++++ dashboard/pages/4_Results.py
+@@ -275 +275 @@
+-                sub_paths = paths[agents].iloc[:, :months]
++                sub_paths = paths.iloc[:, :months]

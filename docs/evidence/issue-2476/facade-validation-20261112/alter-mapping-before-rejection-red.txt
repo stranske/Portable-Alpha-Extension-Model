@@ -1,0 +1,194 @@
+FFFF                                                                     [100%]
+=================================== FAILURES ===================================
+_ test_serialize_agent_semantics_mixed_series_rejects_duplicate_labels[series-first-list] _
+
+container_type = <class 'list'>, series_first = True
+
+    @pytest.mark.parametrize("container_type", [list, tuple], ids=["list", "tuple"])
+    @pytest.mark.parametrize("series_first", [True, False], ids=["series-first", "dict-first"])
+    def test_serialize_agent_semantics_mixed_series_rejects_duplicate_labels(
+        container_type: type, series_first: bool
+    ) -> None:
+        series = pd.Series(["A", "B"], index=["Agent", "Agent"], name="original")
+        original_series = series.copy(deep=True)
+        mapping = {"Agent": "C"}
+        rows = container_type([series, mapping] if series_first else [mapping, series])
+        inputs = {"_agent_semantics_df": rows}
+
+        with pytest.raises(ValueError, match="Series rows must have unique labels"):
+            facade._serialize_agent_semantics_input(inputs)
+
+        assert inputs["_agent_semantics_df"] is rows
+        assert len(rows) == 2
+        assert rows[0 if series_first else 1] is series
+        assert rows[1 if series_first else 0] is mapping
+        pd.testing.assert_series_equal(series, original_series)
+>       assert mapping == {"Agent": "C"}
+E       AssertionError: assert {} == {'Agent': 'C'}
+E
+E         Right contains 1 more item:
+E         {'Agent': 'C'}
+E
+E         Full diff: (-: missing in left side, +: extra in left side)
+E         + {}
+E         - {
+E         -     'Agent': 'C',
+E         - }
+
+tests/test_coverage_round_2476_facade.py:70: AssertionError
+_ test_serialize_agent_semantics_mixed_series_rejects_duplicate_labels[series-first-tuple] _
+
+container_type = <class 'tuple'>, series_first = True
+
+    @pytest.mark.parametrize("container_type", [list, tuple], ids=["list", "tuple"])
+    @pytest.mark.parametrize("series_first", [True, False], ids=["series-first", "dict-first"])
+    def test_serialize_agent_semantics_mixed_series_rejects_duplicate_labels(
+        container_type: type, series_first: bool
+    ) -> None:
+        series = pd.Series(["A", "B"], index=["Agent", "Agent"], name="original")
+        original_series = series.copy(deep=True)
+        mapping = {"Agent": "C"}
+        rows = container_type([series, mapping] if series_first else [mapping, series])
+        inputs = {"_agent_semantics_df": rows}
+
+        with pytest.raises(ValueError, match="Series rows must have unique labels"):
+            facade._serialize_agent_semantics_input(inputs)
+
+        assert inputs["_agent_semantics_df"] is rows
+        assert len(rows) == 2
+        assert rows[0 if series_first else 1] is series
+        assert rows[1 if series_first else 0] is mapping
+        pd.testing.assert_series_equal(series, original_series)
+>       assert mapping == {"Agent": "C"}
+E       AssertionError: assert {} == {'Agent': 'C'}
+E
+E         Right contains 1 more item:
+E         {'Agent': 'C'}
+E
+E         Full diff: (-: missing in left side, +: extra in left side)
+E         + {}
+E         - {
+E         -     'Agent': 'C',
+E         - }
+
+tests/test_coverage_round_2476_facade.py:70: AssertionError
+_ test_serialize_agent_semantics_mixed_series_rejects_duplicate_labels[dict-first-list] _
+
+container_type = <class 'list'>, series_first = False
+
+    @pytest.mark.parametrize("container_type", [list, tuple], ids=["list", "tuple"])
+    @pytest.mark.parametrize("series_first", [True, False], ids=["series-first", "dict-first"])
+    def test_serialize_agent_semantics_mixed_series_rejects_duplicate_labels(
+        container_type: type, series_first: bool
+    ) -> None:
+        series = pd.Series(["A", "B"], index=["Agent", "Agent"], name="original")
+        original_series = series.copy(deep=True)
+        mapping = {"Agent": "C"}
+        rows = container_type([series, mapping] if series_first else [mapping, series])
+        inputs = {"_agent_semantics_df": rows}
+
+        with pytest.raises(ValueError, match="Series rows must have unique labels"):
+            facade._serialize_agent_semantics_input(inputs)
+
+        assert inputs["_agent_semantics_df"] is rows
+        assert len(rows) == 2
+        assert rows[0 if series_first else 1] is series
+        assert rows[1 if series_first else 0] is mapping
+        pd.testing.assert_series_equal(series, original_series)
+>       assert mapping == {"Agent": "C"}
+E       AssertionError: assert {} == {'Agent': 'C'}
+E
+E         Right contains 1 more item:
+E         {'Agent': 'C'}
+E
+E         Full diff: (-: missing in left side, +: extra in left side)
+E         + {}
+E         - {
+E         -     'Agent': 'C',
+E         - }
+
+tests/test_coverage_round_2476_facade.py:70: AssertionError
+_ test_serialize_agent_semantics_mixed_series_rejects_duplicate_labels[dict-first-tuple] _
+
+container_type = <class 'tuple'>, series_first = False
+
+    @pytest.mark.parametrize("container_type", [list, tuple], ids=["list", "tuple"])
+    @pytest.mark.parametrize("series_first", [True, False], ids=["series-first", "dict-first"])
+    def test_serialize_agent_semantics_mixed_series_rejects_duplicate_labels(
+        container_type: type, series_first: bool
+    ) -> None:
+        series = pd.Series(["A", "B"], index=["Agent", "Agent"], name="original")
+        original_series = series.copy(deep=True)
+        mapping = {"Agent": "C"}
+        rows = container_type([series, mapping] if series_first else [mapping, series])
+        inputs = {"_agent_semantics_df": rows}
+
+        with pytest.raises(ValueError, match="Series rows must have unique labels"):
+            facade._serialize_agent_semantics_input(inputs)
+
+        assert inputs["_agent_semantics_df"] is rows
+        assert len(rows) == 2
+        assert rows[0 if series_first else 1] is series
+        assert rows[1 if series_first else 0] is mapping
+        pd.testing.assert_series_equal(series, original_series)
+>       assert mapping == {"Agent": "C"}
+E       AssertionError: assert {} == {'Agent': 'C'}
+E
+E         Right contains 1 more item:
+E         {'Agent': 'C'}
+E
+E         Full diff: (-: missing in left side, +: extra in left side)
+E         + {}
+E         - {
+E         -     'Agent': 'C',
+E         - }
+
+tests/test_coverage_round_2476_facade.py:70: AssertionError
+=============================== warnings summary ===============================
+../../../../../opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/langsmith/_internal/_beta_decorator.py:92: 13 warnings
+  /opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/langsmith/_internal/_beta_decorator.py:92: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(func):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_coverage_round_2476_facade.py::test_serialize_agent_semantics_mixed_series_rejects_duplicate_labels[series-first-list] - AssertionError: assert {} == {'Agent': 'C'}
+
+  Right contains 1 more item:
+  {'Agent': 'C'}
+
+  Full diff: (-: missing in left side, +: extra in left side)
+  + {}
+  - {
+  -     'Agent': 'C',
+  - }
+FAILED tests/test_coverage_round_2476_facade.py::test_serialize_agent_semantics_mixed_series_rejects_duplicate_labels[series-first-tuple] - AssertionError: assert {} == {'Agent': 'C'}
+
+  Right contains 1 more item:
+  {'Agent': 'C'}
+
+  Full diff: (-: missing in left side, +: extra in left side)
+  + {}
+  - {
+  -     'Agent': 'C',
+  - }
+FAILED tests/test_coverage_round_2476_facade.py::test_serialize_agent_semantics_mixed_series_rejects_duplicate_labels[dict-first-list] - AssertionError: assert {} == {'Agent': 'C'}
+
+  Right contains 1 more item:
+  {'Agent': 'C'}
+
+  Full diff: (-: missing in left side, +: extra in left side)
+  + {}
+  - {
+  -     'Agent': 'C',
+  - }
+FAILED tests/test_coverage_round_2476_facade.py::test_serialize_agent_semantics_mixed_series_rejects_duplicate_labels[dict-first-tuple] - AssertionError: assert {} == {'Agent': 'C'}
+
+  Right contains 1 more item:
+  {'Agent': 'C'}
+
+  Full diff: (-: missing in left side, +: extra in left side)
+  + {}
+  - {
+  -     'Agent': 'C',
+  - }
+4 failed, 13 warnings in 1.67s

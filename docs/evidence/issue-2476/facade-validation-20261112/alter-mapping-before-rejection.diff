@@ -1,0 +1,4 @@
+--- pa_core/facade.py
++++ pa_core/facade.py
+@@ -115,0 +116 @@
++                    next(item for item in rows if isinstance(item, dict)).clear()

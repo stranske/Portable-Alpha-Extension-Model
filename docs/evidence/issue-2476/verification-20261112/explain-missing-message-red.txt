@@ -1,0 +1,53 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_______ test_render_explain_results_handles_panel_failures[missing-llm] ________
+
+exception_type = <class 'ModuleNotFoundError'>
+
+    @pytest.mark.parametrize(
+        "exception_type", [ModuleNotFoundError, RuntimeError], ids=["missing-llm", "panel-error"]
+    )
+    def test_render_explain_results_handles_panel_failures(exception_type: type[Exception]) -> None:
+        module = _load_results_module()
+        render_explain = module["_render_explain_results"]
+        fake_st = _ResultsStreamlit()
+        render_explain.__globals__["st"] = fake_st
+
+        def _boom(**_: object) -> None:
+            raise exception_type("panel failed")
+
+        render_explain.__globals__["render_explain_results_panel"] = _boom
+        render_explain(summary=pd.DataFrame({"monthly_TE": [0.01]}), manifest_data=None, xlsx="x.xlsx")
+>       assert fake_st.infos == ["LLM features unavailable. Install .[llm] to enable Explain Results."]
+E       AssertionError: assert [''] == ['LLM feature...ain Results.']
+E
+E         At index 0 diff: '' != 'LLM features unavailable. Install .[llm] to enable Explain Results.'
+E
+E         Full diff: (-: missing in left side, +: extra in left side)
+E           [
+E         -     'LLM features unavailable. Install .[llm] to enable Explain Results.',
+E         +     '',
+E           ]
+
+tests/test_coverage_round_2381.py:736: AssertionError
+----------------------------- Captured stderr call -----------------------------
+2026-11-12 00:51:39.502 WARNING streamlit.runtime.caching.cache_data_api: No runtime found, using MemoryCacheStorageManager
+------------------------------ Captured log call -------------------------------
+WARNING  streamlit.runtime.caching.cache_data_api:cache_data_api.py:445 No runtime found, using MemoryCacheStorageManager
+=============================== warnings summary ===============================
+../../../../../opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/langsmith/_internal/_beta_decorator.py:92: 13 warnings
+  /opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/langsmith/_internal/_beta_decorator.py:92: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(func):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_coverage_round_2381.py::test_render_explain_results_handles_panel_failures[missing-llm] - AssertionError: assert [''] == ['LLM feature...ain Results.']
+
+  At index 0 diff: '' != 'LLM features unavailable. Install .[llm] to enable Explain Results.'
+
+  Full diff: (-: missing in left side, +: extra in left side)
+    [
+  -     'LLM features unavailable. Install .[llm] to enable Explain Results.',
+  +     '',
+    ]
+1 failed, 13 warnings in 1.75s

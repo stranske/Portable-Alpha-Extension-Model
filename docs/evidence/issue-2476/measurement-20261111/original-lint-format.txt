@@ -1,0 +1,8 @@
+Run: 39044091242; job: 117429268297; fetched 2026-11-11
+2026-10-17T15:14:05.8075836Z black --check --line-length 100 --exclude '(\.venv|\.workflows-lib|node_modules)' .
+2026-10-17T15:14:18.3796542Z would reformat /home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_wizard_render_coverage.py
+2026-10-17T15:14:19.0840852Z 1 file would be reformatted, 504 files would be left unchanged.
+2026-10-17T15:14:19.1099178Z ##[error]Process completed with exit code 1.
+2026-10-17T15:14:19.1176809Z   printf 'Format check failed with outcome: %s\n' "${FORMAT_OUTCOME}" >&2
+2026-10-17T15:14:19.1346238Z Format check failed with outcome: failure
+2026-10-17T15:14:19.1350004Z ##[error]Process completed with exit code 1.

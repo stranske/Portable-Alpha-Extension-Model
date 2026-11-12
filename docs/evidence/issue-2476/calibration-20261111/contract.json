@@ -1,0 +1,62 @@
+{
+  "checked": "2026-11-11",
+  "baseline_revision": "496cf6c7884ada74bc1e0586075af28d91a3d486",
+  "ranked_targets": [
+    "pa_core/llm/result_explain.py",
+    "pa_core/pa.py",
+    "pa_core/facade.py",
+    "pa_core/units.py",
+    "pa_core/sim/internal_pa_financing.py",
+    "pa_core/manifest.py",
+    "dashboard/pages/4_Results.py"
+  ],
+  "ranking_source": "https://github.com/stranske/Portable-Alpha-Extension-Model/issues/2381",
+  "gate_command": "python -m pytest --cov --cov-config=pyproject.toml --cov-report=xml:coverage.xml --cov-report=term-missing --cov-report=json:coverage.json -n auto --dist=loadgroup -m 'not slow and not live_llm'",
+  "focused_command": [
+    "python",
+    "-m",
+    "pytest",
+    "tests/test_coverage_round_2381.py",
+    "tests/test_coverage_round_2417.py",
+    "tests/test_coverage_round_2421.py",
+    "tests/test_coverage_round_2476_facade.py",
+    "tests/test_result_explain.py",
+    "--cov",
+    "--cov-config=pyproject.toml",
+    "--cov-branch",
+    "--cov-report=json:/tmp/issue-2476-calibration/baseline-raw.json",
+    "--cov-report=term-missing",
+    "-n",
+    "auto",
+    "--dist=loadgroup",
+    "-m",
+    "not slow and not live_llm",
+    "-q"
+  ],
+  "scope": [
+    "tests/test_coverage_round_2381.py",
+    "tests/test_coverage_round_2417.py",
+    "tests/test_coverage_round_2421.py",
+    "tests/test_coverage_round_2476_facade.py",
+    "tests/test_result_explain.py"
+  ],
+  "pyproject_sha256": "58c569923b38388bdfc409901ce8dab00564b72fa2e10d102874cddc54eeabe7",
+  "stop_rule": "Reuse the documented whole-suite timeout; do not repeat it. One baseline and one head focused measurement, capped at 120s each; at most three attempts for a failing step. Only advance past a ranked target with measured saturation or a documented exception.",
+  "whole_suite_blocker": "Previous full-suite baseline reached the 180s limit with test_main_with_png unfinished; see measurement-20261111/contract.json. No fresh Gate reduction can be claimed.",
+  "baseline_test_sha256": {
+    "tests/test_coverage_round_2381.py": "5416e1ef712253abcf45763620f4c8db15bd804295c6fcc4ac4a54b47de019e2",
+    "tests/test_coverage_round_2417.py": "ac7264a384469d3962d61eecdb68f2d5e4c468b6759293dfbc2d9e58d3d1a4ce",
+    "tests/test_coverage_round_2421.py": "f0169a0195ed20c34859a258583847843cb0dfd9eea329829c2d1af8480fa7fd",
+    "tests/test_coverage_round_2476_facade.py": "cd87267c6311fca0638087ad5b3a91d705dd6ad3083c0f87ff058bced8510728",
+    "tests/test_result_explain.py": "55aebae62633578161f6d3a0f817d6b9e5f29ec8d22f546ff9145a14b53cc666"
+  },
+  "production_sha256": {
+    "pa_core/llm/result_explain.py": "7aa78795d0cbdcf65de0a218f0f890f1f0aac3398c732d452e159dc25bca9841",
+    "pa_core/pa.py": "5e038fb6a878c8d482f7ca1856ca74a4e7fd1b71099a7517025dba2fd153ddb9",
+    "pa_core/facade.py": "a99e74b13405f332e689342ac718926527cf2ecdbdc064ee474ebae67fe4ea8a",
+    "pa_core/units.py": "4dac096784e2f79f663e0daf42a7ad037ee19a4bae55a5c43d02d573ff1810b5",
+    "pa_core/sim/internal_pa_financing.py": "40d4cad40f4ae20195787d9e0ea64ecf057c8a640dfbd2bfb0e02e3fa8a667ba",
+    "pa_core/manifest.py": "a70912cdff0423b49827f77798a16f0b878eaa9eb2b4fbd5ccb22dd0f11a484d",
+    "dashboard/pages/4_Results.py": "868b7ae750bd4a5e1832849f310729ea5a0a753c0609a45eee9fef5c1f9618d9"
+  }
+}
