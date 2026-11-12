@@ -1,0 +1,43 @@
+{
+  "checked": "2026-11-12",
+  "baseline_revision": "6e6fe89111f16771a1152b5c8f719be861550c88",
+  "measured_source_revision": "28a3d750bd157cfdff216ea9dcc3c67796daf87f",
+  "available_main_revision": "5be77e15c925f5354ab67e2a1749fe6187d2038c",
+  "ranked_targets": [
+    "pa_core/llm/result_explain.py",
+    "pa_core/pa.py",
+    "pa_core/facade.py",
+    "pa_core/units.py",
+    "pa_core/sim/internal_pa_financing.py",
+    "pa_core/manifest.py",
+    "dashboard/pages/4_Results.py"
+  ],
+  "ranking_source": "docs/evidence/issue-2381-closer-repair/ranking-provenance.json",
+  "interpreter": "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+  "python": "3.14.10",
+  "configuration_sha256": "58c569923b38388bdfc409901ce8dab00564b72fa2e10d102874cddc54eeabe7",
+  "current_reusable_workflow_blob": "f2a1abdccc0db5218206917b9e8b45d11b636717",
+  "gate_command": "python -m pytest --cov --cov-config=pyproject.toml --cov-report=xml:coverage.xml --cov-report=term-missing --cov-report=json:coverage.json -n auto --dist=loadgroup -m 'not slow and not live_llm'",
+  "attempted_baseline_command": "timeout -k 5s 180s python -m pytest --cov --cov-config=pyproject.toml --cov-report=xml:/tmp/issue-2476-current/baseline.xml --cov-report=term-missing --cov-report=json:/tmp/issue-2476-current/baseline.json -n auto --dist=loadgroup -m 'not slow and not live_llm' -vv",
+  "pre_edit_outcome": "Verify mixed-Series/dict duplicate rejection for both row orders in lists and tuples, with original container, Series and mapping preserved; do not infer a coverage reduction from stronger assertions.",
+  "stop_rule": "One full-suite attempt per revision/configuration, 180s maximum. Focused acceptance and each mutation run: 120s maximum. Stop after three attempts per failing step. No head full-suite comparison after incomplete baseline.",
+  "baseline_gate_outcome": {
+    "exit_code": 124,
+    "coverage_report_emitted": false,
+    "finished_named_cases": 2058,
+    "started_without_completion": [
+      "tests/test_cli.py::test_main_with_png"
+    ],
+    "log_sha256": "ca3c01eeefa03072085cb9d640ce7333477710e8dc0adbe495c6d82adcc7365c",
+    "log_artifact": "baseline-gate.txt.gz"
+  },
+  "scope_note": "Local command retains Gate coverage flags and xdist scheduler but does not load the current generated ci_test_growth observer or JUnit output. Not an exact hosted Gate reproduction.",
+  "pr_reconciliation": {
+    "pr": 2498,
+    "state": "open",
+    "draft": false,
+    "remote_head": "6e6fe89111f16771a1152b5c8f719be861550c88",
+    "body_update": "Attempted before further edits; automatic approval review rejected the write because approval policy is never. Proposed verified checkbox reconciliation is in reconciliation.md."
+  },
+  "delivery": "Normal git add failed: .git/index.lock is on a read-only filesystem. Meaningful source commit created in /tmp/issue-2476-current/delivery.git; checkout HEAD is unchanged."
+}

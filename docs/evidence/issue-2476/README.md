@@ -10,6 +10,13 @@ branches below, without changing the restored file's 52-case count.
 
 ## Current receipts (revision-bound, 2026-11-11)
 
+The [2026-11-12 facade validation](facade-validation-20261112/README.md) checks
+duplicate-label rejection and preservation of caller inputs across both row
+orders and list/tuple containers. Four production mutations fail the four
+cases and pass after restoration. Its identical focused coverage scopes show
+zero new units; the full baseline timed out on the PNG CLI test. Hosted
+delivered-head CI and matched-policy round-baseline accounting remain open.
+
 The [2026-11-12 helper verification](verification-20261112/README.md) strengthens
 the comparison and explanation diagnostics with four production mutations and
 records a fresh focused baseline/head diagnostic. It adds zero coverage units;

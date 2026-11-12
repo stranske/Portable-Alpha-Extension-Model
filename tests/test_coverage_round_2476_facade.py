@@ -1,7 +1,7 @@
 """Facade branch coverage for issue #2476 remaining exceptions.
 
-Complements tests/test_coverage_round_2381.py (kept at its recorded 52 cases)
-by covering the _serialize_agent_semantics_input container branches and the
+Complements tests/test_coverage_round_2381.py by covering the
+_serialize_agent_semantics_input container branches and the
 defensive export branch in pa_core/facade.py that the gate round left as
 documented exceptions. See docs/evidence/issue-2476/.
 """
@@ -48,10 +48,26 @@ def test_serialize_agent_semantics_all_series_retains_duplicate_label_error() ->
         _serialize(rows)
 
 
-def test_serialize_agent_semantics_mixed_series_rejects_duplicate_labels() -> None:
-    rows = ({"Agent": "C"}, pd.Series(["A", "B"], index=["Agent", "Agent"]))
+@pytest.mark.parametrize("container_type", [list, tuple], ids=["list", "tuple"])
+@pytest.mark.parametrize("series_first", [True, False], ids=["series-first", "dict-first"])
+def test_serialize_agent_semantics_mixed_series_rejects_duplicate_labels(
+    container_type: type, series_first: bool
+) -> None:
+    series = pd.Series(["A", "B"], index=["Agent", "Agent"], name="original")
+    original_series = series.copy(deep=True)
+    mapping = {"Agent": "C"}
+    rows = container_type([series, mapping] if series_first else [mapping, series])
+    inputs = {"_agent_semantics_df": rows}
+
     with pytest.raises(ValueError, match="Series rows must have unique labels"):
-        _serialize(rows)
+        facade._serialize_agent_semantics_input(inputs)
+
+    assert inputs["_agent_semantics_df"] is rows
+    assert len(rows) == 2
+    assert rows[0 if series_first else 1] is series
+    assert rows[1 if series_first else 0] is mapping
+    pd.testing.assert_series_equal(series, original_series)
+    assert mapping == {"Agent": "C"}
 
 
 def test_serialize_agent_semantics_from_mixed_frame_and_series_list() -> None:
