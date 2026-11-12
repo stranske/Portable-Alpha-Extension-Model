@@ -115,7 +115,7 @@ the first concrete failure. Mutation pairs and coverage improvements are out of 
 | Working tree before execution | clean (`git status --porcelain` empty) |
 | `pa_core/cli.py` SHA-256 | `f3ffec1a90fe5888ca5ba357507e7542f4dc436117acea430348c87ab0b40e26` |
 | Interpreter | `/opt/homebrew/bin/python3.13` (3.13.13). `pyproject.toml` declares `requires-python = ">=3.13"`; CI uses 3.14, which is not installed locally. Earlier evidence in this directory ran on 3.12, below the declared floor. |
-| Runner | `current-main-20261111/run_baseline.py` (records argv, exit, elapsed, timeout flag, interpreter and dependency versions, production hashes) |
+| Historical runner | [`run_baseline.py` at `7595bbc`](https://github.com/stranske/Portable-Alpha-Extension-Model/blob/7595bbc0/docs/evidence/issue-2336-png-failures/current-main-20261111/run_baseline.py). The commands below and the retained `run.json` files record the invocations. |
 | Operational outcome | Both commands reach a terminal exit inside the stop rule with artifacts committed; the focused run exits 0. |
 | Maximum attempts | 1 per command (no reruns to obtain a green result) |
 | Timeout / elapsed-time stop rule | 600 s per command; on expiry the process is killed, the run is recorded as `timeout: true` and is not a completed run. The last measured full run took 182 s. |
@@ -200,7 +200,8 @@ This section supersedes the attempt-2 status and closure statement above, which 
 they were recorded.
 
 `dev-extra/run.json` records commit `7595bbc0`, the commit that added the attempt-3
-plan. It changes only this README, so `pa_core`, `dashboard` and `tests` are byte-identical
+plan. That commit changes only the README relative to its parent. The `pa_core`,
+`dashboard` and `tests` trees at `7595bbc0` are byte-identical
 to `5be77e15`, and the porcelain for those paths was empty. `pa_core/cli.py` SHA-256 was
 `f3ffec1a…40e26` before and after. Versions: pytest 9.2.0, pytest-cov 7.1.0, coverage 7.17.2,
 numpy 2.5.4, pandas 3.1.1, openpyxl 3.1.5, kaleido 1.5.0, plotly 6.9.0, SciPy absent.
@@ -227,16 +228,17 @@ below-90% module increment (T6) does not apply and no tests were added.
 
 #### Reconciling the historical claims
 
-- **92% (PR #2475):** consistent with this run. The fresh total is 92.24% over the same
-  14,670-statement denominator that PR #2475 states. The two runs are different measurements,
-  though: different trees, and an unrecorded environment for #2475.
-- **13,441 vs 13,537 (PR #2475):** 13,537 / 14,670 = 92.28%, which matches the percentage the PR
-  printed. 13,441 / 14,670 = 91.62%, which matches nothing printed. Arithmetic therefore
-  supports 13,537 as the numerator behind the 92.28% claim and 13,441 as a transcription error,
-  as the PR's own review comment says. PR #2475 committed no `coverage.json`, and its file list
-  has only README, commands, comparison, manifest, archive, focused JUnit and replay files.
-  That means neither number can be checked against raw data, so this stays **unresolved
-  (raw record unavailable)**. Neither number matches current main (13,532).
+- **PR #2475 at head [`d112c223`](https://github.com/stranske/Portable-Alpha-Extension-Model/commit/d112c223):**
+  the commit's `current-manifest.json` binds `current-validation.tar.gz` (SHA-256
+  `7b8f6122b0e69e310693676459e886b7c6a9e1014c6bc114198fe516a8583e91`) and its
+  `final-candidate-coverage.json`, `final-candidate.xml`, and `final-candidate.log` members.
+  Rechecking the archive hash and every manifest member confirms **13,537 / 14,670 =
+  92.27675528289025%** in that coverage JSON (member SHA-256
+  `6be66c3a4a3daa0834a4032f997b841c0ac318d778c8f7bbf4c861a9130ce99f`).
+  **13,441 is a transcription error**, not an alternative measurement. Current main's
+  13,532 is a separate run, not a correction to that historical numerator. The historical
+  console and JUnit identify Python 3.12.2, below the declared >=3.13 floor; this historical
+  run does not establish supported-runtime acceptance.
 - **83.76% / 12,191 of 14,554** (earlier sections): this measured the older `f9853be5`
   snapshot, which has a smaller statement scope. It is superseded for current main, not
   contradicted.
@@ -247,9 +249,22 @@ below-90% module increment (T6) does not apply and no tests were added.
 | --- | --- | --- | --- |
 | `tests/test_schema_export.py::test_parameter_dictionary_matches_schema` | fresh full run and PR #2475 | **fails** on 3.13.13 in the full run and alone (exit 1) | Interpreter-dependent type repr. On 3.13, `typing.Optional[Dict[str, int]]` renders `Optional[Dict[...]]`; on 3.14 (CI) it renders `Dict[...] \| None`, which is what the committed `docs/guides/PARAMETER_DICTIONARY.md` contains (both checked directly). This is not a code-under-test regression, but it is a real portability defect under the declared `requires-python >=3.13` floor. It is not fixed here. |
 | `tests/test_cli.py::test_main_with_png` | earlier strengthened run (Kaleido timeout) | **passes**: 8.6 s in the full run, 5.6 s alone (kaleido 1.5.0) | The historical Kaleido timeout does not reproduce. Its raw log and Kaleido version are not in the repository, so the original cause stays **unresolved (record unavailable)**. |
-| `tests/test_dashboard_sample_data.py::test_wheel_install_exposes_bundled_dashboard_samples` | PR #2475 | **passes** (35.0 s full, 32.6 s alone) | PR #2475 kept no failure output. Cause **unresolved (record unavailable)**. Not reproducible on current main. |
-| `tests/test_entrypoints.py::test_console_scripts_work_in_clean_venv` | PR #2475 | **passes** (4.4 s full, 5.3 s alone) | Same as above: **unresolved (record unavailable)**, not reproducible. |
-| `tests/test_sleeve_suggestor.py::test_suggest_sleeve_sizes_optimize_prefers_best` | PR #2475 and the earlier anaconda runs | **skipped** in the venv (SciPy absent), **passes** under bare 3.13.13 with scipy 1.18.1 and numpy 2.5.4 | The archived failure in `current-validation.tar.gz` (`final-candidate.xml`) is `AttributeError: module 'numpy' has no attribute 'long'` from `/opt/anaconda3` (scipy 1.11.4 built against a NumPy that has `numpy.long`, run with numpy 1.26.4). That is an environment ABI mismatch, not a code failure. The repository does not declare SciPy, so the test is skipped wherever SciPy is missing. |
+| `tests/test_dashboard_sample_data.py::test_wheel_install_exposes_bundled_dashboard_samples` | PR #2475 | **passes** (35.0 s full, 32.6 s alone) | #2475 `d112c223` manifest-bound `final-candidate.xml` records `pip wheel ... --no-deps` exiting **1** (`CalledProcessError`). The underlying captured wheel stderr is not exposed in the retained traceback; underlying cause **unresolved**. Not reproduced on current main. |
+| `tests/test_entrypoints.py::test_console_scripts_work_in_clean_venv` | PR #2475 | **passes** (4.4 s full, 5.3 s alone) | #2475 `d112c223` manifest-bound `final-candidate.xml` records installation exiting **1**; `final-candidate.log` explicitly says `requires a different Python: 3.12.2 not in ">=3.13"`. This is a Python-floor failure, not an unknown entrypoint cause. |
+| `tests/test_sleeve_suggestor.py::test_suggest_sleeve_sizes_optimize_prefers_best` | PR #2475 | **skipped** in the venv (SciPy absent), **passes** under bare 3.13.13 with scipy 1.18.1 and numpy 2.5.4 | #2475 `d112c223` manifest-bound `final-candidate.xml` records `assert row["optimizer_success"]` / `assert False`. The optimizer's underlying reason remains **unresolved**. This is distinct from the older NumPy traceback below. |
+
+The schema row above is also directly corroborated by #2475 `d112c223`'s manifest-bound
+`final-candidate.xml`: `Parameter dictionary drift detected`, with `Optional[Dict[...]]`
+versus `Dict[...] | None`. The schema repair is moved out of this PR.
+
+The older archive currently at `current-validation.tar.gz` (SHA-256
+`e5826549174bf763e155ac611077c6272b8ffc032a78a6b23f7c6efa63759a50`, bound by the
+current tree's `current-manifest.json`) records a **different** sleeve failure in
+`final-candidate.xml`: `AttributeError: module 'numpy' has no attribute 'long'` through
+SciPy under `/opt/anaconda3`. It supports an environment incompatibility; it does not
+explain #2475's later optimizer assertion. The unverified historical Kaleido timeout has
+no retained raw timeout record here and remains separate from both failures. A current
+passing reproduction does not resolve an unavailable historical cause.
 
 The four PR #2475 node IDs come from the failure list in the PR body. No PR #2475 node ID is
 unavailable. The historical node IDs behind the 1,654 / 1,662 / 1,674-pass snapshots above
@@ -276,7 +291,8 @@ took 31 s and exited 0.
 | `runtime-renderer` | 1 | 0 | `d4a5dd1ec33e…` | `f3ffec1a90fe…` |
 | `runtime-other` | 1 | 0 | `d4a5dd1ec33e…` | `f3ffec1a90fe…` |
 
-As in the original proof, these are eight named executions over six distinct mutations.
+The eight named executions used **five distinct mutant byte sequences**, as recorded in
+`mutation/pairs/results.json` and confirmed against the retained mutant sources.
 Every RED console contains `AssertionError`, and every GREEN run was hashed at
 `f3ffec1a…40e26`. The CLI test input was `fef801ac24c7…`.
 
@@ -295,14 +311,13 @@ directory's `replay.py`, `*.json` and `*.tar.gz`. The worktree's `pa_core/cli.py
 `f3ffec1a…40e26`. All mutations ran in private `git archive` snapshots, so no deliberate
 mutation remains.
 
-#### Closure eligibility
+#### Scope of PR #2500
 
-For #2495, **eligible**: there is a completed full run with committed `coverage.json` at
-92.24% (≥ 90%), the focused suite passes, eight RED/GREEN pairs restore to the recorded hash, and
-production and existing evidence are unchanged. Every full-run failure has a supported
-disposition. The only fresh failure, the parameter-dictionary drift, has an evidenced
-interpreter-version cause and is still a live defect under the 3.13 floor. It needs either a
-version-independent type renderer or a 3.14 floor, and that belongs in its own issue. Three
-historical PR #2475 failures and the historical Kaleido timeout no longer reproduce, and their
-original causes remain unresolved because the raw records were never committed. This is local
-evidence on 3.13.13. Hosted CI on 3.14 is not claimed here.
+The records are historical evidence bound to `5be77e15` (the production inputs and
+mutation replay) and `7595bbc` (the dev-extra coverage and focused run). They do not
+measure the PR head. The full run completed with 92.24% statement coverage and exit 1
+on the parameter-dictionary test. The focused run passed all 23 cases.
+
+#2495 remains open for the schema follow-up. It covers structural rendering of Optional
+and Union annotations, regression cases for `Optional[Dict[...]]` and the equivalent PEP 604
+union, and dictionary regeneration if the canonical output changes.
