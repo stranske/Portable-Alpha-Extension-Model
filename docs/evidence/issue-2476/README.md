@@ -10,6 +10,11 @@ branches below, without changing the restored file's 52-case count.
 
 ## Current receipts (revision-bound, 2026-11-11)
 
+The [2026-11-12 statistics assertion verification](statistics-20261112/README.md)
+checks exact ranked-target-1 statistics, quantiles and tail rows with six
+production mutations. Its identical focused measurements add zero coverage
+units. Complete Gate comparison and hosted delivered-head CI remain open.
+
 The [2026-11-12 facade validation](facade-validation-20261112/README.md) checks
 duplicate-label rejection and preservation of caller inputs across both row
 orders and list/tuple containers. Four production mutations fail the four
