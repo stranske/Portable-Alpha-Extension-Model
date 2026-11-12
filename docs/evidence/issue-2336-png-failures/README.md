@@ -184,8 +184,9 @@ Status against #2495 acceptance:
   completed inside the stop rule, but both were interrupted at collection, so no coverage
   total exists for current main. The historical 92%, 13,441 and 13,537 claims remain
   unreconciled, and the 83.76% / 12,191 of 14,554 figure above remains the last measured total.
-- Focused PNG/PDF/sweep suite passes against unmodified production code with logs and
-  named-node JUnit: **met** (attempt 2).
+- The focused PNG/PDF/sweep suite passed on unmodified production code in attempt 2, with
+  named-node JUnit in `provisioned/focused-junit.xml`. Attempt 2 retained no stdout or stderr.
+  The retained focused-run logs are from attempt 3 in `dev-extra/`.
 - Eight mutation pairs, the failure dispositions and the module increment below 90%: **not
   attempted**. The #2495 triage scoped them out until the baseline above completes.
 - No deliberate mutation is present: production hashes are unchanged before and after. The
