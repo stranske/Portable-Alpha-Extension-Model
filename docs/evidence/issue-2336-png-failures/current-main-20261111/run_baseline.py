@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import shutil
+import signal
 import subprocess
 import sys
 import time
@@ -47,12 +49,15 @@ def run(name: str, argv: list[str]) -> dict[str, object]:
     started = time.monotonic()
     timed_out = False
     with stdout_path.open("wb") as out, stderr_path.open("wb") as err:
-        proc = subprocess.Popen(argv, cwd=ROOT, stdout=out, stderr=err)
+        proc = subprocess.Popen(argv, cwd=ROOT, stdout=out, stderr=err, start_new_session=True)
         try:
             exit_code: int | None = proc.wait(timeout=TIMEOUT_SECONDS)
         except subprocess.TimeoutExpired:
             timed_out = True
-            proc.kill()
+            try:
+                os.killpg(proc.pid, signal.SIGKILL)
+            except ProcessLookupError:
+                pass  # The process group exited between the timeout and signal.
             proc.wait()
             exit_code = None
     return {
@@ -82,6 +87,9 @@ def main() -> int:
     # file below can only come from this pytest invocation (review on PR #2500).
     record["stale_coverage_removed"] = coverage.exists()
     coverage.unlink(missing_ok=True)
+    output_coverage = OUT / "coverage.json"
+    record["stale_output_coverage_removed"] = output_coverage.exists()
+    output_coverage.unlink(missing_ok=True)
     full = run(
         "full",
         [

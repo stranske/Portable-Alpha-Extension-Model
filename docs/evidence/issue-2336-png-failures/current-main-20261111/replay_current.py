@@ -105,10 +105,10 @@ def main() -> int:
         run_path("timeout-path", out, timeout_on_first_red),
         run_path("failure-path", out, fail_on_first_red),
     ]
+    (out / "restoration-paths.json").write_text(json.dumps(paths, indent=2) + "\n")
     replay = load_replay()
     sys.argv = ["replay.py", "--output", str(out / "pairs")]
     replay.main()
-    (out / "restoration-paths.json").write_text(json.dumps(paths, indent=2) + "\n")
     ok = all(p["raised"] and p["restored_equals_baseline"] for p in paths)
     return 0 if ok else 1
 
