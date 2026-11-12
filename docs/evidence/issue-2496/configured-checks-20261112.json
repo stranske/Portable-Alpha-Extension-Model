@@ -1,0 +1,94 @@
+{
+  "before_formatter_adjustment": [
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+        "-m",
+        "ruff",
+        "check",
+        "--output-format",
+        "github",
+        "--extend-exclude",
+        ".workflows-lib",
+        "."
+      ],
+      "exit_code": 0,
+      "seconds": 0.161,
+      "output": ""
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+        "-m",
+        "mypy",
+        "--config-file",
+        "pyproject.toml",
+        "--exclude",
+        ".workflows-lib",
+        "."
+      ],
+      "exit_code": 0,
+      "seconds": 32.854,
+      "output": "pyproject.toml: note: unused section(s): module = ['archive', 'archive.*', 'dashboard', 'dashboard.*', 'scripts', 'scripts.*', 'tests', 'tests.*']\nSuccess: no issues found in 165 source files\n"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+        "-m",
+        "ruff",
+        "format",
+        "--check",
+        "tests/test_coverage_round_2375.py"
+      ],
+      "exit_code": 1,
+      "seconds": 0.042,
+      "output": "unformatted: File would be reformatted\n   --> tests/test_coverage_round_2375.py:250:12\n    |\n249 |     assert metadata[\"config_path\"] == \"config.yaml\"\n    -     assert (\n    -         metadata.get(\"manifest_path\") == \"manifest.json\"\n    -     ), \"Missing completed manifest registration\"\n250 +     assert metadata.get(\"manifest_path\") == \"manifest.json\", (\n251 +         \"Missing completed manifest registration\"\n252 +     )\n253 |     outputs = metadata[\"outputs\"]\n--------------------------------------------------------------------------------\n267 |         source_bytes = source.read_bytes()\n    -         assert (\n    -             artifact.read_bytes() == source_bytes\n    -         ), f\"Bundle {name} differs from CLI-produced file\"\n268 +         assert artifact.read_bytes() == source_bytes, (\n269 +             f\"Bundle {name} differs from CLI-produced file\"\n270 +         )\n271 |         recorded_hash = (\n    |\n\n1 file would be reformatted\n"
+    }
+  ],
+  "final": [
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+        "-m",
+        "ruff",
+        "check",
+        "--output-format",
+        "github",
+        "--extend-exclude",
+        ".workflows-lib",
+        "."
+      ],
+      "exit_code": 0,
+      "seconds": 0.068,
+      "output": ""
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+        "-m",
+        "mypy",
+        "--config-file",
+        "pyproject.toml",
+        "--exclude",
+        ".workflows-lib",
+        "."
+      ],
+      "exit_code": 0,
+      "seconds": 1.318,
+      "output": "pyproject.toml: note: unused section(s): module = ['archive', 'archive.*', 'dashboard', 'dashboard.*', 'scripts', 'scripts.*', 'tests', 'tests.*']\nSuccess: no issues found in 165 source files\n"
+    },
+    {
+      "command": [
+        "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+        "-m",
+        "ruff",
+        "format",
+        "--check",
+        "tests/test_coverage_round_2375.py"
+      ],
+      "exit_code": 0,
+      "seconds": 0.04,
+      "output": "1 file already formatted\n"
+    }
+  ]
+}

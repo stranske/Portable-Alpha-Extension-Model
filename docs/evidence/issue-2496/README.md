@@ -1,5 +1,9 @@
 # Issue #2496 acceptance evidence
 
+Continuation: [2026-11-12 live reconciliation and validation](continuation-20261112.md)
+supersedes the live-data limitation below using authenticated GitHub connector
+reads. The sections below preserve the original 2026-11-11 record.
+
 ## Before implementation (2026-11-11 UTC)
 
 Starting revision: `0e56868bcf7439ef93a3b18e7a73434bf770a12a`.

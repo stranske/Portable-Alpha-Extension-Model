@@ -1,0 +1,650 @@
+{
+  "started_at": "2026-11-12T05:38:06.297962+00:00",
+  "revision": "83cc7ecfa526d2b1a6748f0d35bcdd7c2062061b",
+  "python": "3.14.10 (main, Oct 26 2026, 14:17:03) [GCC 15.2.0]",
+  "test_sha256": {
+    "tests/test_coverage_round_2375.py": "dfd07637d13a93b03c1a34f535cd136fb6b844aafb1b3727c4c649f6977aceac",
+    "tests/test_cli_attribution_fallback.py": "7444d61c57cb1008cbcadf071a59e17dff16ca987f901ff3f21e3da2d4669518"
+  },
+  "production_sha256": {
+    "pa_core/run_artifact_bundle.py": "8765afc38bfe1f11d14d20ff2bc979994463040ef03a20e0422318934d4831c0",
+    "pa_core/cli.py": "f3ffec1a90fe5888ca5ba357507e7542f4dc436117acea430348c87ab0b40e26"
+  },
+  "mutations": [
+    {
+      "name": "workbook-registration",
+      "path": "pa_core/cli.py",
+      "case": "test_single_run_bundle_contains_the_completed_artifacts",
+      "expected_failure": "Missing completed workbook registration",
+      "mutant_sha256": "df13f33bc6c7152cf354bb1c7dc18455a9d6a2d6fa746b40efe21dd6c8a4fe59",
+      "patch": "--- pa_core/cli.py\n+++ pa_core/cli.py\n@@ -1808,7 +1808,7 @@\n         finalize=not finalize_after_append,\n         metadata=metadata,\n     )\n-    _record_artifact(flags.save_xlsx or \"Outputs.xlsx\")\n+    # Mutant: omit completed workbook registration.\n     if args.stress_preset:\n         out_path = Path(flags.save_xlsx or \"Outputs.xlsx\")\n         if out_path.exists():\n",
+      "failure": {
+        "command": [
+          "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+          "-m",
+          "pytest",
+          "tests/test_coverage_round_2375.py",
+          "-q",
+          "-m",
+          "not slow",
+          "--tb=short",
+          "--show-capture=no",
+          "--disable-warnings"
+        ],
+        "exit_code": 1,
+        "seconds": 6.688,
+        "raw_output_sha256": "1b09802d258e0072c8681cecaaf73bbac60fb513adcf123fd0cbe1b24314b4f4",
+        "output_excerpt": "............F                                                            [100%]\n=================================== FAILURES ===================================\n___________ test_single_run_bundle_contains_the_completed_artifacts ____________\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_coverage_round_2375.py:253: in test_single_run_bundle_contains_the_completed_artifacts\n    assert output.name in outputs, \"Missing completed workbook registration\"\nE   AssertionError: Missing completed workbook registration\nE   assert 'result.xlsx' in {}\nE    +  where 'result.xlsx' = PosixPath('/tmp/pytest-of-runner/pytest-32/test_single_run_bundle_contain0/result.xlsx').name\n=========================== short test summary info ============================\nFAILED tests/test_coverage_round_2375.py::test_single_run_bundle_contains_the_completed_artifacts - AssertionError: Missing completed workbook registration\nassert 'result.xlsx' in {}\n +  where 'result.xlsx' = PosixPath('/tmp/pytest-of-runner/pytest-32/test_single_run_bundle_contain0/result.xlsx').name\n1 failed, 12 passed, 157 warnings in 4.09s\n"
+      },
+      "restored_sha256": "f3ffec1a90fe5888ca5ba357507e7542f4dc436117acea430348c87ab0b40e26",
+      "restoration": {
+        "command": [
+          "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+          "-m",
+          "pytest",
+          "tests/test_coverage_round_2375.py",
+          "-q",
+          "-m",
+          "not slow",
+          "--tb=short",
+          "--show-capture=no",
+          "--disable-warnings"
+        ],
+        "exit_code": 0,
+        "seconds": 6.701,
+        "raw_output_sha256": "77e6815228a253670fc0ea94e1d45f3bc789147111f726e53b2dddac95d91936",
+        "output_excerpt": ".............                                                            [100%]\n13 passed, 157 warnings in 3.99s\n"
+      }
+    },
+    {
+      "name": "manifest-registration",
+      "path": "pa_core/cli.py",
+      "case": "test_single_run_bundle_contains_the_completed_artifacts",
+      "expected_failure": "Missing completed manifest registration",
+      "mutant_sha256": "df63bd89c142270e7177d229db56fe41c86f402d49b364260df2bcf0afe185fc",
+      "patch": "--- pa_core/cli.py\n+++ pa_core/cli.py\n@@ -872,7 +872,7 @@\n                 ),\n                 index_hash=index_hash,\n                 seed=args.seed,\n-                manifest=manifest_data,\n+                manifest=None,\n                 outputs=outputs,\n             )\n             bundle = RunArtifactBundle(artifact)\n",
+      "failure": {
+        "command": [
+          "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+          "-m",
+          "pytest",
+          "tests/test_coverage_round_2375.py",
+          "-q",
+          "-m",
+          "not slow",
+          "--tb=short",
+          "--show-capture=no",
+          "--disable-warnings"
+        ],
+        "exit_code": 1,
+        "seconds": 7.042,
+        "raw_output_sha256": "a80fecdb36a4ce56321bd3f90323e0a5c51ce8040a6aae0b5bcd643b1e72e1bc",
+        "output_excerpt": "............F                                                            [100%]\n=================================== FAILURES ===================================\n___________ test_single_run_bundle_contains_the_completed_artifacts ____________\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_coverage_round_2375.py:251: in test_single_run_bundle_contains_the_completed_artifacts\n    assert manifest_ref == \"manifest.json\", \"Missing completed manifest registration\"\nE   AssertionError: Missing completed manifest registration\nE   assert None == 'manifest.json'\n=========================== short test summary info ============================\nFAILED tests/test_coverage_round_2375.py::test_single_run_bundle_contains_the_completed_artifacts - AssertionError: Missing completed manifest registration\nassert None == 'manifest.json'\n1 failed, 12 passed, 157 warnings in 4.29s\n"
+      },
+      "restored_sha256": "f3ffec1a90fe5888ca5ba357507e7542f4dc436117acea430348c87ab0b40e26",
+      "restoration": {
+        "command": [
+          "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+          "-m",
+          "pytest",
+          "tests/test_coverage_round_2375.py",
+          "-q",
+          "-m",
+          "not slow",
+          "--tb=short",
+          "--show-capture=no",
+          "--disable-warnings"
+        ],
+        "exit_code": 0,
+        "seconds": 6.742,
+        "raw_output_sha256": "167147e8ccea50a6c706855b16ac86313f978118d6b7e209db3f81ce913fd252",
+        "output_excerpt": ".............                                                            [100%]\n13 passed, 157 warnings in 4.02s\n"
+      }
+    },
+    {
+      "name": "manifest-reference",
+      "path": "pa_core/run_artifact_bundle.py",
+      "case": "test_single_run_bundle_contains_the_completed_artifacts",
+      "expected_failure": "Missing completed manifest registration",
+      "mutant_sha256": "b3bcf9fd1f472c8b9395da7124199f724361cb945a0b6fd46eee0538e34d67fe",
+      "patch": "--- pa_core/run_artifact_bundle.py\n+++ pa_core/run_artifact_bundle.py\n@@ -60,7 +60,7 @@\n             \"config_path\": str(config_path.relative_to(root)),\n             \"index_hash\": self.artifact.index_hash,\n             \"seed\": self.artifact.seed,\n-            \"manifest_path\": (str(manifest_path.relative_to(root)) if manifest_path else None),\n+            \"manifest_path\": None,\n             \"outputs\": outputs_map,\n             \"hashes\": {\n                 \"config\": self._hash_file(config_path),\n",
+      "failure": {
+        "command": [
+          "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+          "-m",
+          "pytest",
+          "tests/test_coverage_round_2375.py",
+          "-q",
+          "-m",
+          "not slow",
+          "--tb=short",
+          "--show-capture=no",
+          "--disable-warnings"
+        ],
+        "exit_code": 1,
+        "seconds": 6.754,
+        "raw_output_sha256": "9f27488549a0a07aa94f409732ad44ea0f2f32e2a0430e106d4b72eab08a0dad",
+        "output_excerpt": "............F                                                            [100%]\n=================================== FAILURES ===================================\n___________ test_single_run_bundle_contains_the_completed_artifacts ____________\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_coverage_round_2375.py:251: in test_single_run_bundle_contains_the_completed_artifacts\n    assert manifest_ref == \"manifest.json\", \"Missing completed manifest registration\"\nE   AssertionError: Missing completed manifest registration\nE   assert None == 'manifest.json'\n=========================== short test summary info ============================\nFAILED tests/test_coverage_round_2375.py::test_single_run_bundle_contains_the_completed_artifacts - AssertionError: Missing completed manifest registration\nassert None == 'manifest.json'\n1 failed, 12 passed, 157 warnings in 4.11s\n"
+      },
+      "restored_sha256": "8765afc38bfe1f11d14d20ff2bc979994463040ef03a20e0422318934d4831c0",
+      "restoration": {
+        "command": [
+          "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+          "-m",
+          "pytest",
+          "tests/test_coverage_round_2375.py",
+          "-q",
+          "-m",
+          "not slow",
+          "--tb=short",
+          "--show-capture=no",
+          "--disable-warnings"
+        ],
+        "exit_code": 0,
+        "seconds": 6.698,
+        "raw_output_sha256": "77e6815228a253670fc0ea94e1d45f3bc789147111f726e53b2dddac95d91936",
+        "output_excerpt": ".............                                                            [100%]\n13 passed, 157 warnings in 3.99s\n"
+      }
+    },
+    {
+      "name": "missing-workbook",
+      "path": "pa_core/run_artifact_bundle.py",
+      "case": "test_single_run_bundle_contains_the_completed_artifacts",
+      "expected_failure": "Missing referenced workbook file",
+      "mutant_sha256": "0862a8bf8f066e09cf3afd1ec5e8e4f340dcdbffe6593dfe9881050d98e34e35",
+      "patch": "--- pa_core/run_artifact_bundle.py\n+++ pa_core/run_artifact_bundle.py\n@@ -55,6 +55,7 @@\n             shutil.copy2(src_path, dest_path)\n             outputs_map[name] = str(dest_path.relative_to(root))\n             output_hashes[name] = self._hash_file(dest_path)\n+            dest_path.unlink()\n \n         bundle_meta = {\n             \"config_path\": str(config_path.relative_to(root)),\n",
+      "failure": {
+        "command": [
+          "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+          "-m",
+          "pytest",
+          "tests/test_coverage_round_2375.py",
+          "-q",
+          "-m",
+          "not slow",
+          "--tb=short",
+          "--show-capture=no",
+          "--disable-warnings"
+        ],
+        "exit_code": 1,
+        "seconds": 6.673,
+        "raw_output_sha256": "c3dfdaf389693c46f4ab8ceab825a816c4f246cd9e8f0abe77270bee285ced54",
+        "output_excerpt": "............F                                                            [100%]\n=================================== FAILURES ===================================\n___________ test_single_run_bundle_contains_the_completed_artifacts ____________\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_coverage_round_2375.py:264: in test_single_run_bundle_contains_the_completed_artifacts\n    assert artifact.is_file(), f\"Missing referenced {name} file: {relative_path}\"\nE   AssertionError: Missing referenced workbook file: outputs/result.xlsx\nE   assert False\nE    +  where False = is_file()\nE    +    where is_file = PosixPath('/tmp/pytest-of-runner/pytest-38/test_single_run_bundle_contain0/bundle/outputs/result.xlsx').is_file\n=========================== short test summary info ============================\nFAILED tests/test_coverage_round_2375.py::test_single_run_bundle_contains_the_completed_artifacts - AssertionError: Missing referenced workbook file: outputs/result.xlsx\nassert False\n +  where False = is_file()\n +    where is_file = PosixPath('/tmp/pytest-of-runner/pytest-38/test_single_run_bundle_contain0/bundle/outputs/result.xlsx').is_file\n1 failed, 12 passed, 157 warnings in 4.09s\n"
+      },
+      "restored_sha256": "8765afc38bfe1f11d14d20ff2bc979994463040ef03a20e0422318934d4831c0",
+      "restoration": {
+        "command": [
+          "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+          "-m",
+          "pytest",
+          "tests/test_coverage_round_2375.py",
+          "-q",
+          "-m",
+          "not slow",
+          "--tb=short",
+          "--show-capture=no",
+          "--disable-warnings"
+        ],
+        "exit_code": 0,
+        "seconds": 6.309,
+        "raw_output_sha256": "6c1431a53907ac081ddfe1d7a4a61399c7ebfe04ab807c02eb094879b4be2ef5",
+        "output_excerpt": ".............                                                            [100%]\n13 passed, 157 warnings in 3.84s\n"
+      }
+    },
+    {
+      "name": "missing-manifest",
+      "path": "pa_core/run_artifact_bundle.py",
+      "case": "test_single_run_bundle_contains_the_completed_artifacts",
+      "expected_failure": "Missing referenced manifest file",
+      "mutant_sha256": "9cddd77cf66276eefea008aefcd1865b391ac3c4ff696850771e289c15ecbe0f",
+      "patch": "--- pa_core/run_artifact_bundle.py\n+++ pa_core/run_artifact_bundle.py\n@@ -68,6 +68,7 @@\n                 \"outputs\": output_hashes,\n             },\n         }\n+        manifest_path.unlink()\n         meta_path = root / self._META_FILE\n         meta_path.write_text(json.dumps(bundle_meta, indent=2))\n         self.root = root\n",
+      "failure": {
+        "command": [
+          "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+          "-m",
+          "pytest",
+          "tests/test_coverage_round_2375.py",
+          "-q",
+          "-m",
+          "not slow",
+          "--tb=short",
+          "--show-capture=no",
+          "--disable-warnings"
+        ],
+        "exit_code": 1,
+        "seconds": 6.828,
+        "raw_output_sha256": "e0fc0b045a9f96eea9eb26478d32334f3fdb699c34126d68e8b865c1d0229691",
+        "output_excerpt": "............F                                                            [100%]\n=================================== FAILURES ===================================\n___________ test_single_run_bundle_contains_the_completed_artifacts ____________\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_coverage_round_2375.py:264: in test_single_run_bundle_contains_the_completed_artifacts\n    assert artifact.is_file(), f\"Missing referenced {name} file: {relative_path}\"\nE   AssertionError: Missing referenced manifest file: manifest.json\nE   assert False\nE    +  where False = is_file()\nE    +    where is_file = PosixPath('/tmp/pytest-of-runner/pytest-40/test_single_run_bundle_contain0/bundle/manifest.json').is_file\n=========================== short test summary info ============================\nFAILED tests/test_coverage_round_2375.py::test_single_run_bundle_contains_the_completed_artifacts - AssertionError: Missing referenced manifest file: manifest.json\nassert False\n +  where False = is_file()\n +    where is_file = PosixPath('/tmp/pytest-of-runner/pytest-40/test_single_run_bundle_contain0/bundle/manifest.json').is_file\n1 failed, 12 passed, 157 warnings in 4.18s\n"
+      },
+      "restored_sha256": "8765afc38bfe1f11d14d20ff2bc979994463040ef03a20e0422318934d4831c0",
+      "restoration": {
+        "command": [
+          "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+          "-m",
+          "pytest",
+          "tests/test_coverage_round_2375.py",
+          "-q",
+          "-m",
+          "not slow",
+          "--tb=short",
+          "--show-capture=no",
+          "--disable-warnings"
+        ],
+        "exit_code": 0,
+        "seconds": 6.306,
+        "raw_output_sha256": "01fee9b03b8f891778ab99f7f7c5b19e9867fbc5d123524d61e85442d12c6245",
+        "output_excerpt": ".............                                                            [100%]\n13 passed, 157 warnings in 3.83s\n"
+      }
+    },
+    {
+      "name": "workbook-hash",
+      "path": "pa_core/run_artifact_bundle.py",
+      "case": "test_single_run_bundle_contains_the_completed_artifacts",
+      "expected_failure": "Incorrect workbook hash",
+      "mutant_sha256": "d1f68f6f9729f6a96db0b13b071a8f26de19f14b33993fcc1d47088b906de574",
+      "patch": "--- pa_core/run_artifact_bundle.py\n+++ pa_core/run_artifact_bundle.py\n@@ -54,7 +54,7 @@\n             dest_path.parent.mkdir(parents=True, exist_ok=True)\n             shutil.copy2(src_path, dest_path)\n             outputs_map[name] = str(dest_path.relative_to(root))\n-            output_hashes[name] = self._hash_file(dest_path)\n+            output_hashes[name] = \"0\" * 64\n \n         bundle_meta = {\n             \"config_path\": str(config_path.relative_to(root)),\n",
+      "failure": {
+        "command": [
+          "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+          "-m",
+          "pytest",
+          "tests/test_coverage_round_2375.py",
+          "-q",
+          "-m",
+          "not slow",
+          "--tb=short",
+          "--show-capture=no",
+          "--disable-warnings"
+        ],
+        "exit_code": 1,
+        "seconds": 6.528,
+        "raw_output_sha256": "9e42b0ae641ad7670a1d91ebd9faf9b40d7d8935128762fe5d24db4df2a2a710",
+        "output_excerpt": "............F                                                            [100%]\n=================================== FAILURES ===================================\n___________ test_single_run_bundle_contains_the_completed_artifacts ____________\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_coverage_round_2375.py:274: in test_single_run_bundle_contains_the_completed_artifacts\n    assert recorded_hash == hashlib.sha256(source_bytes).hexdigest(), f\"Incorrect {name} hash\"\nE   AssertionError: Incorrect workbook hash\nE   assert '000000000000...0000000000000' == 'd49f0327ba09...f98ec183a898a'\nE     \nE     - d49f0327ba09233d881065245695fc223ea07d37d0e4262699af98ec183a898a\nE     + 0000000000000000000000000000000000000000000000000000000000000000\n=========================== short test summary info ============================\nFAILED tests/test_coverage_round_2375.py::test_single_run_bundle_contains_the_completed_artifacts - AssertionError: Incorrect workbook hash\nassert '000000000000...0000000000000' == 'd49f0327ba09...f98ec183a898a'\n  \n  - d49f0327ba09233d881065245695fc223ea07d37d0e4262699af98ec183a898a\n  + 0000000000000000000000000000000000000000000000000000000000000000\n1 failed, 12 passed, 157 warnings in 4.02s\n"
+      },
+      "restored_sha256": "8765afc38bfe1f11d14d20ff2bc979994463040ef03a20e0422318934d4831c0",
+      "restoration": {
+        "command": [
+          "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+          "-m",
+          "pytest",
+          "tests/test_coverage_round_2375.py",
+          "-q",
+          "-m",
+          "not slow",
+          "--tb=short",
+          "--show-capture=no",
+          "--disable-warnings"
+        ],
+        "exit_code": 0,
+        "seconds": 6.364,
+        "raw_output_sha256": "c4de26a7b8bdcb437eddcb9e0a3a4a9469410be69ca3afb8f457e8c8f272bdd0",
+        "output_excerpt": ".............                                                            [100%]\n13 passed, 157 warnings in 3.80s\n"
+      }
+    },
+    {
+      "name": "manifest-hash",
+      "path": "pa_core/run_artifact_bundle.py",
+      "case": "test_single_run_bundle_contains_the_completed_artifacts",
+      "expected_failure": "Incorrect manifest hash",
+      "mutant_sha256": "80d423ce2599a3d22489a4c157777650df274559a1373bea9be2b20139da5b4c",
+      "patch": "--- pa_core/run_artifact_bundle.py\n+++ pa_core/run_artifact_bundle.py\n@@ -64,7 +64,7 @@\n             \"outputs\": outputs_map,\n             \"hashes\": {\n                 \"config\": self._hash_file(config_path),\n-                \"manifest\": self._hash_file(manifest_path) if manifest_path else None,\n+                \"manifest\": \"0\" * 64 if manifest_path else None,\n                 \"outputs\": output_hashes,\n             },\n         }\n",
+      "failure": {
+        "command": [
+          "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+          "-m",
+          "pytest",
+          "tests/test_coverage_round_2375.py",
+          "-q",
+          "-m",
+          "not slow",
+          "--tb=short",
+          "--show-capture=no",
+          "--disable-warnings"
+        ],
+        "exit_code": 1,
+        "seconds": 6.503,
+        "raw_output_sha256": "a1dff1b48669bc2374543f0aba36f13739cdbcf5fd140fb3677f4fc079e5eccc",
+        "output_excerpt": "............F                                                            [100%]\n=================================== FAILURES ===================================\n___________ test_single_run_bundle_contains_the_completed_artifacts ____________\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_coverage_round_2375.py:274: in test_single_run_bundle_contains_the_completed_artifacts\n    assert recorded_hash == hashlib.sha256(source_bytes).hexdigest(), f\"Incorrect {name} hash\"\nE   AssertionError: Incorrect manifest hash\nE   assert '000000000000...0000000000000' == '8103b8655646...3560222b7a864'\nE     \nE     - 8103b8655646a71c0da9d5d10c538a4758538701128f77ad4b63560222b7a864\nE     + 0000000000000000000000000000000000000000000000000000000000000000\n=========================== short test summary info ============================\nFAILED tests/test_coverage_round_2375.py::test_single_run_bundle_contains_the_completed_artifacts - AssertionError: Incorrect manifest hash\nassert '000000000000...0000000000000' == '8103b8655646...3560222b7a864'\n  \n  - 8103b8655646a71c0da9d5d10c538a4758538701128f77ad4b63560222b7a864\n  + 0000000000000000000000000000000000000000000000000000000000000000\n1 failed, 12 passed, 157 warnings in 4.03s\n"
+      },
+      "restored_sha256": "8765afc38bfe1f11d14d20ff2bc979994463040ef03a20e0422318934d4831c0",
+      "restoration": {
+        "command": [
+          "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+          "-m",
+          "pytest",
+          "tests/test_coverage_round_2375.py",
+          "-q",
+          "-m",
+          "not slow",
+          "--tb=short",
+          "--show-capture=no",
+          "--disable-warnings"
+        ],
+        "exit_code": 0,
+        "seconds": 6.454,
+        "raw_output_sha256": "9120c127834107cede0fd534fd325947c3fe0799fdc5634513509db0793514ec",
+        "output_excerpt": ".............                                                            [100%]\n13 passed, 157 warnings in 3.88s\n"
+      }
+    },
+    {
+      "name": "copied-workbook-bytes",
+      "path": "pa_core/run_artifact_bundle.py",
+      "case": "test_single_run_bundle_contains_the_completed_artifacts",
+      "expected_failure": "Bundle workbook differs from CLI-produced file",
+      "mutant_sha256": "cba90f1cfd4b3699b4babd3d9ec1212e262cd4b18def35061da33616eabedc77",
+      "patch": "--- pa_core/run_artifact_bundle.py\n+++ pa_core/run_artifact_bundle.py\n@@ -54,6 +54,7 @@\n             dest_path.parent.mkdir(parents=True, exist_ok=True)\n             shutil.copy2(src_path, dest_path)\n             outputs_map[name] = str(dest_path.relative_to(root))\n+            dest_path.write_bytes(b\"corrupted workbook\")\n             output_hashes[name] = self._hash_file(dest_path)\n \n         bundle_meta = {\n",
+      "failure": {
+        "command": [
+          "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+          "-m",
+          "pytest",
+          "tests/test_coverage_round_2375.py",
+          "-q",
+          "-m",
+          "not slow",
+          "--tb=short",
+          "--show-capture=no",
+          "--disable-warnings"
+        ],
+        "exit_code": 1,
+        "seconds": 6.55,
+        "raw_output_sha256": "605ae0bf6170dd1b1c28f795644a1ecd0fbb77878d64fc6c3b2b5828af644f1f",
+        "output_excerpt": "............F                                                            [100%]\n=================================== FAILURES ===================================\n___________ test_single_run_bundle_contains_the_completed_artifacts ____________\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_coverage_round_2375.py:268: in test_single_run_bundle_contains_the_completed_artifacts\n    assert artifact_bytes == source_bytes, f\"Bundle {name} differs from CLI-produced file\"\nE   AssertionError: Bundle workbook differs from CLI-produced file\nE   assert b'corrupted workbook' == b'PK\\x03\\x04\\...0\\x00\\x00\\x00'\nE     \nE     At index 0 diff: b'c' != b'P'\nE     \nE     Full diff: (-: missing in left side, +: extra in left side)\nE     + (b'corrupted workbook')\nE     - (b'PK\\x03\\x04\\x14\\x00\\x00\\x00\\x08\\x00\\xf5,l]F\\xc7MH\\x95\\x00\\x00\\x00\\xcd\\x00'\nE     -  b'\\x00\\x00\\x10\\x00\\x00\\x00docProps/app.xmlM\\xcfM\\x0b\\xc20\\x0c\\x06\\xe0\\xbf'\nE     -  b'Rv\\xb7\\x99\\x8a\\x1e\\xa4\\x0eD=\\x8a\\x9e\\xbc\\xcf.u\\x85\\xb6)m\\x84\\xfa\\xef\\xed'\nE     -  b'\\x04?nyy\\xc8\\x1b\\xa2.\\x89\"&\\xb6\\x98E\\xf1.\\xe4m32\\xc7\\r@\\xd6#\\xfa>'\nE     -  b'\\xcb\\xca\\xa1\\x8a\\xa1\\xe4{\\xae1\\xdd\\x81\\x8c\\xb1\\x1a\\x0f\\xa4\\x1f\\x1e\\x03\\xc3'\nE     -  b'\\xa2m\\xd7\\x80\\x851\\x0c8\\xcc\\xe2\\xb7\\xb0\\xe9\\xd4.Fgu\\xcf\\x96Bw\\xb2:Q&\\xc3\\xe2'\nE     -  b\"X4:\\xb1'\\x1f\\xab\\xdc\\x1c\\n\\x10\\xe7z%>\\x8b\\x13K9\\x97+\\x05\\xff\\x8bS\\xcb\\x15S\"\nE     -  b'\\x9e\\xe6\\xcao\\xfcd\\x05\\xbf\\x07\\xba\\x17PK\\x03\\x04\\x14\\x00\\x00\\x00\\x08'\nE     -  b'\\x00\\xf5,l]\\x91n\\x86,\\xef\\x00\\x00\\x00+\\x02\\x00\\x00\\x11\\x00\\x00\\x00docProp'\nE     -  b's/core.xml\\xcd\\x92QK\\xc30\\x10\\xc7\\xbf\\x8a\\xe4\\xbd\\xbd\\xa6\\xd5\\x81\\xa1\\xcb'\nE     -  b'\\x8bcO\\n\\x82\\x03\\xc5\\xb7\\x90\\xdc\\xb6`\\x93\\x86\\xe4\\xa4\\xdd\\xb77\\xad'\nE     -  b'[\\x87\\xe8\\x07\\xf01w\\xff\\xfc\\xeewp\\xad\\x0eB\\xf7\\x11\\x9fc\\x1f0\\x92\\xc5t'\nE     -  b\"3\\xba\\xce'\\xa1\\xc3\\x9a\\x1d\\x89\\x82\\x00H\\xfa\\x88N\\xa52'|n\\xee\\xfb\\xe8\\x14\"\nE     -  b'\\xe5g<@P\\xfaC\\x1d\\x10\\xea\\xaaZ\\x81CRF\\x91\\x82\\tX\\x84\\x85\\xc8dk\\xb4\\xd0\\x11'\nE     -  b'\\x15\\xf5\\xf1\\x8c7z\\xc1\\x87\\xcf\\xd8\\xcd0\\xa3\\x01;t\\xe8)\\x01/909M\\x0c\\xa7\\xb1k'\nE     -  b'\\xe1\\n\\x98`\\x84\\xd1\\xa5\\xef\\x02\\x9a\\x858W\\xff\\xc4\\xce\\x1d`\\xe7\\xe4'\nE     -  b'\\x98\\xec\\x92\\x1a\\x86\\xa1\\x1c\\x9a9\\x97w\\xe0\\xf0\\xf6\\xf4\\xf82\\xaf[X\\x9fHy\\x8d'\nE     -  b'\\xf9W\\xb2\\x82N\\x01\\xd7\\xec2\\xf9\\xb5y\\xd8\\xec\\xb6L\\xd6U\\xbd*8/x\\xbd\\xab\\xeeDs'\nE     -  b'/n\\x9b\\xf7\\xc9\\xf5\\x87\\xdfU\\xd8\\xf5\\xc6\\xee\\xed?6\\xbe\\x08\\xca\\x16'\nE     -  b'~\\xdd\\x85\\xfc\\x02PK\\x03\\x04\\x14\\x00\\x00\\x00\\x08\\x00\\xf5,l]\\x99\\\\\\x9c#\\x10'\nE     -  b\"\\x06\\x00\\x00\\x9c'\\x00\\x00\\x13\\x00\\x00\\x00xl/theme/theme1.xml\\xedZ[s\\xda8\"\nE     -  b'\\x14~\\xef\\xaf\\xd0xg\\xf6m\\x0b\\xc66\\x81\\xb6\\xb4\\x13siv\\xdb\\xb4\\x99\\x84\\xed'\nE     -  b'N\\x1f\\x85\\x11X\\x8dlyd\\x91\\x84\\x7f\\xbfG6\\x10\\xcb\\x96\\r\\xed\\x92M\\xba\\x9b'\nE     -  b'<\\x04,\\xe9\\xfb\\xceEG\\xe7\\xe88y\\xf3\\xee.b\\xe8\\x86\\x88\\x94\\xf2x`\\xd9'\nE     -  b'/\\xdb\\xd6\\xbb\\xb7/\\xde\\xe0W2$\\x11A0\\x19\\xa7\\xaf\\xf0\\xc0\\n\\xa5L^\\xb5'\nE     -  b'Zi\\x00\\xc38}\\xc9\\x13\\x12\\xc3\\xdc\\x82\\x8b\\x08Kx\\x14\\xcb\\xd6\\\\\\xe0[\\x1a/'\nE     -  b'#\\xd6\\xea\\x\n[excerpt abbreviated; full text in archive]\ng2.xml.r'\n  -  b'elsPK\\x01\\x02\\x14\\x03\\x14\\x00\\x00\\x00\\x08\\x00\\xf5,l]-\\x04\\xa4\\xe8\\x8d'\n  -  b'\\x00\\x00\\x00\\xf3\\x00\\x00\\x00#\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00'\n  -  b'\\x00\\x00\\x00\\x80\\x01E-\\x00\\x00xl/worksheets/_rels/sheet6.xml.relsPK\\x01\\x02'\n  -  b'\\x14\\x03\\x14\\x00\\x00\\x00\\x08\\x00\\xf5,l]n\\xac\\xbf\\xc1\\x0f\\x02\\x00\\x00'\n  -  b'\\xcd\\x04\\x00\\x00\\x18\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00'\n  -  b'\\x80\\x81\\x13.\\x00\\x00xl/worksheets/sheet7.xmlPK\\x01\\x02\\x14\\x03'\n  -  b'\\x14\\x00\\x00\\x00\\x08\\x00\\xf5,l]\\x8c\\xe6\\xd5+\\x97\\x02\\x00\\x00\\xa2\\x07'\n  -  b'\\x00\\x00\\x18\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x80\\x81X0\\x00\\x00'\n  -  b'xl/worksheets/sheet8.xmlPK\\x01\\x02\\x14\\x03\\x14\\x00\\x00\\x00\\x08\\x00\\xf5,l]'\n  -  b'\\xc1%\\x1f\\xa6\\x88\\x02\\x00\\x00\\x85\\x07\\x00\\x00\\x18\\x00\\x00\\x00'\n  -  b'\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x80\\x81%3\\x00\\x00xl/worksheets/sheet9.xmlPK'\n  -  b'\\x01\\x02\\x14\\x03\\x14\\x00\\x00\\x00\\x08\\x00\\xf5,l]/\\x10\\xc4\\xcb\\xa6\\x01'\n  -  b'\\x00\\x00\\x1f\\x03\\x00\\x00\\x19\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00'\n  -  b'\\x00\\x00\\x80\\x81\\xe35\\x00\\x00xl/worksheets/sheet10.xmlPK\\x01\\x02\\x14\\x03\\x14'\n  -  b'\\x00\\x00\\x00\\x08\\x00\\xf5,l]^L\\xc9\\xbe\\xa6\\x01\\x00\\x00 \\x03\\x00'\n  -  b'\\x00\\x19\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x80\\x81\\xc07\\x00\\x00x'\n  -  b'l/worksheets/sheet11.xmlPK\\x01\\x02\\x14\\x03\\x14\\x00\\x00\\x00\\x08\\x00\\xf5,l]'\n  -  b'^L\\xc9\\xbe\\xa6\\x01\\x00\\x00 \\x03\\x00\\x00\\x19\\x00\\x00\\x00\\x00\\x00\\x00\\x00'\n  -  b'\\x00\\x00\\x00\\x00\\x80\\x81\\x9d9\\x00\\x00xl/worksheets/sheet12.xmlPK\\x01\\x02\\x14'\n  -  b'\\x03\\x14\\x00\\x00\\x00\\x08\\x00\\xf5,l]\\xd7a\\xd63=\\x00\\x00\\x00D\\x00\\x00\\x00\\x13'\n  -  b'\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x80\\x01z;\\x00\\x00xl/media/im'\n  -  b'age1.pngPK\\x01\\x02\\x14\\x03\\x14\\x00\\x00\\x00\\x08\\x00\\xf5,l]\\xd7a\\xd63'\n  -  b'=\\x00\\x00\\x00D\\x00\\x00\\x00\\x13\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00'\n  -  b'\\x80\\x01\\xe8;\\x00\\x00xl/media/image2.pngPK\\x01\\x02\\x14\\x03\\x14'\n  -  b'\\x00\\x00\\x00\\x08\\x00\\xf5,l]|\\xf3\\xa3\\xdcQ\\x02\\x00\\x00\\xf6\\t\\x00'\n  -  b'\\x00\\r\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x80\\x01V<\\x00\\x00xl/st'\n  -  b'yles.xmlPK\\x01\\x02\\x14\\x03\\x14\\x00\\x00\\x00\\x08\\x00\\xf5,l]\\x97\\x8a\\xbb\\x1c'\n  -  b'\\xc0\\x00\\x00\\x00\\x13\\x02\\x00\\x00\\x0b\\x00\\x00\\x00\\x00\\x00\\x00\\x00'\n  -  b'\\x00\\x00\\x00\\x00\\x80\\x01\\xd2>\\x00\\x00_rels/.relsPK\\x01\\x02\\x14\\x03\\x14'\n  -  b'\\x00\\x00\\x00\\x08\\x00\\xf5,l]\\x0b\\x0f\\xfb\\t\\xdd\\x01\\x00\\x00e\\x08\\x00'\n  -  b'\\x00\\x0f\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x80\\x01\\xbb?\\x00\\x00x'\n  -  b'l/workbook.xmlPK\\x01\\x02\\x14\\x03\\x14\\x00\\x00\\x00\\x08\\x00\\xf5,l]\\t\\x1a'\n  -  b'\\xff\\xdf\\xf4\\x00\\x00\\x00;\\x08\\x00\\x00\\x1a\\x00\\x00\\x00\\x00\\x00'\n  -  b'\\x00\\x00\\x00\\x00\\x00\\x00\\x80\\x01\\xc5A\\x00\\x00xl/_rels/workbook.xml.relsPK'\n  -  b'\\x01\\x02\\x14\\x03\\x14\\x00\\x00\\x00\\x08\\x00\\xf5,l]w\\xbc\\x10#d\\x01\\x00\\x00\\xcc\\n'\n  -  b'\\x00\\x00\\x13\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x80\\x01'\n  -  b'\\xf1B\\x00\\x00[Content_Types].xmlPK\\x05\\x06\\x00\\x00\\x00\\x00\\x1c'\n  -  b'\\x00\\x1c\\x00\\x95\\x07\\x00\\x00\\x86D\\x00\\x00\\x00\\x00')\n1 failed, 12 passed, 157 warnings in 4.01s\n"
+      },
+      "restored_sha256": "8765afc38bfe1f11d14d20ff2bc979994463040ef03a20e0422318934d4831c0",
+      "restoration": {
+        "command": [
+          "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+          "-m",
+          "pytest",
+          "tests/test_coverage_round_2375.py",
+          "-q",
+          "-m",
+          "not slow",
+          "--tb=short",
+          "--show-capture=no",
+          "--disable-warnings"
+        ],
+        "exit_code": 0,
+        "seconds": 6.349,
+        "raw_output_sha256": "5561436ea9803fc56886dbe8105f49c6675bc6baf71ed4376c0c9fbca3f4c284",
+        "output_excerpt": ".............                                                            [100%]\n13 passed, 157 warnings in 3.81s\n"
+      }
+    },
+    {
+      "name": "gif-export-after-conversion-failure",
+      "path": "pa_core/cli.py",
+      "case": "test_single_run_gif_conversion_error_is_reported",
+      "expected_failure": "GIF export called after conversion failure",
+      "mutant_sha256": "2d138642eff210e06c5b3ad07791634b185ce838c04d87e2c182621bcecb194d",
+      "patch": "--- pa_core/cli.py\n+++ pa_core/cli.py\n@@ -2149,6 +2149,7 @@\n                 arr = safe_to_numpy(next(iter(raw_returns_dict.values())))\n             except (ValueError, TypeError) as e:\n                 print(f\"\u274c GIF export failed: Data conversion error - {e}\")\n+                write_figure_image(None, plots / \"paths.gif\", format=\"gif\")\n                 print(\"\ud83d\udca1 Check that return data contains only numeric values\")\n                 _emit_run_end()\n                 return\n",
+      "failure": {
+        "command": [
+          "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+          "-m",
+          "pytest",
+          "tests/test_coverage_round_2375.py",
+          "-q",
+          "-m",
+          "not slow",
+          "--tb=short",
+          "--show-capture=no",
+          "--disable-warnings"
+        ],
+        "exit_code": 1,
+        "seconds": 6.605,
+        "raw_output_sha256": "a825ab9782a1333b8bcd2ad25dcca5beb943b92493976bbe60805aebf64a9799",
+        "output_excerpt": ".........FF..                                                            [100%]\n=================================== FAILURES ===================================\n________ test_single_run_gif_conversion_error_is_reported[value-error] _________\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_coverage_round_2375.py:215: in test_single_run_gif_conversion_error_is_reported\n    assert gif_export.call_count == 0, \"GIF export called after conversion failure\"\nE   AssertionError: GIF export called after conversion failure\nE   assert 1 == 0\nE    +  where 1 = <Mock name='write_figure_image' id='131822324959280'>.call_count\n_________ test_single_run_gif_conversion_error_is_reported[type-error] _________\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_coverage_round_2375.py:215: in test_single_run_gif_conversion_error_is_reported\n    assert gif_export.call_count == 0, \"GIF export called after conversion failure\"\nE   AssertionError: GIF export called after conversion failure\nE   assert 1 == 0\nE    +  where 1 = <Mock name='write_figure_image' id='131822364313984'>.call_count\n=========================== short test summary info ============================\nFAILED tests/test_coverage_round_2375.py::test_single_run_gif_conversion_error_is_reported[value-error] - AssertionError: GIF export called after conversion failure\nassert 1 == 0\n +  where 1 = <Mock name='write_figure_image' id='131822324959280'>.call_count\nFAILED tests/test_coverage_round_2375.py::test_single_run_gif_conversion_error_is_reported[type-error] - AssertionError: GIF export called after conversion failure\nassert 1 == 0\n +  where 1 = <Mock name='write_figure_image' id='131822364313984'>.call_count\n2 failed, 11 passed, 157 warnings in 4.05s\n"
+      },
+      "restored_sha256": "f3ffec1a90fe5888ca5ba357507e7542f4dc436117acea430348c87ab0b40e26",
+      "restoration": {
+        "command": [
+          "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+          "-m",
+          "pytest",
+          "tests/test_coverage_round_2375.py",
+          "-q",
+          "-m",
+          "not slow",
+          "--tb=short",
+          "--show-capture=no",
+          "--disable-warnings"
+        ],
+        "exit_code": 0,
+        "seconds": 6.389,
+        "raw_output_sha256": "70a803529a6fbecfe23a359f4122f26b806e96c3ab049fd6dea47feec7e8e9d2",
+        "output_excerpt": ".............                                                            [100%]\n13 passed, 157 warnings in 3.85s\n"
+      }
+    },
+    {
+      "name": "gif-animation-after-conversion-failure",
+      "path": "pa_core/cli.py",
+      "case": "test_single_run_gif_conversion_error_is_reported",
+      "expected_failure": "Animation constructed after conversion failure",
+      "mutant_sha256": "bcab5daa600371e07f70566c551927837fe368c439bdde1f8281140f1bf7f2ac",
+      "patch": "--- pa_core/cli.py\n+++ pa_core/cli.py\n@@ -2151,7 +2151,7 @@\n                 print(f\"\u274c GIF export failed: Data conversion error - {e}\")\n                 print(\"\ud83d\udca1 Check that return data contains only numeric values\")\n                 _emit_run_end()\n-                return\n+                arr = _np.asarray([[0.0]])\n             anim = viz.animation.make(arr)\n             try:\n                 write_figure_image(anim, plots / \"paths.gif\", format=\"gif\")\n",
+      "failure": {
+        "command": [
+          "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+          "-m",
+          "pytest",
+          "tests/test_coverage_round_2375.py",
+          "-q",
+          "-m",
+          "not slow",
+          "--tb=short",
+          "--show-capture=no",
+          "--disable-warnings"
+        ],
+        "exit_code": 1,
+        "seconds": 6.722,
+        "raw_output_sha256": "dd3a7279335571574483d8b29e262732d25578e8ab5c17a0a7723058c0af1bc6",
+        "output_excerpt": ".........FF..                                                            [100%]\n=================================== FAILURES ===================================\n________ test_single_run_gif_conversion_error_is_reported[value-error] _________\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_coverage_round_2375.py:214: in test_single_run_gif_conversion_error_is_reported\n    assert animation_make.call_count == 0, \"Animation constructed after conversion failure\"\nE   AssertionError: Animation constructed after conversion failure\nE   assert 1 == 0\nE    +  where 1 = <Mock name='animation.make' id='138046745005760'>.call_count\n_________ test_single_run_gif_conversion_error_is_reported[type-error] _________\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_coverage_round_2375.py:214: in test_single_run_gif_conversion_error_is_reported\n    assert animation_make.call_count == 0, \"Animation constructed after conversion failure\"\nE   AssertionError: Animation constructed after conversion failure\nE   assert 1 == 0\nE    +  where 1 = <Mock name='animation.make' id='138046745524080'>.call_count\n=========================== short test summary info ============================\nFAILED tests/test_coverage_round_2375.py::test_single_run_gif_conversion_error_is_reported[value-error] - AssertionError: Animation constructed after conversion failure\nassert 1 == 0\n +  where 1 = <Mock name='animation.make' id='138046745005760'>.call_count\nFAILED tests/test_coverage_round_2375.py::test_single_run_gif_conversion_error_is_reported[type-error] - AssertionError: Animation constructed after conversion failure\nassert 1 == 0\n +  where 1 = <Mock name='animation.make' id='138046745524080'>.call_count\n2 failed, 11 passed, 157 warnings in 4.09s\n"
+      },
+      "restored_sha256": "f3ffec1a90fe5888ca5ba357507e7542f4dc436117acea430348c87ab0b40e26",
+      "restoration": {
+        "command": [
+          "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+          "-m",
+          "pytest",
+          "tests/test_coverage_round_2375.py",
+          "-q",
+          "-m",
+          "not slow",
+          "--tb=short",
+          "--show-capture=no",
+          "--disable-warnings"
+        ],
+        "exit_code": 0,
+        "seconds": 6.548,
+        "raw_output_sha256": "f5200cdf443132bf8be25815578085b5554018ccfa6fb1526f085cbbe8835f53",
+        "output_excerpt": ".............                                                            [100%]\n13 passed, 157 warnings in 3.91s\n"
+      }
+    },
+    {
+      "name": "attribution-old-numpy-name",
+      "path": "pa_core/cli.py",
+      "case": "tests/test_cli_attribution_fallback.py::test_attribution_fallback_exports_annualised_totals",
+      "expected_failure": "NameError: name 'np' is not defined",
+      "mutant_sha256": "d979ab73274b096be0f5f0f90edf7644550aba09ac8b4d3b50b058780dba567e",
+      "patch": "--- pa_core/cli.py\n+++ pa_core/cli.py\n@@ -1552,7 +1552,7 @@\n         try:\n             rows: list[dict[str, object]] = []\n             for agent, arr in returns.items():\n-                mean_month = float(_np.asarray(arr).mean())\n+                mean_month = float(np.asarray(arr).mean())\n                 ann = 12.0 * mean_month\n                 rows.append({\"Agent\": agent, \"Sub\": \"Total\", \"Return\": ann})\n             inputs_dict[\"_attribution_df\"] = pd.DataFrame(rows)\n",
+      "failure": {
+        "command": [
+          "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+          "-m",
+          "pytest",
+          "tests/test_cli_attribution_fallback.py::test_attribution_fallback_exports_annualised_totals",
+          "-q",
+          "-m",
+          "not slow",
+          "--tb=short",
+          "--show-capture=no",
+          "--disable-warnings"
+        ],
+        "exit_code": 1,
+        "seconds": 4.964,
+        "raw_output_sha256": "2429c2d6049a986a696ff126b216f1413aa6e6b8ed612fade2c80715ce99251a",
+        "output_excerpt": "F                                                                        [100%]\n=================================== FAILURES ===================================\n_____________ test_attribution_fallback_exports_annualised_totals ______________\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_cli_attribution_fallback.py:28: in unavailable\n    raise TypeError(\"detailed attribution unavailable\")\nE   TypeError: detailed attribution unavailable\n\nDuring handling of the above exception, another exception occurred:\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_cli_attribution_fallback.py:46: in test_attribution_fallback_exports_annualised_totals\n    main(\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/pa_core/cli.py:399: in main\n    _main(argv, deps, warning_collector=warning_collector)\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/pa_core/cli.py:1555: in _main\n    mean_month = float(np.asarray(arr).mean())\n                       ^^\nE   NameError: name 'np' is not defined\n=========================== short test summary info ============================\nFAILED tests/test_cli_attribution_fallback.py::test_attribution_fallback_exports_annualised_totals - NameError: name 'np' is not defined\n1 failed, 17 warnings in 2.46s\n"
+      },
+      "restored_sha256": "f3ffec1a90fe5888ca5ba357507e7542f4dc436117acea430348c87ab0b40e26",
+      "restoration": {
+        "command": [
+          "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+          "-m",
+          "pytest",
+          "tests/test_cli_attribution_fallback.py::test_attribution_fallback_exports_annualised_totals",
+          "-q",
+          "-m",
+          "not slow",
+          "--tb=short",
+          "--show-capture=no",
+          "--disable-warnings"
+        ],
+        "exit_code": 0,
+        "seconds": 5.065,
+        "raw_output_sha256": "7ee639cc2694d0bf77081c82dde70f65a8d129a08ff82ad52d18f7be5c47f6ad",
+        "output_excerpt": ".                                                                        [100%]\n1 passed, 31 warnings in 2.54s\n"
+      }
+    },
+    {
+      "name": "gif-no-type-error-handler",
+      "path": "pa_core/cli.py",
+      "case": "test_single_run_gif_conversion_error_is_reported",
+      "expected_failure": "TypeError: not numeric",
+      "mutant_sha256": "9b5b3159e62ed9cd6eb5cf0623704404136a17ab33152415583b2c090bc30e74",
+      "patch": "--- pa_core/cli.py\n+++ pa_core/cli.py\n@@ -2147,7 +2147,7 @@\n         if flags.gif:\n             try:\n                 arr = safe_to_numpy(next(iter(raw_returns_dict.values())))\n-            except (ValueError, TypeError) as e:\n+            except ValueError as e:\n                 print(f\"\u274c GIF export failed: Data conversion error - {e}\")\n                 print(\"\ud83d\udca1 Check that return data contains only numeric values\")\n                 _emit_run_end()\n",
+      "failure": {
+        "command": [
+          "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+          "-m",
+          "pytest",
+          "tests/test_coverage_round_2375.py",
+          "-q",
+          "-m",
+          "not slow",
+          "--tb=short",
+          "--show-capture=no",
+          "--disable-warnings"
+        ],
+        "exit_code": 1,
+        "seconds": 6.689,
+        "raw_output_sha256": "2b826db833b1c3f5dd794cbc178b46d18014797b2b097505d369af8c0f32fe58",
+        "output_excerpt": "..........F..                                                            [100%]\n=================================== FAILURES ===================================\n_________ test_single_run_gif_conversion_error_is_reported[type-error] _________\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_coverage_round_2375.py:210: in test_single_run_gif_conversion_error_is_reported\n    main(_single_run_argv(config, index, output, \"--gif\"))\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/pa_core/cli.py:399: in main\n    _main(argv, deps, warning_collector=warning_collector)\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/pa_core/cli.py:2149: in _main\n    arr = safe_to_numpy(next(iter(raw_returns_dict.values())))\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/unittest/mock.py:1176: in __call__\n    return self._mock_call(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/unittest/mock.py:1180: in _mock_call\n    return self._execute_mock_call(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/unittest/mock.py:1241: in _execute_mock_call\n    raise effect\nE   TypeError: not numeric\n=========================== short test summary info ============================\nFAILED tests/test_coverage_round_2375.py::test_single_run_gif_conversion_error_is_reported[type-error] - TypeError: not numeric\n1 failed, 12 passed, 157 warnings in 4.15s\n"
+      },
+      "restored_sha256": "f3ffec1a90fe5888ca5ba357507e7542f4dc436117acea430348c87ab0b40e26",
+      "restoration": {
+        "command": [
+          "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+          "-m",
+          "pytest",
+          "tests/test_coverage_round_2375.py",
+          "-q",
+          "-m",
+          "not slow",
+          "--tb=short",
+          "--show-capture=no",
+          "--disable-warnings"
+        ],
+        "exit_code": 0,
+        "seconds": 6.513,
+        "raw_output_sha256": "f5200cdf443132bf8be25815578085b5554018ccfa6fb1526f085cbbe8835f53",
+        "output_excerpt": ".............                                                            [100%]\n13 passed, 157 warnings in 3.91s\n"
+      }
+    },
+    {
+      "name": "gif-no-value-error-handler",
+      "path": "pa_core/cli.py",
+      "case": "test_single_run_gif_conversion_error_is_reported",
+      "expected_failure": "ValueError: not numeric",
+      "mutant_sha256": "dbf7eb01dc27611e81ee01901c723c46c9598e53845039f62d8c3db051825818",
+      "patch": "--- pa_core/cli.py\n+++ pa_core/cli.py\n@@ -2147,7 +2147,7 @@\n         if flags.gif:\n             try:\n                 arr = safe_to_numpy(next(iter(raw_returns_dict.values())))\n-            except (ValueError, TypeError) as e:\n+            except TypeError as e:\n                 print(f\"\u274c GIF export failed: Data conversion error - {e}\")\n                 print(\"\ud83d\udca1 Check that return data contains only numeric values\")\n                 _emit_run_end()\n",
+      "failure": {
+        "command": [
+          "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+          "-m",
+          "pytest",
+          "tests/test_coverage_round_2375.py",
+          "-q",
+          "-m",
+          "not slow",
+          "--tb=short",
+          "--show-capture=no",
+          "--disable-warnings"
+        ],
+        "exit_code": 1,
+        "seconds": 6.705,
+        "raw_output_sha256": "ca464acca2c1373a6ec96b66d77ca48a9c43cddfd9d7c46a0eb776fb284772e1",
+        "output_excerpt": ".........F...                                                            [100%]\n=================================== FAILURES ===================================\n________ test_single_run_gif_conversion_error_is_reported[value-error] _________\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_coverage_round_2375.py:210: in test_single_run_gif_conversion_error_is_reported\n    main(_single_run_argv(config, index, output, \"--gif\"))\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/pa_core/cli.py:399: in main\n    _main(argv, deps, warning_collector=warning_collector)\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/pa_core/cli.py:2149: in _main\n    arr = safe_to_numpy(next(iter(raw_returns_dict.values())))\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/unittest/mock.py:1176: in __call__\n    return self._mock_call(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/unittest/mock.py:1180: in _mock_call\n    return self._execute_mock_call(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/unittest/mock.py:1241: in _execute_mock_call\n    raise effect\nE   ValueError: not numeric\n=========================== short test summary info ============================\nFAILED tests/test_coverage_round_2375.py::test_single_run_gif_conversion_error_is_reported[value-error] - ValueError: not numeric\n1 failed, 12 passed, 157 warnings in 4.15s\n"
+      },
+      "restored_sha256": "f3ffec1a90fe5888ca5ba357507e7542f4dc436117acea430348c87ab0b40e26",
+      "restoration": {
+        "command": [
+          "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+          "-m",
+          "pytest",
+          "tests/test_coverage_round_2375.py",
+          "-q",
+          "-m",
+          "not slow",
+          "--tb=short",
+          "--show-capture=no",
+          "--disable-warnings"
+        ],
+        "exit_code": 0,
+        "seconds": 6.444,
+        "raw_output_sha256": "faed1795aba5455dc4b6903a0975a73c36f0828d58fb5f43b16389d314924b80",
+        "output_excerpt": ".............                                                            [100%]\n13 passed, 157 warnings in 3.86s\n"
+      }
+    },
+    {
+      "name": "gif-bypass-converter",
+      "path": "pa_core/cli.py",
+      "case": "test_single_run_gif_conversion_error_is_reported",
+      "expected_failure": "Called 0 times",
+      "mutant_sha256": "3de5abb3ec0bf1d68e5e8447fa7582a8e8f1fa74b506090246bd63e6dd6b9e6e",
+      "patch": "--- pa_core/cli.py\n+++ pa_core/cli.py\n@@ -2146,7 +2146,7 @@\n             )\n         if flags.gif:\n             try:\n-                arr = safe_to_numpy(next(iter(raw_returns_dict.values())))\n+                raise ValueError(\"not numeric\")\n             except (ValueError, TypeError) as e:\n                 print(f\"\u274c GIF export failed: Data conversion error - {e}\")\n                 print(\"\ud83d\udca1 Check that return data contains only numeric values\")\n",
+      "failure": {
+        "command": [
+          "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+          "-m",
+          "pytest",
+          "tests/test_coverage_round_2375.py",
+          "-q",
+          "-m",
+          "not slow",
+          "--tb=short",
+          "--show-capture=no",
+          "--disable-warnings"
+        ],
+        "exit_code": 1,
+        "seconds": 6.759,
+        "raw_output_sha256": "3e3d7b3210b0a42133b783acb728207ac13bc4f5d08abde41ccd97d77a3b4608",
+        "output_excerpt": ".........FF..                                                            [100%]\n=================================== FAILURES ===================================\n________ test_single_run_gif_conversion_error_is_reported[value-error] _________\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_coverage_round_2375.py:212: in test_single_run_gif_conversion_error_is_reported\n    converter.assert_called_once()\n/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/unittest/mock.py:965: in assert_called_once\n    raise AssertionError(msg)\nE   AssertionError: Expected 'safe_to_numpy' to have been called once. Called 0 times.\n_________ test_single_run_gif_conversion_error_is_reported[type-error] _________\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_coverage_round_2375.py:212: in test_single_run_gif_conversion_error_is_reported\n    converter.assert_called_once()\n/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/unittest/mock.py:965: in assert_called_once\n    raise AssertionError(msg)\nE   AssertionError: Expected 'safe_to_numpy' to have been called once. Called 0 times.\n=========================== short test summary info ============================\nFAILED tests/test_coverage_round_2375.py::test_single_run_gif_conversion_error_is_reported[value-error] - AssertionError: Expected 'safe_to_numpy' to have been called once. Called 0 times.\nFAILED tests/test_coverage_round_2375.py::test_single_run_gif_conversion_error_is_reported[type-error] - AssertionError: Expected 'safe_to_numpy' to have been called once. Called 0 times.\n2 failed, 11 passed, 157 warnings in 4.18s\n"
+      },
+      "restored_sha256": "f3ffec1a90fe5888ca5ba357507e7542f4dc436117acea430348c87ab0b40e26",
+      "restoration": {
+        "command": [
+          "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+          "-m",
+          "pytest",
+          "tests/test_coverage_round_2375.py",
+          "-q",
+          "-m",
+          "not slow",
+          "--tb=short",
+          "--show-capture=no",
+          "--disable-warnings"
+        ],
+        "exit_code": 0,
+        "seconds": 6.466,
+        "raw_output_sha256": "9120c127834107cede0fd534fd325947c3fe0799fdc5634513509db0793514ec",
+        "output_excerpt": ".............                                                            [100%]\n13 passed, 157 warnings in 3.88s\n"
+      }
+    }
+  ],
+  "finished_at": "2026-11-12T05:41:07.714630+00:00",
+  "full_transcripts": {
+    "path": "mutation-transcripts-20261112.json.gz",
+    "uncompressed_sha256": "01d17d289538363b8d30b0fc88b9c93cd9b37b077cc9211d70d5264be980741b"
+  }
+}

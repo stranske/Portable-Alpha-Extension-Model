@@ -1,0 +1,18 @@
+{
+  "base_revision": "83cc7ecfa526d2b1a6748f0d35bcdd7c2062061b",
+  "status": "verified working tree; publication blocked; original PR merged externally",
+  "files": {
+    "docs/evidence/issue-2496/README.md": "42a28da6f8ea15da0aabd9d27d342e85aa735210b39d5a0c6161e8cc8877f4e5",
+    "docs/evidence/issue-2496/black-20261112.json": "333bb1143e1938e35e30941b55134c3c3dbfe7d4f50a99ea0ff38fc2e6d0dc06",
+    "docs/evidence/issue-2496/black-sequential-20261112.json": "49f209a149477caa29336c2fe0139cd281a47e22e43fcc1267d4a4b286ff7fc3",
+    "docs/evidence/issue-2496/ci-inspection-20261112.json": "e6656ff723071f315ceec3e8fcf053bbd960310158708509adbde68f2182b5d2",
+    "docs/evidence/issue-2496/configured-checks-20261112.json": "7f3d845ec3debe2b464f1fdf81c18ba24de4c93cd8c57fd43ca1a6bb4a510ef2",
+    "docs/evidence/issue-2496/continuation-20261112.md": "8a1760fcc9758ec74802e35f70a06a9ef3a05b73bb51b5e1b293a0875068a7ce",
+    "docs/evidence/issue-2496/handoff-20261112.json": "33e0d736242d13f3c652d2491fcd36af7f9427585d59c148fb10f22b87e6e7e9",
+    "docs/evidence/issue-2496/mutation-transcripts-20261112.json.gz": "1dd2c4e7c5875a6c31cc6972ec96c977a891e27bdcf12257e1e58f793055b999",
+    "docs/evidence/issue-2496/mutations-20261112.json": "41b20bec3945df0895fd73a1fa2de38d5561c834175a0f5025059595d469c86f",
+    "docs/evidence/issue-2496/pytest-20261112.json": "d1476c99bed2d4355feea57f2e8aff2ebe14a0432b61b937e0f51c98c0f2238e",
+    "docs/evidence/issue-2496/reconciliation-20261112.json": "6d70eff747cc91a7c91a36df7c52c3c74035a11f14df38c6c1e91beba0906514",
+    "tests/test_coverage_round_2375.py": "dfd07637d13a93b03c1a34f535cd136fb6b844aafb1b3727c4c649f6977aceac"
+  }
+}

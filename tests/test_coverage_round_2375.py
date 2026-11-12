@@ -186,8 +186,12 @@ def test_single_run_packet_failure_reports_the_failure_class(
     assert f"❌ {expected}" in capsys.readouterr().out
 
 
+@pytest.mark.parametrize("error_type", [ValueError, TypeError], ids=["value-error", "type-error"])
 def test_single_run_gif_conversion_error_is_reported(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+    error_type: type[Exception],
 ) -> None:
     """Invalid return arrays must not proceed to an animation export."""
     monkeypatch.chdir(tmp_path)
@@ -195,19 +199,17 @@ def test_single_run_gif_conversion_error_is_reported(
     config, index, output = _write_single_run_config(tmp_path)
     animation_make = Mock(name="animation.make")
     gif_export = Mock(name="write_figure_image")
+    converter = Mock(name="safe_to_numpy", side_effect=error_type("not numeric"))
     monkeypatch.setattr(
         pa_core.viz, "animation", types.SimpleNamespace(make=animation_make), raising=False
     )
     monkeypatch.setattr(viz_export_backend, "write_figure_image", gif_export)
     # `pa_core.viz` is a fake module here, so the real utils module is patched by object, not by path.
-    monkeypatch.setattr(
-        viz_utils,
-        "safe_to_numpy",
-        lambda _value: (_ for _ in ()).throw(ValueError("not numeric")),
-    )
+    monkeypatch.setattr(viz_utils, "safe_to_numpy", converter)
 
     main(_single_run_argv(config, index, output, "--gif"))
 
+    converter.assert_called_once()
     assert "❌ GIF export failed: Data conversion error - not numeric" in capsys.readouterr().out
     assert animation_make.call_count == 0, "Animation constructed after conversion failure"
     assert gif_export.call_count == 0, "GIF export called after conversion failure"
@@ -245,9 +247,8 @@ def test_single_run_bundle_contains_the_completed_artifacts(
     assert metadata["seed"] == 123
     assert metadata["index_hash"]
     assert metadata["config_path"] == "config.yaml"
-    assert (
-        metadata.get("manifest_path") == "manifest.json"
-    ), "Missing completed manifest registration"
+    manifest_ref = metadata.get("manifest_path")
+    assert manifest_ref == "manifest.json", "Missing completed manifest registration"
     outputs = metadata["outputs"]
     assert output.name in outputs, "Missing completed workbook registration"
 
@@ -255,7 +256,7 @@ def test_single_run_bundle_contains_the_completed_artifacts(
     # Compare independent hashes and source bytes before relying on bundle.verify().
     sources = {
         "config": (metadata["config_path"], config),
-        "manifest": (metadata["manifest_path"], output.with_name("manifest.json")),
+        "manifest": (manifest_ref, output.with_name("manifest.json")),
         "workbook": (outputs[output.name], output),
     }
     for name, (relative_path, source) in sources.items():
@@ -263,9 +264,8 @@ def test_single_run_bundle_contains_the_completed_artifacts(
         assert artifact.is_file(), f"Missing referenced {name} file: {relative_path}"
         assert source.is_file(), f"Missing CLI-produced {name} file: {source}"
         source_bytes = source.read_bytes()
-        assert (
-            artifact.read_bytes() == source_bytes
-        ), f"Bundle {name} differs from CLI-produced file"
+        artifact_bytes = artifact.read_bytes()
+        assert artifact_bytes == source_bytes, f"Bundle {name} differs from CLI-produced file"
         recorded_hash = (
             metadata["hashes"]["outputs"][output.name]
             if name == "workbook"
@@ -281,7 +281,7 @@ def test_single_run_bundle_contains_the_completed_artifacts(
             metadata["hashes"]["outputs"][name] == hashlib.sha256(artifact.read_bytes()).hexdigest()
         )
 
-    manifest = json.loads((bundle_dir / metadata["manifest_path"]).read_text())
+    manifest = json.loads((bundle_dir / manifest_ref).read_text())
     assert manifest["run_timing"]["ended_at"], "Bundle manifest was not finalized"
     assert manifest["data_files"][str(output)] == hashlib.sha256(output.read_bytes()).hexdigest()
     assert not pd.read_excel(output, sheet_name="Summary").empty

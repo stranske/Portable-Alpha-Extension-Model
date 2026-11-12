@@ -1,0 +1,6 @@
+{
+  "method": "Black source discovery followed by normal single-file CLI checks; Black populates its own cache",
+  "count": 538,
+  "seconds": 30.149,
+  "failures": []
+}

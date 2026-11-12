@@ -1,0 +1,14 @@
+{
+  "source": "https://github.com/stranske/Workflows/blob/main/.github/workflows/reusable-10-ci-python.yml",
+  "blob_sha": "f2a1abdccc0db5218206917b9e8b45d11b636717",
+  "consumer_revision": "83cc7ecfa526d2b1a6748f0d35bcdd7c2062061b",
+  "python": "3.14",
+  "configured_commands": {
+    "ruff": "ruff check --output-format github --extend-exclude .workflows-lib .",
+    "mypy": "mypy --config-file pyproject.toml --exclude .workflows-lib .",
+    "black": "black --check --line-length 100 --exclude '(\\.workflows-lib|node_modules)' ."
+  },
+  "gate_format_check": false,
+  "hosted_pytest": "pytest -p ci_test_growth --junitxml=pytest-junit.xml --cov --cov-config=pyproject.toml --cov-report=xml:coverage.xml --cov-report=term-missing --cov-report=json:coverage.json -n auto --dist=loadgroup",
+  "note": "Additional hosted marker/worker options depend on workflow inputs. Local targeted runs skip slow tests and are not Gate measurements."
+}

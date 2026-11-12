@@ -1,0 +1,23 @@
+{
+  "checked_at": "2026-11-12T05:44:33Z",
+  "pr": {
+    "number": 2503,
+    "state": "closed",
+    "merged": true,
+    "draft": false,
+    "head": "codex/issue-2496",
+    "head_sha": "83cc7ecfa526d2b1a6748f0d35bcdd7c2062061b",
+    "merged_at": "2026-11-12T05:41:09Z",
+    "closed_at": "2026-11-12T05:41:10Z"
+  },
+  "current_main": "828c50970b3c451351016317af6ca40ee288970d",
+  "test_blob": "d64adc8217668b786a8a0f352c0cd3c192ef69c0",
+  "starting_branch_test_blob": "d64adc8217668b786a8a0f352c0cd3c192ef69c0",
+  "publication_errors": {
+    "local_git": "Read-only file system: .git/index.lock",
+    "github_blob": "MCP tool call requires approval, but approval policy is never",
+    "needs_human_label": "MCP tool call requires approval, but approval policy is never",
+    "blocker_comment": "MCP tool call requires approval, but approval policy is never"
+  },
+  "note": "PR merged externally while this run was active. None of this continuation's new working-tree changes were committed. No remote PR state was changed by this run."
+}
