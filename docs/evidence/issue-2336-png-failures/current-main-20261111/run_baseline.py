@@ -77,6 +77,11 @@ def main() -> int:
         "dependency_versions": versions(),
         "production_sha256_before": {p: sha256(ROOT / p) for p in PRODUCTION},
     }
+    coverage = ROOT / "coverage.json"
+    # A report left by an earlier run must never be archived as this run's coverage: remove it first, so the
+    # file below can only come from this pytest invocation (review on PR #2500).
+    record["stale_coverage_removed"] = coverage.exists()
+    coverage.unlink(missing_ok=True)
     full = run(
         "full",
         [
@@ -85,7 +90,7 @@ def main() -> int:
             f"--junitxml={OUT / 'full-junit.xml'}",
         ],
     )
-    coverage = ROOT / "coverage.json"
+    record["coverage_generated_by_this_run"] = coverage.exists()
     if coverage.exists():
         shutil.move(coverage, OUT / "coverage.json")
     focused = run(
