@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import sys
 import types
 from collections import Counter
 from itertools import combinations
@@ -249,9 +250,35 @@ def save_scenario(scenario: Scenario, path: str | Path) -> None:
     Path(path).write_text(yaml.safe_dump(scenario.model_dump()))
 
 
+def _union_member_repr(member: Any) -> str:
+    # Mirror the PEP 604 ``X | Y`` member spelling so typing.Union/Optional
+    # (Python <= 3.13) and types.UnionType render identically.
+    if member is type(None):
+        return "None"
+    if isinstance(member, type) and get_origin(member) is None:
+        if member.__module__ == "builtins":
+            return member.__qualname__
+        return f"{_public_module_name(member)}.{member.__qualname__}"
+    return _stringify_type(member)
+
+
+def _public_module_name(member: type) -> str:
+    # Prefer the public re-exporting module over private implementation modules
+    # (e.g. ``pathlib._local.Path`` on Python 3.13 vs ``pathlib.Path`` on 3.14).
+    parts = member.__module__.split(".")
+    while len(parts) > 1 and parts[-1].startswith("_"):
+        parent = sys.modules.get(".".join(parts[:-1]))
+        if parent is None or getattr(parent, member.__qualname__, None) is not member:
+            break
+        parts.pop()
+    return ".".join(parts)
+
+
 def _stringify_type(annotation: Any) -> str:
     if annotation is None:
         return "Any"
+    if get_origin(annotation) in (Union, getattr(types, "UnionType", Union)):
+        return " | ".join(_union_member_repr(arg) for arg in get_args(annotation))
     return str(annotation).replace("typing.", "")
 
 
