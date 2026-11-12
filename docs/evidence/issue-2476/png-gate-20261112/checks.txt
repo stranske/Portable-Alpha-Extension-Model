@@ -1,0 +1,204 @@
+
+## cli-green.txt
+...................                                                      [100%]
+=============================== warnings summary ===============================
+../../../../../opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/langsmith/_internal/_beta_decorator.py:92: 13 warnings
+  /opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/langsmith/_internal/_beta_decorator.py:92: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(func):
+
+tests/test_cli.py::test_main_with_yaml
+  /home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_cli.py:17: DeprecationWarning: Direct use of pa_core.cli is deprecated; use `pa run` instead.
+    main(
+
+tests/test_cli.py: 3 warnings
+tests/test_cli_sweep_png_export.py: 9 warnings
+  /home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/pa_core/config.py:916: DeprecationWarning: Ambiguous return inputs detected for legacy fields: mu_E, mu_H, mu_M, sigma_E, sigma_H, sigma_M. Use explicit keys like mu_H_annual or mu_H_monthly. Legacy field names will be deprecated.
+    data = transform(data)
+
+tests/test_cli.py: 3 warnings
+tests/test_cli_sweep_png_export.py: 9 warnings
+  /home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/pa_core/data/loaders.py:71: Pandas4Warning: A future version of pandas will return a BaseOffset object instead of a string from infer_freq. Use pd.set_option('future.infer_freq_returns_offset', True) to get the future behavior, or set to False to keep the old behavior and silence this warning. To preserve the string representation, use ``infer_freq(...).freqstr``.
+    inferred = pd.infer_freq(date_values_sorted)
+
+tests/test_cli.py::test_main_with_yaml
+tests/test_cli.py::test_main_with_png
+tests/test_cli.py::test_main_with_bundle
+  /home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/pa_core/cli.py:1302: UserWarning: Run executed without an explicit --seed (seed=None): results use a non-deterministic RNG and cannot be reproduced. Pass --seed to make the run reproducible.
+    mw.write(
+
+tests/test_cli.py::test_main_with_png
+  /home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_cli.py:44: DeprecationWarning: Direct use of pa_core.cli is deprecated; use `pa run` instead.
+    main(
+
+tests/test_cli.py::test_main_with_bundle
+  /home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_cli.py:73: DeprecationWarning: Direct use of pa_core.cli is deprecated; use `pa run` instead.
+    main(
+
+tests/test_cli_sweep_png_export.py::test_sweep_mode_honors_png_flag
+tests/test_cli_sweep_png_export.py::test_sweep_export_preserves_multi_dot_output_stem
+tests/test_cli_sweep_png_export.py::test_sweep_export_failure_does_not_abort_completed_run
+tests/test_cli_sweep_png_export.py::test_sweep_pptx_contains_one_figure_per_scenario
+tests/test_cli_sweep_png_export.py::test_sweep_mode_honors_pdf_flag
+tests/test_cli_sweep_png_export.py::test_sweep_pdf_failure_does_not_record_invalid_artifact
+tests/test_cli_sweep_png_export.py::test_sweep_mode_honors_html_flag
+tests/test_cli_sweep_png_export.py::test_sweep_html_failure_does_not_abort_completed_run
+tests/test_cli_sweep_png_export.py::test_sweep_pptx_and_packet_use_distinct_paths
+  /home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_cli_sweep_png_export.py:53: DeprecationWarning: Direct use of pa_core.cli is deprecated; use `pa run` instead.
+    main(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+19 passed, 52 warnings in 4.80s
+
+## offline-entrypoint.txt
+.                                                                        [100%]
+=============================== warnings summary ===============================
+../../../../../opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/langsmith/_internal/_beta_decorator.py:92: 13 warnings
+  /opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/langsmith/_internal/_beta_decorator.py:92: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(func):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+1 passed, 13 warnings in 7.79s
+
+## focused-results.txt
+............................................................             [100%]
+=============================== warnings summary ===============================
+../../../../../opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/langsmith/_internal/_beta_decorator.py:92: 13 warnings
+  /opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/langsmith/_internal/_beta_decorator.py:92: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(func):
+
+tests/test_coverage_round_2381.py::test_facade_run_single_and_sweep_reject_non_series_index
+tests/test_coverage_round_2381.py::test_facade_run_sweep_rejects_scalar_index
+tests/test_coverage_round_2381.py::test_export_sweep_artifacts_with_visualizations
+tests/test_coverage_round_2381.py::test_run_single_and_sweep_accept_single_column_index_frame
+  /home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/pa_core/config.py:916: DeprecationWarning: Ambiguous return inputs detected for legacy fields: mu_E, mu_H, mu_M, sigma_E, sigma_H, sigma_M. Use explicit keys like mu_H_annual or mu_H_monthly. Legacy field names will be deprecated.
+    data = transform(data)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+60 passed, 17 warnings in 2.57s
+real 4.79
+user 4.52
+sys 0.35
+
+## ruff.txt
+All checks passed!
+
+## black-plain.txt
+Skipping .ipynb files as Jupyter dependencies are not installed.
+You can fix this by running ``pip install "black[jupyter]"``
+Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/bin/black", line 6, in <module>
+    sys.exit(patched_main())
+             ~~~~~~~~~~~~^^
+  File "src/black/__init__.py", line 1906, in patched_main
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/click/core.py", line 1653, in __call__
+    return self.main(*args, **kwargs)
+           ~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/click/core.py", line 1560, in main
+    rv = self.invoke(ctx)
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/click/core.py", line 1414, in invoke
+    return ctx.invoke(self.callback, **ctx.params)
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/click/core.py", line 911, in invoke
+    return callback(*args, **kwargs)
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/click/decorators.py", line 34, in new_func
+    return f(get_current_context(), *args, **kwargs)
+  File "src/black/__init__.py", line 808, in main
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/black/concurrency.py", line 137, in reformat_many
+    loop.run_until_complete(
+    ~~~~~~~~~~~~~~~~~~~~~~~^
+        schedule_formatting(
+        ^^^^^^^^^^^^^^^^^^^^
+    ...<9 lines>...
+        )
+        ^
+    )
+    ^
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/asyncio/base_events.py", line 720, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/black/concurrency.py", line 206, in schedule_formatting
+    loop.run_in_executor(
+    ~~~~~~~~~~~~~~~~~~~~^
+        executor, format_file_in_place, src, fast, mode, write_back, lock
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/asyncio/base_events.py", line 899, in run_in_executor
+    executor.submit(func, *args), loop=self)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/concurrent/futures/process.py", line 915, in submit
+    self._adjust_process_count()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/concurrent/futures/process.py", line 879, in _adjust_process_count
+    self._spawn_process()
+    ~~~~~~~~~~~~~~~~~~~^^
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/concurrent/futures/process.py", line 890, in _spawn_process
+    _spawn_worker(self._mp_context, self._call_queue,
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                  self._result_queue, self._initializer,
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                  self._initargs, self._max_tasks_per_child,
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                  self._processes)
+                  ^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/concurrent/futures/process.py", line 283, in _spawn_worker
+    p.start()
+    ~~~~~~~^^
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/multiprocessing/process.py", line 121, in start
+    self._popen = self._Popen(self)
+                  ~~~~~~~~~~~^^^^^^
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/multiprocessing/context.py", line 316, in _Popen
+    return Popen(process_obj)
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/multiprocessing/popen_forkserver.py", line 35, in __init__
+    super().__init__(process_obj)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/multiprocessing/popen_fork.py", line 20, in __init__
+    self._launch(process_obj)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/multiprocessing/popen_forkserver.py", line 51, in _launch
+    self.sentinel, w = forkserver.connect_to_new_process(self._fds)
+                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/multiprocessing/forkserver.py", line 89, in connect_to_new_process
+    self.ensure_running()
+    ~~~~~~~~~~~~~~~~~~~^^
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/multiprocessing/forkserver.py", line 167, in ensure_running
+    listener.bind(address)
+    ~~~~~~~~~~~~~^^^^^^^^^
+PermissionError: [Errno 1] Operation not permitted
+
+## black-check.txt
+Skipping .ipynb files as Jupyter dependencies are not installed.
+You can fix this by running ``pip install "black[jupyter]"``
+All done! ✨ 🍰 ✨
+538 files would be left unchanged.
+
+## Black runtime source
+"""Preserve Black's CLI and checks; poll asyncio completions in this sandbox."""
+import asyncio
+import multiprocessing
+
+multiprocessing.set_start_method("fork")
+original_new_event_loop = asyncio.new_event_loop
+
+
+def new_event_loop():
+    loop = original_new_event_loop()
+
+    def poll_completions():
+        loop.call_later(0.05, poll_completions)
+
+    loop.call_soon(poll_completions)
+    return loop
+
+
+asyncio.new_event_loop = new_event_loop
+
+## Evidence/transcript guards
+..................                                                       [100%]
+=============================== warnings summary ===============================
+../../../../../opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/langsmith/_internal/_beta_decorator.py:92: 13 warnings
+  /opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/langsmith/_internal/_beta_decorator.py:92: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(func):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+18 passed, 13 warnings in 1.59s

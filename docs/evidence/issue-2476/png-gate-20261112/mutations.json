@@ -1,0 +1,41 @@
+[
+  {
+    "name": "omit-image-write",
+    "file": "pa_core/viz/export_backend.py",
+    "test": "tests/test_cli.py::test_main_with_png",
+    "command": "timeout -k 5s 120s /opt/hostedtoolcache/Python/3.14.10/x64/bin/python -m pytest tests/test_cli.py::test_main_with_png -m 'not slow and not live_llm' -q",
+    "red_exit": 1,
+    "green_exit": 0,
+    "red_seconds": 5.382071354999994,
+    "green_seconds": 5.06274740899994,
+    "before_sha256": "d7f5f9c9ec93ba23af09be71a6b765b38ae3c1ae6cd025ac4e71a8a28e4e608a",
+    "mutated_sha256": "517582c31839219d2e9f5abfcca207d582eb77c2e6202db26071885d46f0ec0b",
+    "restored_sha256": "d7f5f9c9ec93ba23af09be71a6b765b38ae3c1ae6cd025ac4e71a8a28e4e608a"
+  },
+  {
+    "name": "wrong-png-destination",
+    "file": "pa_core/cli.py",
+    "test": "tests/test_cli.py::test_main_with_png",
+    "command": "timeout -k 5s 120s /opt/hostedtoolcache/Python/3.14.10/x64/bin/python -m pytest tests/test_cli.py::test_main_with_png -m 'not slow and not live_llm' -q",
+    "red_exit": 1,
+    "green_exit": 0,
+    "red_seconds": 5.324089157000003,
+    "green_seconds": 4.947726484999976,
+    "before_sha256": "f3ffec1a90fe5888ca5ba357507e7542f4dc436117acea430348c87ab0b40e26",
+    "mutated_sha256": "3e23f3a0c883fab9ac7fbd664b5bbfd8d76e30a4558a478e052bccc9548fa851",
+    "restored_sha256": "f3ffec1a90fe5888ca5ba357507e7542f4dc436117acea430348c87ab0b40e26"
+  },
+  {
+    "name": "empty-export-figure",
+    "file": "pa_core/cli.py",
+    "test": "tests/test_cli.py::test_main_with_png",
+    "command": "timeout -k 5s 120s /opt/hostedtoolcache/Python/3.14.10/x64/bin/python -m pytest tests/test_cli.py::test_main_with_png -m 'not slow and not live_llm' -q",
+    "red_exit": 1,
+    "green_exit": 0,
+    "red_seconds": 4.899295183000049,
+    "green_seconds": 4.585425874000066,
+    "before_sha256": "f3ffec1a90fe5888ca5ba357507e7542f4dc436117acea430348c87ab0b40e26",
+    "mutated_sha256": "3c17ff3fa82c8f117a85f850317d07f5e87d5e3ad4c3d526c76886b9449d37c1",
+    "restored_sha256": "f3ffec1a90fe5888ca5ba357507e7542f4dc436117acea430348c87ab0b40e26"
+  }
+]

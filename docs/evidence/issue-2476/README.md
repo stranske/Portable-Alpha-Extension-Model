@@ -10,6 +10,15 @@ branches below, without changing the restored file's 52-case count.
 
 ## Current receipts (revision-bound, 2026-11-11)
 
+The [2026-11-12 PNG/Gate repair](png-gate-20261112/README.md) isolates the
+external renderer in the CLI PNG test and verifies its figure, path and output.
+The complete local Gate-configured statement and branch suites now pass
+**2062 cases**, with **3 skipped**, in 65.47s/71.55s using bundled offline
+packaging wheels. Three production mutations fail and pass after restoration.
+Current ranked gaps remain **2 statements/4 branches**; no additional reduction
+is claimed. Matched-policy round-baseline evidence and hosted delivered-head
+CI remain open.
+
 The [2026-11-12 statistics assertion verification](statistics-20261112/README.md)
 checks exact ranked-target-1 statistics, quantiles and tail rows with six
 production mutations. Its identical focused measurements add zero coverage
