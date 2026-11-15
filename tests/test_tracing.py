@@ -54,9 +54,7 @@ def test_reference_requires_created_run_identity():
     from pa_core.llm.tracing import resolve_trace_reference
 
     assert resolve_trace_reference("local-request-uuid") == (None, None)
-    assert resolve_trace_reference(
-        SimpleNamespace(url="https://example.test/fabricated")
-    ) == (
+    assert resolve_trace_reference(SimpleNamespace(url="https://example.test/fabricated")) == (
         None,
         None,
     )
@@ -101,16 +99,12 @@ def test_authorized_synthetic_trace_live_retrieval(monkeypatch, tmp_path):
     from types import SimpleNamespace
 
     evidence = Path(
-        os.getenv(
-            "PAEM_LIVE_TRACE_EVIDENCE", str(tmp_path / "trace-live-acceptance.json")
-        )
+        os.getenv("PAEM_LIVE_TRACE_EVIDENCE", str(tmp_path / "trace-live-acceptance.json"))
     )
 
     def unknown(reason):
         evidence.parent.mkdir(parents=True, exist_ok=True)
-        evidence.write_text(
-            json.dumps({"verdict": "UNKNOWN", "reason": reason}, indent=2)
-        )
+        evidence.write_text(json.dumps({"verdict": "UNKNOWN", "reason": reason}, indent=2))
         pytest.skip("UNKNOWN: " + reason)
 
     if os.getenv("PAEM_LIVE_TRACE_ACCEPTANCE") != "1":
@@ -141,13 +135,9 @@ def test_authorized_synthetic_trace_live_retrieval(monkeypatch, tmp_path):
                 captured["project_id"] = str(run.session_id) if run.session_id else None
                 captured["project_name"] = run.session_name
                 captured["start_time"] = run.start_time.isoformat()
-            return SimpleNamespace(
-                content="Synthetic trace correlation acceptance probe."
-            )
+            return SimpleNamespace(content="Synthetic trace correlation acceptance probe.")
 
-    monkeypatch.setattr(
-        result_explain, "create_llm", lambda config: SyntheticInvocation()
-    )
+    monkeypatch.setattr(result_explain, "create_llm", lambda config: SyntheticInvocation())
     monkeypatch.setattr(result_explain, "record_fleet_event", events.append)
     _, url, payload = result_explain.explain_results_details(
         pd.DataFrame({"monthly_TE": [0.01]}),
@@ -157,9 +147,7 @@ def test_authorized_synthetic_trace_live_retrieval(monkeypatch, tmp_path):
         tracing_enabled=True,
     )
     if not captured.get("id") or not events or not url:
-        unknown(
-            "the same synthetic invocation did not produce a usable SDK trace reference"
-        )
+        unknown("the same synthetic invocation did not produce a usable SDK trace reference")
     assert events[0].trace_id == captured["id"]
     assert payload["trace_url"] == events[0].trace_url == url
     try:
@@ -243,9 +231,7 @@ def test_smithdb_retrieval_does_not_guess_project():
     from types import SimpleNamespace
     from unittest.mock import AsyncMock
 
-    client = SimpleNamespace(
-        aread_project=AsyncMock(), runs=SimpleNamespace(retrieve=AsyncMock())
-    )
+    client = SimpleNamespace(aread_project=AsyncMock(), runs=SimpleNamespace(retrieve=AsyncMock()))
     with pytest.raises(ValueError, match="no project identity"):
         asyncio.run(_retrieve_captured_run(client, {"id": "same-run"}))
     client.aread_project.assert_not_awaited()
