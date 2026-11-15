@@ -255,6 +255,10 @@ def _union_member_repr(member: Any) -> str:
     # (Python <= 3.13) and types.UnionType render identically.
     if member is type(None):
         return "None"
+    if member is Any:
+        return "Any"
+    if member is Ellipsis:
+        return "..."
     if isinstance(member, type) and get_origin(member) is None:
         if member.__module__ == "builtins":
             return member.__qualname__
@@ -277,8 +281,13 @@ def _public_module_name(member: type) -> str:
 def _stringify_type(annotation: Any) -> str:
     if annotation is None:
         return "Any"
-    if get_origin(annotation) in (Union, getattr(types, "UnionType", Union)):
+    origin = get_origin(annotation)
+    if origin in (Union, getattr(types, "UnionType", Union)):
         return " | ".join(_union_member_repr(arg) for arg in get_args(annotation))
+    if origin is not None and origin is not Literal and get_args(annotation):
+        name = getattr(annotation, "_name", None) or _union_member_repr(origin)
+        args = ", ".join(_union_member_repr(arg) for arg in get_args(annotation))
+        return f"{name}[{args}]"
     return str(annotation).replace("typing.", "")
 
 
