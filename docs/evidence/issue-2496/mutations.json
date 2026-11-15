@@ -1,20 +1,21 @@
 {
-  "started_at": "2026-11-11T19:41:04.447579+00:00",
-  "revision": "0e56868bcf7439ef93a3b18e7a73434bf770a12a",
+  "started_at": "2026-11-15T16:13:01.333825+00:00",
+  "base_revision": "12e820ec6f495286c2b4436a6a1e3c608125900b",
   "python": "3.14.10 (main, Oct 26 2026, 14:17:03) [GCC 15.2.0]",
   "test_sha256": {
-    "tests/test_coverage_round_2375.py": "8b63887695585a58c5d6dd18063e7be2cec3b0c4d6fe662ab4da8c616b99b64a",
+    "tests/test_coverage_round_2375.py": "0fb5078f4a9c7d2d54851096590598a3f0437c708c30709eb05862bf22c735cd",
     "tests/test_cli_attribution_fallback.py": "7444d61c57cb1008cbcadf071a59e17dff16ca987f901ff3f21e3da2d4669518"
   },
   "production_sha256": {
     "pa_core/run_artifact_bundle.py": "8765afc38bfe1f11d14d20ff2bc979994463040ef03a20e0422318934d4831c0",
-    "pa_core/cli.py": "f3ffec1a90fe5888ca5ba357507e7542f4dc436117acea430348c87ab0b40e26"
+    "pa_core/cli.py": "f3ffec1a90fe5888ca5ba357507e7542f4dc436117acea430348c87ab0b40e26",
+    "pa_core/llm/compare_runs.py": "b0da9e9b3972cc107f726799ded5b5efa478aceb13408408b6e31f48c8e5fc4e"
   },
   "mutations": [
     {
       "name": "workbook-registration",
       "path": "pa_core/cli.py",
-      "case": "test_single_run_bundle_contains_the_completed_artifacts",
+      "case": "tests/test_coverage_round_2375.py::test_single_run_bundle_contains_the_completed_artifacts",
       "expected_failure": "Missing completed workbook registration",
       "mutant_sha256": "df13f33bc6c7152cf354bb1c7dc18455a9d6a2d6fa746b40efe21dd6c8a4fe59",
       "patch": "--- pa_core/cli.py\n+++ pa_core/cli.py\n@@ -1808,7 +1808,7 @@\n         finalize=not finalize_after_append,\n         metadata=metadata,\n     )\n-    _record_artifact(flags.save_xlsx or \"Outputs.xlsx\")\n+    # Mutant: omit completed workbook registration.\n     if args.stress_preset:\n         out_path = Path(flags.save_xlsx or \"Outputs.xlsx\")\n         if out_path.exists():\n",
@@ -31,9 +32,9 @@
           "--disable-warnings"
         ],
         "exit_code": 1,
-        "seconds": 6.838,
-        "raw_output_sha256": "13c4dc19b7abec11911988c61058b50c95e5203385a06772e7b40ac0d17a1dc0",
-        "output_excerpt": "...........F                                                             [100%]\n=================================== FAILURES ===================================\n___________ test_single_run_bundle_contains_the_completed_artifacts ____________\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_coverage_round_2375.py:252: in test_single_run_bundle_contains_the_completed_artifacts\n    assert output.name in outputs, \"Missing completed workbook registration\"\nE   AssertionError: Missing completed workbook registration\nE   assert 'result.xlsx' in {}\nE    +  where 'result.xlsx' = PosixPath('/tmp/pytest-of-runner/pytest-5/test_single_run_bundle_contain0/result.xlsx').name\n=========================== short test summary info ============================\nFAILED tests/test_coverage_round_2375.py::test_single_run_bundle_contains_the_completed_artifacts - AssertionError: Missing completed workbook registration\nassert 'result.xlsx' in {}\n +  where 'result.xlsx' = PosixPath('/tmp/pytest-of-runner/pytest-5/test_single_run_bundle_contain0/result.xlsx').name\n1 failed, 11 passed, 139 warnings in 4.19s\n"
+        "seconds": 4.381,
+        "raw_output_sha256": "893f5cc47cb96312a6a9e570ab06166a857439d286e070ddf008323b00108eb1",
+        "output_excerpt": "............F.............                                               [100%]\n=================================== FAILURES ===================================\n___________ test_single_run_bundle_contains_the_completed_artifacts ____________\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_coverage_round_2375.py:255: in test_single_run_bundle_contains_the_completed_artifacts\n    assert has_workbook, \"Missing completed workbook registration\"\nE   AssertionError: Missing completed workbook registration\nE   assert False\n----------------------------- Captured stdout call -----------------------------\n[BACKEND] Using backend: numpy\n\n\ud83d\udd0d Running sensitivity analysis...\n\n\ud83d\udcca Sensitivity Analysis Results:\n==================================================\n\ud83d\udcc8 sigma_E_+5%          | Delta:  +0.0037%\n\ud83d\udcc8 sigma_M_-5%          | Delta:  +0.0036%\n\ud83d\udcc9 sigma_E_-5%          | Delta:  -0.0009%\n\ud83d\udcc8 mu_H_+5%             | Delta:  +0.0008%\n\ud83d\udcc9 mu_H_-5%             | Delta:  -0.0008%\n\ud83d\udcc9 sigma_M_+5%          | Delta:  -0.0007%\n\ud83d\udcc9 sigma_H_-5%          | Delta:  -0.0004%\n\ud83d\udcc8 sigma_H_+5%          | Delta:  +0.0004%\n\ud83d\udcc9 mu_E_+5%             | Delta:  +0.0000%\n\ud83d\udcc9 mu_E_-5%             | Delta:  +0.0000%\n\ud83d\udcc9 mu_M_+5%             | Delta:  +0.0000%\n\ud83d\udcc9 mu_M_-5%             | Delta:  +0.0000%\n\n\u2705 Sensitivity analysis completed. Evaluated 12 scenarios.\n=========================== short test summary info ============================\nFAILED tests/test_coverage_round_2375.py::test_single_run_bundle_contains_the_completed_artifacts - AssertionError: Missing completed workbook registration\nassert False\n1 failed, 25 passed, 346 warnings in 3.33s\n"
       },
       "restored_sha256": "f3ffec1a90fe5888ca5ba357507e7542f4dc436117acea430348c87ab0b40e26",
       "restoration": {
@@ -49,15 +50,15 @@
           "--disable-warnings"
         ],
         "exit_code": 0,
-        "seconds": 6.455,
-        "raw_output_sha256": "b0c3f49f9ecb2f34191bfc3111259353b4e9a64a379c916a5dfc4b61c1ca047e",
-        "output_excerpt": "............                                                             [100%]\n12 passed, 139 warnings in 3.87s\n"
+        "seconds": 4.558,
+        "raw_output_sha256": "b62c8e7b4442edccfebd018ec811a4c55b23e5e2bf43a72aaac95d7514107c8a",
+        "output_excerpt": "..........................                                               [100%]\n26 passed, 346 warnings in 3.45s\n"
       }
     },
     {
       "name": "manifest-registration",
       "path": "pa_core/cli.py",
-      "case": "test_single_run_bundle_contains_the_completed_artifacts",
+      "case": "tests/test_coverage_round_2375.py::test_single_run_bundle_contains_the_completed_artifacts",
       "expected_failure": "Missing completed manifest registration",
       "mutant_sha256": "df63bd89c142270e7177d229db56fe41c86f402d49b364260df2bcf0afe185fc",
       "patch": "--- pa_core/cli.py\n+++ pa_core/cli.py\n@@ -872,7 +872,7 @@\n                 ),\n                 index_hash=index_hash,\n                 seed=args.seed,\n-                manifest=manifest_data,\n+                manifest=None,\n                 outputs=outputs,\n             )\n             bundle = RunArtifactBundle(artifact)\n",
@@ -74,9 +75,9 @@
           "--disable-warnings"
         ],
         "exit_code": 1,
-        "seconds": 7.023,
-        "raw_output_sha256": "3dee5e72aa43a6e0a991e59f081cc33a00ef3e9ebec647bc0ed8568f9b77af27",
-        "output_excerpt": "...........F                                                             [100%]\n=================================== FAILURES ===================================\n___________ test_single_run_bundle_contains_the_completed_artifacts ____________\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_coverage_round_2375.py:248: in test_single_run_bundle_contains_the_completed_artifacts\n    assert (\nE   AssertionError: Missing completed manifest registration\nE   assert None == 'manifest.json'\nE    +  where None = <built-in method get of dict object at 0x7e95ec2c25c0>('manifest_path')\nE    +    where <built-in method get of dict object at 0x7e95ec2c25c0> = {'config_path': 'config.yaml', 'index_hash': '89f3d181b651967143b5719842a496a22a884c2b580c26f0c4fbeeb9f8085ac5', 'seed': 123, 'manifest_path': None, ...}.get\n=========================== short test summary info ============================\nFAILED tests/test_coverage_round_2375.py::test_single_run_bundle_contains_the_completed_artifacts - AssertionError: Missing completed manifest registration\nassert None == 'manifest.json'\n +  where None = <built-in method get of dict object at 0x7e95ec2c25c0>('manifest_path')\n +    where <built-in method get of dict object at 0x7e95ec2c25c0> = {'config_path': 'config.yaml', 'index_hash': '89f3d181b651967143b5719842a496a22a884c2b580c26f0c4fbeeb9f8085ac5', 'seed': 123, 'manifest_path': None, ...}.get\n1 failed, 11 passed, 139 warnings in 4.34s\n"
+        "seconds": 4.721,
+        "raw_output_sha256": "2e384bb3397de3492c06e6a8ede7d3648f74dee5bc6f575d764824d3e96e9c25",
+        "output_excerpt": "............F.............                                               [100%]\n=================================== FAILURES ===================================\n___________ test_single_run_bundle_contains_the_completed_artifacts ____________\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_coverage_round_2375.py:252: in test_single_run_bundle_contains_the_completed_artifacts\n    assert has_manifest, \"Missing completed manifest registration\"\nE   AssertionError: Missing completed manifest registration\nE   assert False\n----------------------------- Captured stdout call -----------------------------\n[BACKEND] Using backend: numpy\n\n\ud83d\udd0d Running sensitivity analysis...\n\n\ud83d\udcca Sensitivity Analysis Results:\n==================================================\n\ud83d\udcc8 sigma_E_+5%          | Delta:  +0.0037%\n\ud83d\udcc8 sigma_M_-5%          | Delta:  +0.0036%\n\ud83d\udcc9 sigma_E_-5%          | Delta:  -0.0009%\n\ud83d\udcc8 mu_H_+5%             | Delta:  +0.0008%\n\ud83d\udcc9 mu_H_-5%             | Delta:  -0.0008%\n\ud83d\udcc9 sigma_M_+5%          | Delta:  -0.0007%\n\ud83d\udcc9 sigma_H_-5%          | Delta:  -0.0004%\n\ud83d\udcc8 sigma_H_+5%          | Delta:  +0.0004%\n\ud83d\udcc9 mu_E_+5%             | Delta:  +0.0000%\n\ud83d\udcc9 mu_E_-5%             | Delta:  +0.0000%\n\ud83d\udcc9 mu_M_+5%             | Delta:  +0.0000%\n\ud83d\udcc9 mu_M_-5%             | Delta:  +0.0000%\n\n\u2705 Sensitivity analysis completed. Evaluated 12 scenarios.\n=========================== short test summary info ============================\nFAILED tests/test_coverage_round_2375.py::test_single_run_bundle_contains_the_completed_artifacts - AssertionError: Missing completed manifest registration\nassert False\n1 failed, 25 passed, 346 warnings in 3.45s\n"
       },
       "restored_sha256": "f3ffec1a90fe5888ca5ba357507e7542f4dc436117acea430348c87ab0b40e26",
       "restoration": {
@@ -92,15 +93,15 @@
           "--disable-warnings"
         ],
         "exit_code": 0,
-        "seconds": 6.827,
-        "raw_output_sha256": "fa88d820b67e20432605c0f6d5c89ca31937407cfa764572e59987d820f45a8c",
-        "output_excerpt": "............                                                             [100%]\n12 passed, 139 warnings in 4.10s\n"
+        "seconds": 4.476,
+        "raw_output_sha256": "878b9a01ff53090dbf53243c5d222c3d0361c77742dac534bf4d38741ce43721",
+        "output_excerpt": "..........................                                               [100%]\n26 passed, 346 warnings in 3.22s\n"
       }
     },
     {
       "name": "manifest-reference",
       "path": "pa_core/run_artifact_bundle.py",
-      "case": "test_single_run_bundle_contains_the_completed_artifacts",
+      "case": "tests/test_coverage_round_2375.py::test_single_run_bundle_contains_the_completed_artifacts",
       "expected_failure": "Missing completed manifest registration",
       "mutant_sha256": "b3bcf9fd1f472c8b9395da7124199f724361cb945a0b6fd46eee0538e34d67fe",
       "patch": "--- pa_core/run_artifact_bundle.py\n+++ pa_core/run_artifact_bundle.py\n@@ -60,7 +60,7 @@\n             \"config_path\": str(config_path.relative_to(root)),\n             \"index_hash\": self.artifact.index_hash,\n             \"seed\": self.artifact.seed,\n-            \"manifest_path\": (str(manifest_path.relative_to(root)) if manifest_path else None),\n+            \"manifest_path\": None,\n             \"outputs\": outputs_map,\n             \"hashes\": {\n                 \"config\": self._hash_file(config_path),\n",
@@ -117,9 +118,9 @@
           "--disable-warnings"
         ],
         "exit_code": 1,
-        "seconds": 6.769,
-        "raw_output_sha256": "c1ffe3121caffa263fc46cec0c5c0b2854ec4292eb18943edeec23d1a56a765b",
-        "output_excerpt": "...........F                                                             [100%]\n=================================== FAILURES ===================================\n___________ test_single_run_bundle_contains_the_completed_artifacts ____________\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_coverage_round_2375.py:248: in test_single_run_bundle_contains_the_completed_artifacts\n    assert (\nE   AssertionError: Missing completed manifest registration\nE   assert None == 'manifest.json'\nE    +  where None = <built-in method get of dict object at 0x72ae6d805b40>('manifest_path')\nE    +    where <built-in method get of dict object at 0x72ae6d805b40> = {'config_path': 'config.yaml', 'index_hash': '89f3d181b651967143b5719842a496a22a884c2b580c26f0c4fbeeb9f8085ac5', 'seed': 123, 'manifest_path': None, ...}.get\n=========================== short test summary info ============================\nFAILED tests/test_coverage_round_2375.py::test_single_run_bundle_contains_the_completed_artifacts - AssertionError: Missing completed manifest registration\nassert None == 'manifest.json'\n +  where None = <built-in method get of dict object at 0x72ae6d805b40>('manifest_path')\n +    where <built-in method get of dict object at 0x72ae6d805b40> = {'config_path': 'config.yaml', 'index_hash': '89f3d181b651967143b5719842a496a22a884c2b580c26f0c4fbeeb9f8085ac5', 'seed': 123, 'manifest_path': None, ...}.get\n1 failed, 11 passed, 139 warnings in 4.09s\n"
+        "seconds": 4.611,
+        "raw_output_sha256": "d49702a8d476a1a3c8786c8fb08dd65ad9a77e5134b19d4a53f143855d24dd70",
+        "output_excerpt": "............F.............                                               [100%]\n=================================== FAILURES ===================================\n___________ test_single_run_bundle_contains_the_completed_artifacts ____________\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_coverage_round_2375.py:252: in test_single_run_bundle_contains_the_completed_artifacts\n    assert has_manifest, \"Missing completed manifest registration\"\nE   AssertionError: Missing completed manifest registration\nE   assert False\n----------------------------- Captured stdout call -----------------------------\n[BACKEND] Using backend: numpy\n\n\ud83d\udd0d Running sensitivity analysis...\n\n\ud83d\udcca Sensitivity Analysis Results:\n==================================================\n\ud83d\udcc8 sigma_E_+5%          | Delta:  +0.0037%\n\ud83d\udcc8 sigma_M_-5%          | Delta:  +0.0036%\n\ud83d\udcc9 sigma_E_-5%          | Delta:  -0.0009%\n\ud83d\udcc8 mu_H_+5%             | Delta:  +0.0008%\n\ud83d\udcc9 mu_H_-5%             | Delta:  -0.0008%\n\ud83d\udcc9 sigma_M_+5%          | Delta:  -0.0007%\n\ud83d\udcc9 sigma_H_-5%          | Delta:  -0.0004%\n\ud83d\udcc8 sigma_H_+5%          | Delta:  +0.0004%\n\ud83d\udcc9 mu_E_+5%             | Delta:  +0.0000%\n\ud83d\udcc9 mu_E_-5%             | Delta:  +0.0000%\n\ud83d\udcc9 mu_M_+5%             | Delta:  +0.0000%\n\ud83d\udcc9 mu_M_-5%             | Delta:  +0.0000%\n\n\u2705 Sensitivity analysis completed. Evaluated 12 scenarios.\n=========================== short test summary info ============================\nFAILED tests/test_coverage_round_2375.py::test_single_run_bundle_contains_the_completed_artifacts - AssertionError: Missing completed manifest registration\nassert False\n1 failed, 25 passed, 346 warnings in 3.31s\n"
       },
       "restored_sha256": "8765afc38bfe1f11d14d20ff2bc979994463040ef03a20e0422318934d4831c0",
       "restoration": {
@@ -135,16 +136,16 @@
           "--disable-warnings"
         ],
         "exit_code": 0,
-        "seconds": 6.734,
-        "raw_output_sha256": "efdd5ff86ebc10171aa737ea2b06865f7a2aa948e8019fa32b1b6b4ed3389337",
-        "output_excerpt": "............                                                             [100%]\n12 passed, 139 warnings in 4.02s\n"
+        "seconds": 4.585,
+        "raw_output_sha256": "3453e3b7399949656e5b4a62972858b515ebf7a24439ddacffe44d4a4c4100df",
+        "output_excerpt": "..........................                                               [100%]\n26 passed, 346 warnings in 3.24s\n"
       }
     },
     {
       "name": "missing-workbook",
       "path": "pa_core/run_artifact_bundle.py",
-      "case": "test_single_run_bundle_contains_the_completed_artifacts",
-      "expected_failure": "Missing referenced workbook file",
+      "case": "tests/test_coverage_round_2375.py::test_single_run_bundle_contains_the_completed_artifacts",
+      "expected_failure": "Missing referenced workbook file: outputs/result.xlsx",
       "mutant_sha256": "0862a8bf8f066e09cf3afd1ec5e8e4f340dcdbffe6593dfe9881050d98e34e35",
       "patch": "--- pa_core/run_artifact_bundle.py\n+++ pa_core/run_artifact_bundle.py\n@@ -55,6 +55,7 @@\n             shutil.copy2(src_path, dest_path)\n             outputs_map[name] = str(dest_path.relative_to(root))\n             output_hashes[name] = self._hash_file(dest_path)\n+            dest_path.unlink()\n \n         bundle_meta = {\n             \"config_path\": str(config_path.relative_to(root)),\n",
       "failure": {
@@ -160,9 +161,9 @@
           "--disable-warnings"
         ],
         "exit_code": 1,
-        "seconds": 6.581,
-        "raw_output_sha256": "15838d87a1cd39c7af9d8041c2195ad8d66de5c5effeca050aa18a0f081bb6d3",
-        "output_excerpt": "...........F                                                             [100%]\n=================================== FAILURES ===================================\n___________ test_single_run_bundle_contains_the_completed_artifacts ____________\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_coverage_round_2375.py:263: in test_single_run_bundle_contains_the_completed_artifacts\n    assert artifact.is_file(), f\"Missing referenced {name} file: {relative_path}\"\nE   AssertionError: Missing referenced workbook file: outputs/result.xlsx\nE   assert False\nE    +  where False = is_file()\nE    +    where is_file = PosixPath('/tmp/pytest-of-runner/pytest-11/test_single_run_bundle_contain0/bundle/outputs/result.xlsx').is_file\n=========================== short test summary info ============================\nFAILED tests/test_coverage_round_2375.py::test_single_run_bundle_contains_the_completed_artifacts - AssertionError: Missing referenced workbook file: outputs/result.xlsx\nassert False\n +  where False = is_file()\n +    where is_file = PosixPath('/tmp/pytest-of-runner/pytest-11/test_single_run_bundle_contain0/bundle/outputs/result.xlsx').is_file\n1 failed, 11 passed, 139 warnings in 3.98s\n"
+        "seconds": 4.341,
+        "raw_output_sha256": "c7f7581089ce72c8243ddda32d22dbd3af8fd4fb318d8f1cb4ae17638a7dd4b1",
+        "output_excerpt": "............F.............                                               [100%]\n=================================== FAILURES ===================================\n___________ test_single_run_bundle_contains_the_completed_artifacts ____________\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_coverage_round_2375.py:266: in test_single_run_bundle_contains_the_completed_artifacts\n    assert artifact.is_file(), f\"Missing referenced {name} file: {relative_path}\"\nE   AssertionError: Missing referenced workbook file: outputs/result.xlsx\nE   assert False\nE    +  where False = is_file()\nE    +    where is_file = PosixPath('/tmp/pytest-of-runner/pytest-32/test_single_run_bundle_contain0/bundle/outputs/result.xlsx').is_file\n----------------------------- Captured stdout call -----------------------------\n[BACKEND] Using backend: numpy\n\n\ud83d\udd0d Running sensitivity analysis...\n\n\ud83d\udcca Sensitivity Analysis Results:\n==================================================\n\ud83d\udcc8 sigma_E_+5%          | Delta:  +0.0037%\n\ud83d\udcc8 sigma_M_-5%          | Delta:  +0.0036%\n\ud83d\udcc9 sigma_E_-5%          | Delta:  -0.0009%\n\ud83d\udcc8 mu_H_+5%             | Delta:  +0.0008%\n\ud83d\udcc9 mu_H_-5%             | Delta:  -0.0008%\n\ud83d\udcc9 sigma_M_+5%          | Delta:  -0.0007%\n\ud83d\udcc9 sigma_H_-5%          | Delta:  -0.0004%\n\ud83d\udcc8 sigma_H_+5%          | Delta:  +0.0004%\n\ud83d\udcc9 mu_E_+5%             | Delta:  +0.0000%\n\ud83d\udcc9 mu_E_-5%             | Delta:  +0.0000%\n\ud83d\udcc9 mu_M_+5%             | Delta:  +0.0000%\n\ud83d\udcc9 mu_M_-5%             | Delta:  +0.0000%\n\n\u2705 Sensitivity analysis completed. Evaluated 12 scenarios.\n=========================== short test summary info ============================\nFAILED tests/test_coverage_round_2375.py::test_single_run_bundle_contains_the_completed_artifacts - AssertionError: Missing referenced workbook file: outputs/result.xlsx\nassert False\n +  where False = is_file()\n +    where is_file = PosixPath('/tmp/pytest-of-runner/pytest-32/test_single_run_bundle_contain0/bundle/outputs/result.xlsx').is_file\n1 failed, 25 passed, 346 warnings in 3.23s\n"
       },
       "restored_sha256": "8765afc38bfe1f11d14d20ff2bc979994463040ef03a20e0422318934d4831c0",
       "restoration": {
@@ -178,18 +179,18 @@
           "--disable-warnings"
         ],
         "exit_code": 0,
-        "seconds": 6.539,
-        "raw_output_sha256": "b1b32a5a8b086ac7b678791c019075fcd596b6a569dcbc7348f9772dfd7e02b8",
-        "output_excerpt": "............                                                             [100%]\n12 passed, 139 warnings in 3.94s\n"
+        "seconds": 4.385,
+        "raw_output_sha256": "9d8f27638c38790e3cec2171d185d2efaf30e923c35605c2820ba8ea0c5bfb77",
+        "output_excerpt": "..........................                                               [100%]\n26 passed, 346 warnings in 3.17s\n"
       }
     },
     {
       "name": "missing-manifest",
       "path": "pa_core/run_artifact_bundle.py",
-      "case": "test_single_run_bundle_contains_the_completed_artifacts",
-      "expected_failure": "Missing referenced manifest file",
-      "mutant_sha256": "9cddd77cf66276eefea008aefcd1865b391ac3c4ff696850771e289c15ecbe0f",
-      "patch": "--- pa_core/run_artifact_bundle.py\n+++ pa_core/run_artifact_bundle.py\n@@ -68,6 +68,7 @@\n                 \"outputs\": output_hashes,\n             },\n         }\n+        manifest_path.unlink()\n         meta_path = root / self._META_FILE\n         meta_path.write_text(json.dumps(bundle_meta, indent=2))\n         self.root = root\n",
+      "case": "tests/test_coverage_round_2375.py::test_single_run_bundle_contains_the_completed_artifacts",
+      "expected_failure": "Missing referenced manifest file: manifest.json",
+      "mutant_sha256": "f9e262083c0471801094df1b1cb47ff8151c5f4789f7b2d9ae6942584bbfdf1e",
+      "patch": "--- pa_core/run_artifact_bundle.py\n+++ pa_core/run_artifact_bundle.py\n@@ -68,6 +68,8 @@\n                 \"outputs\": output_hashes,\n             },\n         }\n+        if manifest_path is not None:\n+            manifest_path.unlink()\n         meta_path = root / self._META_FILE\n         meta_path.write_text(json.dumps(bundle_meta, indent=2))\n         self.root = root\n",
       "failure": {
         "command": [
           "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
@@ -203,9 +204,9 @@
           "--disable-warnings"
         ],
         "exit_code": 1,
-        "seconds": 6.67,
-        "raw_output_sha256": "09183772de23e6900a5490dede79549c4ad5a3a351103ff8300049e1b6c9ebda",
-        "output_excerpt": "...........F                                                             [100%]\n=================================== FAILURES ===================================\n___________ test_single_run_bundle_contains_the_completed_artifacts ____________\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_coverage_round_2375.py:263: in test_single_run_bundle_contains_the_completed_artifacts\n    assert artifact.is_file(), f\"Missing referenced {name} file: {relative_path}\"\nE   AssertionError: Missing referenced manifest file: manifest.json\nE   assert False\nE    +  where False = is_file()\nE    +    where is_file = PosixPath('/tmp/pytest-of-runner/pytest-13/test_single_run_bundle_contain0/bundle/manifest.json').is_file\n=========================== short test summary info ============================\nFAILED tests/test_coverage_round_2375.py::test_single_run_bundle_contains_the_completed_artifacts - AssertionError: Missing referenced manifest file: manifest.json\nassert False\n +  where False = is_file()\n +    where is_file = PosixPath('/tmp/pytest-of-runner/pytest-13/test_single_run_bundle_contain0/bundle/manifest.json').is_file\n1 failed, 11 passed, 139 warnings in 4.07s\n"
+        "seconds": 4.742,
+        "raw_output_sha256": "76f57dd40e8b90037b263410a21334aec4cb16764ce2f36e7351fd86c9a50ff2",
+        "output_excerpt": "............F.............                                               [100%]\n=================================== FAILURES ===================================\n___________ test_single_run_bundle_contains_the_completed_artifacts ____________\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_coverage_round_2375.py:266: in test_single_run_bundle_contains_the_completed_artifacts\n    assert artifact.is_file(), f\"Missing referenced {name} file: {relative_path}\"\nE   AssertionError: Missing referenced manifest file: manifest.json\nE   assert False\nE    +  where False = is_file()\nE    +    where is_file = PosixPath('/tmp/pytest-of-runner/pytest-34/test_single_run_bundle_contain0/bundle/manifest.json').is_file\n----------------------------- Captured stdout call -----------------------------\n[BACKEND] Using backend: numpy\n\n\ud83d\udd0d Running sensitivity analysis...\n\n\ud83d\udcca Sensitivity Analysis Results:\n==================================================\n\ud83d\udcc8 sigma_E_+5%          | Delta:  +0.0037%\n\ud83d\udcc8 sigma_M_-5%          | Delta:  +0.0036%\n\ud83d\udcc9 sigma_E_-5%          | Delta:  -0.0009%\n\ud83d\udcc8 mu_H_+5%             | Delta:  +0.0008%\n\ud83d\udcc9 mu_H_-5%             | Delta:  -0.0008%\n\ud83d\udcc9 sigma_M_+5%          | Delta:  -0.0007%\n\ud83d\udcc9 sigma_H_-5%          | Delta:  -0.0004%\n\ud83d\udcc8 sigma_H_+5%          | Delta:  +0.0004%\n\ud83d\udcc9 mu_E_+5%             | Delta:  +0.0000%\n\ud83d\udcc9 mu_E_-5%             | Delta:  +0.0000%\n\ud83d\udcc9 mu_M_+5%             | Delta:  +0.0000%\n\ud83d\udcc9 mu_M_-5%             | Delta:  +0.0000%\n\n\u2705 Sensitivity analysis completed. Evaluated 12 scenarios.\n=========================== short test summary info ============================\nFAILED tests/test_coverage_round_2375.py::test_single_run_bundle_contains_the_completed_artifacts - AssertionError: Missing referenced manifest file: manifest.json\nassert False\n +  where False = is_file()\n +    where is_file = PosixPath('/tmp/pytest-of-runner/pytest-34/test_single_run_bundle_contain0/bundle/manifest.json').is_file\n1 failed, 25 passed, 346 warnings in 3.64s\n"
       },
       "restored_sha256": "8765afc38bfe1f11d14d20ff2bc979994463040ef03a20e0422318934d4831c0",
       "restoration": {
@@ -221,15 +222,15 @@
           "--disable-warnings"
         ],
         "exit_code": 0,
-        "seconds": 6.643,
-        "raw_output_sha256": "ad31a0e1ddf1b684bd3c6e85ed5830c5bfd2c3a1b609e5e76bf4489258707ce4",
-        "output_excerpt": "............                                                             [100%]\n12 passed, 139 warnings in 4.01s\n"
+        "seconds": 4.265,
+        "raw_output_sha256": "b85515f56d0730f7c79dc8038de1e97eb0dc9f4608aa30f078c1c03414738fa2",
+        "output_excerpt": "..........................                                               [100%]\n26 passed, 346 warnings in 3.11s\n"
       }
     },
     {
       "name": "workbook-hash",
       "path": "pa_core/run_artifact_bundle.py",
-      "case": "test_single_run_bundle_contains_the_completed_artifacts",
+      "case": "tests/test_coverage_round_2375.py::test_single_run_bundle_contains_the_completed_artifacts",
       "expected_failure": "Incorrect workbook hash",
       "mutant_sha256": "d1f68f6f9729f6a96db0b13b071a8f26de19f14b33993fcc1d47088b906de574",
       "patch": "--- pa_core/run_artifact_bundle.py\n+++ pa_core/run_artifact_bundle.py\n@@ -54,7 +54,7 @@\n             dest_path.parent.mkdir(parents=True, exist_ok=True)\n             shutil.copy2(src_path, dest_path)\n             outputs_map[name] = str(dest_path.relative_to(root))\n-            output_hashes[name] = self._hash_file(dest_path)\n+            output_hashes[name] = \"0\" * 64\n \n         bundle_meta = {\n             \"config_path\": str(config_path.relative_to(root)),\n",
@@ -246,9 +247,9 @@
           "--disable-warnings"
         ],
         "exit_code": 1,
-        "seconds": 6.612,
-        "raw_output_sha256": "8a7d081a50bdc3fe54fb72004e18aa085ee0e2a085627933c3ec0d1c0356b81b",
-        "output_excerpt": "...........F                                                             [100%]\n=================================== FAILURES ===================================\n___________ test_single_run_bundle_contains_the_completed_artifacts ____________\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_coverage_round_2375.py:274: in test_single_run_bundle_contains_the_completed_artifacts\n    assert recorded_hash == hashlib.sha256(source_bytes).hexdigest(), f\"Incorrect {name} hash\"\nE   AssertionError: Incorrect workbook hash\nE   assert '000000000000...0000000000000' == '65341e6f4632...b788324586b85'\nE     \nE     - 65341e6f4632292b1be094ff2af0b647d23dd69d836038379dbb788324586b85\nE     + 0000000000000000000000000000000000000000000000000000000000000000\n=========================== short test summary info ============================\nFAILED tests/test_coverage_round_2375.py::test_single_run_bundle_contains_the_completed_artifacts - AssertionError: Incorrect workbook hash\nassert '000000000000...0000000000000' == '65341e6f4632...b788324586b85'\n  \n  - 65341e6f4632292b1be094ff2af0b647d23dd69d836038379dbb788324586b85\n  + 0000000000000000000000000000000000000000000000000000000000000000\n1 failed, 11 passed, 139 warnings in 4.05s\n"
+        "seconds": 4.316,
+        "raw_output_sha256": "1134cfe5935191a42837fa4ab5c40bd57ec2651c90c6a7ea30c41fa16ed40ac7",
+        "output_excerpt": "............F.............                                               [100%]\n=================================== FAILURES ===================================\n___________ test_single_run_bundle_contains_the_completed_artifacts ____________\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_coverage_round_2375.py:276: in test_single_run_bundle_contains_the_completed_artifacts\n    assert recorded_hash == hashlib.sha256(source_bytes).hexdigest(), f\"Incorrect {name} hash\"\nE   AssertionError: Incorrect workbook hash\nE   assert '000000000000...0000000000000' == 'ca28b2c94364...4ff5dcc95eaf7'\nE     \nE     - ca28b2c94364214a724100e012c14f903b69d136bbf74611efa4ff5dcc95eaf7\nE     + 0000000000000000000000000000000000000000000000000000000000000000\n----------------------------- Captured stdout call -----------------------------\n[BACKEND] Using backend: numpy\n\n\ud83d\udd0d Running sensitivity analysis...\n\n\ud83d\udcca Sensitivity Analysis Results:\n==================================================\n\ud83d\udcc8 sigma_E_+5%          | Delta:  +0.0037%\n\ud83d\udcc8 sigma_M_-5%          | Delta:  +0.0036%\n\ud83d\udcc9 sigma_E_-5%          | Delta:  -0.0009%\n\ud83d\udcc8 mu_H_+5%             | Delta:  +0.0008%\n\ud83d\udcc9 mu_H_-5%             | Delta:  -0.0008%\n\ud83d\udcc9 sigma_M_+5%          | Delta:  -0.0007%\n\ud83d\udcc9 sigma_H_-5%          | Delta:  -0.0004%\n\ud83d\udcc8 sigma_H_+5%          | Delta:  +0.0004%\n\ud83d\udcc9 mu_E_+5%             | Delta:  +0.0000%\n\ud83d\udcc9 mu_E_-5%             | Delta:  +0.0000%\n\ud83d\udcc9 mu_M_+5%             | Delta:  +0.0000%\n\ud83d\udcc9 mu_M_-5%             | Delta:  +0.0000%\n\n\u2705 Sensitivity analysis completed. Evaluated 12 scenarios.\n=========================== short test summary info ============================\nFAILED tests/test_coverage_round_2375.py::test_single_run_bundle_contains_the_completed_artifacts - AssertionError: Incorrect workbook hash\nassert '000000000000...0000000000000' == 'ca28b2c94364...4ff5dcc95eaf7'\n  \n  - ca28b2c94364214a724100e012c14f903b69d136bbf74611efa4ff5dcc95eaf7\n  + 0000000000000000000000000000000000000000000000000000000000000000\n1 failed, 25 passed, 346 warnings in 3.18s\n"
       },
       "restored_sha256": "8765afc38bfe1f11d14d20ff2bc979994463040ef03a20e0422318934d4831c0",
       "restoration": {
@@ -264,15 +265,15 @@
           "--disable-warnings"
         ],
         "exit_code": 0,
-        "seconds": 6.405,
-        "raw_output_sha256": "bd238f9dfd5702f4171d7841239092963fb0d237337aa8590afd4f7923714139",
-        "output_excerpt": "............                                                             [100%]\n12 passed, 139 warnings in 3.88s\n"
+        "seconds": 4.365,
+        "raw_output_sha256": "b85515f56d0730f7c79dc8038de1e97eb0dc9f4608aa30f078c1c03414738fa2",
+        "output_excerpt": "..........................                                               [100%]\n26 passed, 346 warnings in 3.11s\n"
       }
     },
     {
       "name": "manifest-hash",
       "path": "pa_core/run_artifact_bundle.py",
-      "case": "test_single_run_bundle_contains_the_completed_artifacts",
+      "case": "tests/test_coverage_round_2375.py::test_single_run_bundle_contains_the_completed_artifacts",
       "expected_failure": "Incorrect manifest hash",
       "mutant_sha256": "80d423ce2599a3d22489a4c157777650df274559a1373bea9be2b20139da5b4c",
       "patch": "--- pa_core/run_artifact_bundle.py\n+++ pa_core/run_artifact_bundle.py\n@@ -64,7 +64,7 @@\n             \"outputs\": outputs_map,\n             \"hashes\": {\n                 \"config\": self._hash_file(config_path),\n-                \"manifest\": self._hash_file(manifest_path) if manifest_path else None,\n+                \"manifest\": \"0\" * 64 if manifest_path else None,\n                 \"outputs\": output_hashes,\n             },\n         }\n",
@@ -289,9 +290,9 @@
           "--disable-warnings"
         ],
         "exit_code": 1,
-        "seconds": 6.798,
-        "raw_output_sha256": "fd64538ba25957e8e9a79410b369e362f64c9beea30023848158160dcaf470af",
-        "output_excerpt": "...........F                                                             [100%]\n=================================== FAILURES ===================================\n___________ test_single_run_bundle_contains_the_completed_artifacts ____________\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_coverage_round_2375.py:274: in test_single_run_bundle_contains_the_completed_artifacts\n    assert recorded_hash == hashlib.sha256(source_bytes).hexdigest(), f\"Incorrect {name} hash\"\nE   AssertionError: Incorrect manifest hash\nE   assert '000000000000...0000000000000' == 'c2ff2792fd7a...74243984dea0e'\nE     \nE     - c2ff2792fd7a7d8008850a26e96a720322d3bcf04a634a944b774243984dea0e\nE     + 0000000000000000000000000000000000000000000000000000000000000000\n=========================== short test summary info ============================\nFAILED tests/test_coverage_round_2375.py::test_single_run_bundle_contains_the_completed_artifacts - AssertionError: Incorrect manifest hash\nassert '000000000000...0000000000000' == 'c2ff2792fd7a...74243984dea0e'\n  \n  - c2ff2792fd7a7d8008850a26e96a720322d3bcf04a634a944b774243984dea0e\n  + 0000000000000000000000000000000000000000000000000000000000000000\n1 failed, 11 passed, 139 warnings in 4.17s\n"
+        "seconds": 4.363,
+        "raw_output_sha256": "e22f60ab5ca937a08b6320bb7eddc95aa5f2671483dde7104f91214b2c0893d0",
+        "output_excerpt": "............F.............                                               [100%]\n=================================== FAILURES ===================================\n___________ test_single_run_bundle_contains_the_completed_artifacts ____________\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_coverage_round_2375.py:276: in test_single_run_bundle_contains_the_completed_artifacts\n    assert recorded_hash == hashlib.sha256(source_bytes).hexdigest(), f\"Incorrect {name} hash\"\nE   AssertionError: Incorrect manifest hash\nE   assert '000000000000...0000000000000' == '311443a1d4d7...4f74bd6589bf1'\nE     \nE     - 311443a1d4d7e1107c0ee5aecba227aa915a5845d68dc6951764f74bd6589bf1\nE     + 0000000000000000000000000000000000000000000000000000000000000000\n----------------------------- Captured stdout call -----------------------------\n[BACKEND] Using backend: numpy\n\n\ud83d\udd0d Running sensitivity analysis...\n\n\ud83d\udcca Sensitivity Analysis Results:\n==================================================\n\ud83d\udcc8 sigma_E_+5%          | Delta:  +0.0037%\n\ud83d\udcc8 sigma_M_-5%          | Delta:  +0.0036%\n\ud83d\udcc9 sigma_E_-5%          | Delta:  -0.0009%\n\ud83d\udcc8 mu_H_+5%             | Delta:  +0.0008%\n\ud83d\udcc9 mu_H_-5%             | Delta:  -0.0008%\n\ud83d\udcc9 sigma_M_+5%          | Delta:  -0.0007%\n\ud83d\udcc9 sigma_H_-5%          | Delta:  -0.0004%\n\ud83d\udcc8 sigma_H_+5%          | Delta:  +0.0004%\n\ud83d\udcc9 mu_E_+5%             | Delta:  +0.0000%\n\ud83d\udcc9 mu_E_-5%             | Delta:  +0.0000%\n\ud83d\udcc9 mu_M_+5%             | Delta:  +0.0000%\n\ud83d\udcc9 mu_M_-5%             | Delta:  +0.0000%\n\n\u2705 Sensitivity analysis completed. Evaluated 12 scenarios.\n=========================== short test summary info ============================\nFAILED tests/test_coverage_round_2375.py::test_single_run_bundle_contains_the_completed_artifacts - AssertionError: Incorrect manifest hash\nassert '000000000000...0000000000000' == '311443a1d4d7...4f74bd6589bf1'\n  \n  - 311443a1d4d7e1107c0ee5aecba227aa915a5845d68dc6951764f74bd6589bf1\n  + 0000000000000000000000000000000000000000000000000000000000000000\n1 failed, 25 passed, 346 warnings in 3.23s\n"
       },
       "restored_sha256": "8765afc38bfe1f11d14d20ff2bc979994463040ef03a20e0422318934d4831c0",
       "restoration": {
@@ -307,15 +308,15 @@
           "--disable-warnings"
         ],
         "exit_code": 0,
-        "seconds": 6.426,
-        "raw_output_sha256": "aa238e9acbacf4a1b101ebe5adadd4c4477685799c76a9e1e397dd1cd05f8c67",
-        "output_excerpt": "............                                                             [100%]\n12 passed, 139 warnings in 3.89s\n"
+        "seconds": 4.644,
+        "raw_output_sha256": "0b465f6d7d9157caf5cf926957159c87f54ffebbb8e57633539da6b352af6ea0",
+        "output_excerpt": "..........................                                               [100%]\n26 passed, 346 warnings in 3.43s\n"
       }
     },
     {
       "name": "copied-workbook-bytes",
       "path": "pa_core/run_artifact_bundle.py",
-      "case": "test_single_run_bundle_contains_the_completed_artifacts",
+      "case": "tests/test_coverage_round_2375.py::test_single_run_bundle_contains_the_completed_artifacts",
       "expected_failure": "Bundle workbook differs from CLI-produced file",
       "mutant_sha256": "cba90f1cfd4b3699b4babd3d9ec1212e262cd4b18def35061da33616eabedc77",
       "patch": "--- pa_core/run_artifact_bundle.py\n+++ pa_core/run_artifact_bundle.py\n@@ -54,6 +54,7 @@\n             dest_path.parent.mkdir(parents=True, exist_ok=True)\n             shutil.copy2(src_path, dest_path)\n             outputs_map[name] = str(dest_path.relative_to(root))\n+            dest_path.write_bytes(b\"corrupted workbook\")\n             output_hashes[name] = self._hash_file(dest_path)\n \n         bundle_meta = {\n",
@@ -332,9 +333,9 @@
           "--disable-warnings"
         ],
         "exit_code": 1,
-        "seconds": 6.695,
-        "raw_output_sha256": "03d3dd45c55a7b28eee1e2839231267d4df5f9bb79b6d7f3861368e04afe1866",
-        "output_excerpt": "...........F                                                             [100%]\n=================================== FAILURES ===================================\n___________ test_single_run_bundle_contains_the_completed_artifacts ____________\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_coverage_round_2375.py:266: in test_single_run_bundle_contains_the_completed_artifacts\n    assert (\nE   AssertionError: Bundle workbook differs from CLI-produced file\nE   assert b'corrupted workbook' == b'PK\\x03\\x04\\...0\\x00\\x00\\x00'\nE     \nE     At index 0 diff: b'c' != b'P'\nE     \nE     Full diff: (-: missing in left side, +: extra in left side)\nE     + (b'corrupted workbook')\nE     - (b'PK\\x03\\x04\\x14\\x00\\x00\\x00\\x08\\x00U\\x9dk]F\\xc7MH\\x95\\x00\\x00\\x00\\xcd\\x00'\nE     -  b'\\x00\\x00\\x10\\x00\\x00\\x00docProps/app.xmlM\\xcfM\\x0b\\xc20\\x0c\\x06\\xe0\\xbf'\nE     -  b'Rv\\xb7\\x99\\x8a\\x1e\\xa4\\x0eD=\\x8a\\x9e\\xbc\\xcf.u\\x85\\xb6)m\\x84\\xfa\\xef\\xed'\nE     -  b'\\x04?nyy\\xc8\\x1b\\xa2.\\x89\"&\\xb6\\x98E\\xf1.\\xe4m32\\xc7\\r@\\xd6#\\xfa>'\nE     -  b'\\xcb\\xca\\xa1\\x8a\\xa1\\xe4{\\xae1\\xdd\\x81\\x8c\\xb1\\x1a\\x0f\\xa4\\x1f\\x1e\\x03\\xc3'\nE     -  b'\\xa2m\\xd7\\x80\\x851\\x0c8\\xcc\\xe2\\xb7\\xb0\\xe9\\xd4.Fgu\\xcf\\x96Bw\\xb2:Q&\\xc3\\xe2'\nE     -  b\"X4:\\xb1'\\x1f\\xab\\xdc\\x1c\\n\\x10\\xe7z%>\\x8b\\x13K9\\x97+\\x05\\xff\\x8bS\\xcb\\x15S\"\nE     -  b'\\x9e\\xe6\\xcao\\xfcd\\x05\\xbf\\x07\\xba\\x17PK\\x03\\x04\\x14\\x00\\x00\\x00\\x08'\nE     -  b'\\x00U\\x9dk]\\xb1\\xd2\\xad\\x96\\xed\\x00\\x00\\x00+\\x02\\x00\\x00\\x11\\x00\\x00\\x00doc'\nE     -  b'Props/core.xml\\xcd\\x92\\xc1j\\xc30\\x0c\\x86_e\\xf8\\x9e(NGa&\\xf5\\xa5c\\xa7\\r'\nE     -  b'\\x06+l\\xecfl\\xb55\\x8b\\x1dck$}\\xfb9^\\x9b2\\xb6\\x07\\x18\\xe8\"\\xe9\\xd7\\xa7_'\nE     -  b'\\xa0N\\x07\\xa1\\x87\\x88\\xcfq\\x08\\x18\\xc9b\\xba\\x99\\\\\\xef\\x93\\xd0a\\xc3\\x8eDA\\x00'\nE     -  b'$}D\\xa7R\\x9d\\x15>7\\xf7Ct\\x8ar\\x1a\\x0f\\x10\\x94\\xfeP\\x07\\x84\\xb6i'\nE     -  b'\\xd6\\xe0\\x90\\x94Q\\xa4`\\x06Va!2\\xd9\\x19-tDEC<\\xe3\\x8d^\\xf0\\xe13\\xf6\\x05'\nE     -  b'f4`\\x8f\\x0e=%\\xe05\\x07&\\xe7\\x8d\\xe14\\xf5\\x1d\\\\\\x013\\x8c0\\xba\\xf4]@\\xb3\\x10'\nE     -  b'K\\xf5Ol\\xe9\\x00;+\\xa7d\\x17\\xd58\\x8e\\xf5\\xb8*\\xba|\\x03\\x87\\xb7\\xa7\\xc7\\x97rne'\nE     -  b'}\"\\xe55\\xe6\\xa9d\\x05\\x9d\\x02n\\xd8e\\xf3\\xebj{\\xbf{`\\xb2m\\xdau\\xc5y\\x8e\\x1d'\nE     -  b'\\xbf\\x13\\xb7m\\x8e\\xf7\\xd9\\xeb\\x0f\\x7fW\\xc3n0vo\\xff\\xb1\\xe3\\x8bA\\xd9\\xc1\\xaf'\nE     -  b'\\xbf\\x90_PK\\x03\\x04\\x14\\x00\\x00\\x00\\x08\\x00U\\x9dk]\\x99\\\\\\x9c#\\x10\\x06\\x00'\nE     -  b\"\\x00\\x9c'\\x00\\x00\\x13\\x00\\x00\\x00xl/theme/theme1.xml\\xedZ[s\\xda8\\x14~\"\nE     -  b'\\xef\\xaf\\xd0xg\\xf6m\\x0b\\xc66\\x81\\xb6\\xb4\\x13siv\\xdb\\xb4\\x99\\x84\\xedN\\x1f'\nE     -  b'\\x85\\x11X\\x8dlyd\\x91\\x84\\x7f\\xbfG6\\x10\\xcb\\x96\\r\\xed\\x92M\\xba\\x9b<\\x04'\nE     -  b',\\xe9\\xfb\\xceEG\\xe7\\xe88y\\xf3\\xee.b\\xe8\\x86\\x88\\x94\\xf2x`\\xd9/\\xdb'\nE     -  b'\\xd6\\xbb\\xb7/\\xde\\xe0W2$\\x11A0\\x19\\xa7\\xaf\\xf0\\xc0\\n\\xa5L^\\xb5Zi\\x00\\xc38}'\nE     -  b'\\xc9\\x13\\x12\\xc3\\xdc\\x82\\x8b\\x08Kx\\x14\\xcb\\xd6\\\\\\xe0[\\x1a/#\\xd6'\nE     -  b'\\xea\\xb4\\xdb\\xddV\\x84il\\xa1\\x18Gd`}^,h@\\xd0TQZo_ \\xb4\\xe5\\x1f3\\xf8\\x15\\xcb'\nE     -  b'T\\x8de\\xa3\\x01\\x13WA&\\xb9\\x88\\xb4\\xf2\\xf9l\\xc5\\xfc\\xda\\xde>e\\xcf\\xe9:'\nE     -  b'\\x1d2\\x81n0\\x1bX \\x7f\\xceo\\xa7\\xe4NZ\\x88\\xe1T\\xc2\\xc4\\xc0jg?Vk\\xc7\\xd1'\nE     -  b'\\xd2H\\x80\\x82\\xc9}\\x94\\x05\\xbaI\\xf6\\xa3\\xd3\\x15\\x082\\r;:\\x9dX\\xcev|'\nE     -  b'\\xf6\\xc4\\xed\\x9f\\x8c\\xca\\xdat4m\\x1a\\xe0\\xe3\\xf1x8\\xb6\\xcb\\xd2\\x8b'\nE     -  b'p\\x1c\\x04\\xe0Q\\xbb\\x9e\\xc2\\x9d\\xf4l\\xbf\\xa4A\\t\\xb4\\xa3i\\xd0d\\xd8\\xf6\\xda\\xae'\nE     -  b'\\x91\\xa6\\xaa\\x8dSO\\xd3\\xf7}\\xdf\\xeb\\x9bh\\x9c\\n\\x8d[O\\xd3kw\\xdd\\xd3\\x8e'\nE     -  b\"\\x89\\xc6\\xad\\xd0x\\r\\xbe\\xf1O\\x87\\xc3\\xae\\x89\\xc6\\xab\\xd0t\\xebi&'\\xfd\\xaek\"\nE     -  b'\n[remaining traceback explanation omitted; see named summary below]\n  -  b'relsPK\\x01\\x02\\x14\\x03\\x14\\x00\\x00\\x00\\x08\\x00U\\x9dk]w\\xbc\\x10#d\\x01\\x00\\x00'\n  -  b'\\xcc\\n\\x00\\x00\\x13\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x80\\x01\\xefB'\n  -  b'\\x00\\x00[Content_Types].xmlPK\\x05\\x06\\x00\\x00\\x00\\x00\\x1c\\x00\\x1c'\n  -  b'\\x00\\x95\\x07\\x00\\x00\\x84D\\x00\\x00\\x00\\x00')\n1 failed, 11 passed, 139 warnings in 4.11s\n"
+        "seconds": 4.512,
+        "raw_output_sha256": "da0a85aa86be9cc53db64ba5876dc3914a42a9c1d2733f1d367dbd90be69a5b5",
+        "output_excerpt": "............F.............                                               [100%]\n=================================== FAILURES ===================================\n___________ test_single_run_bundle_contains_the_completed_artifacts ____________\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_coverage_round_2375.py:270: in test_single_run_bundle_contains_the_completed_artifacts\n    assert same_bytes, f\"Bundle {name} differs from CLI-produced file\"\nE   AssertionError: Bundle workbook differs from CLI-produced file\nE   assert False\n----------------------------- Captured stdout call -----------------------------\n[BACKEND] Using backend: numpy\n\n\ud83d\udd0d Running sensitivity analysis...\n\n\ud83d\udcca Sensitivity Analysis Results:\n==================================================\n\ud83d\udcc8 sigma_E_+5%          | Delta:  +0.0037%\n\ud83d\udcc8 sigma_M_-5%          | Delta:  +0.0036%\n\ud83d\udcc9 sigma_E_-5%          | Delta:  -0.0009%\n\ud83d\udcc8 mu_H_+5%             | Delta:  +0.0008%\n\ud83d\udcc9 mu_H_-5%             | Delta:  -0.0008%\n\ud83d\udcc9 sigma_M_+5%          | Delta:  -0.0007%\n\ud83d\udcc9 sigma_H_-5%          | Delta:  -0.0004%\n\ud83d\udcc8 sigma_H_+5%          | Delta:  +0.0004%\n\ud83d\udcc9 mu_E_+5%             | Delta:  +0.0000%\n\ud83d\udcc9 mu_E_-5%             | Delta:  +0.0000%\n\ud83d\udcc9 mu_M_+5%             | Delta:  +0.0000%\n\ud83d\udcc9 mu_M_-5%             | Delta:  +0.0000%\n\n\u2705 Sensitivity analysis completed. Evaluated 12 scenarios.\n=========================== short test summary info ============================\nFAILED tests/test_coverage_round_2375.py::test_single_run_bundle_contains_the_completed_artifacts - AssertionError: Bundle workbook differs from CLI-produced file\nassert False\n1 failed, 25 passed, 346 warnings in 3.34s\n"
       },
       "restored_sha256": "8765afc38bfe1f11d14d20ff2bc979994463040ef03a20e0422318934d4831c0",
       "restoration": {
@@ -350,15 +351,15 @@
           "--disable-warnings"
         ],
         "exit_code": 0,
-        "seconds": 6.523,
-        "raw_output_sha256": "736a72fb8085391b6ad0324d464fd3d701703cdca46ed83bf89dd1509d12d80a",
-        "output_excerpt": "............                                                             [100%]\n12 passed, 139 warnings in 3.95s\n"
+        "seconds": 4.162,
+        "raw_output_sha256": "52957f0b59697829b42bdb5dd639a0eb58cacb73dd770b7fdc31d24556eb8b46",
+        "output_excerpt": "..........................                                               [100%]\n26 passed, 346 warnings in 3.12s\n"
       }
     },
     {
       "name": "gif-export-after-conversion-failure",
       "path": "pa_core/cli.py",
-      "case": "test_single_run_gif_conversion_error_is_reported",
+      "case": "tests/test_coverage_round_2375.py::test_single_run_gif_conversion_error_is_reported",
       "expected_failure": "GIF export called after conversion failure",
       "mutant_sha256": "2d138642eff210e06c5b3ad07791634b185ce838c04d87e2c182621bcecb194d",
       "patch": "--- pa_core/cli.py\n+++ pa_core/cli.py\n@@ -2149,6 +2149,7 @@\n                 arr = safe_to_numpy(next(iter(raw_returns_dict.values())))\n             except (ValueError, TypeError) as e:\n                 print(f\"\u274c GIF export failed: Data conversion error - {e}\")\n+                write_figure_image(None, plots / \"paths.gif\", format=\"gif\")\n                 print(\"\ud83d\udca1 Check that return data contains only numeric values\")\n                 _emit_run_end()\n                 return\n",
@@ -375,9 +376,9 @@
           "--disable-warnings"
         ],
         "exit_code": 1,
-        "seconds": 6.651,
-        "raw_output_sha256": "143389523f5528fc4919180533e483872431b772f28165bc4058cdc72a503eca",
-        "output_excerpt": ".........F..                                                             [100%]\n=================================== FAILURES ===================================\n_______________ test_single_run_gif_conversion_error_is_reported _______________\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_coverage_round_2375.py:213: in test_single_run_gif_conversion_error_is_reported\n    assert gif_export.call_count == 0, \"GIF export called after conversion failure\"\nE   AssertionError: GIF export called after conversion failure\nE   assert 1 == 0\nE    +  where 1 = <Mock name='write_figure_image' id='126963530926128'>.call_count\n=========================== short test summary info ============================\nFAILED tests/test_coverage_round_2375.py::test_single_run_gif_conversion_error_is_reported - AssertionError: GIF export called after conversion failure\nassert 1 == 0\n +  where 1 = <Mock name='write_figure_image' id='126963530926128'>.call_count\n1 failed, 11 passed, 139 warnings in 4.08s\n"
+        "seconds": 4.499,
+        "raw_output_sha256": "cfcec61f03fdaa03f591f3fa8ffdc96b86122fecc9ebbbf5192094b548d33b52",
+        "output_excerpt": ".........FF...............                                               [100%]\n=================================== FAILURES ===================================\n_________ test_single_run_gif_conversion_error_is_reported[ValueError] _________\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_coverage_round_2375.py:216: in test_single_run_gif_conversion_error_is_reported\n    assert gif_export.call_count == 0, \"GIF export called after conversion failure\"\nE   AssertionError: GIF export called after conversion failure\nE   assert 1 == 0\nE    +  where 1 = <Mock name='write_figure_image' id='136594496497920'>.call_count\n_________ test_single_run_gif_conversion_error_is_reported[TypeError] __________\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_coverage_round_2375.py:216: in test_single_run_gif_conversion_error_is_reported\n    assert gif_export.call_count == 0, \"GIF export called after conversion failure\"\nE   AssertionError: GIF export called after conversion failure\nE   assert 1 == 0\nE    +  where 1 = <Mock name='write_figure_image' id='136594459454032'>.call_count\n=========================== short test summary info ============================\nFAILED tests/test_coverage_round_2375.py::test_single_run_gif_conversion_error_is_reported[ValueError] - AssertionError: GIF export called after conversion failure\nassert 1 == 0\n +  where 1 = <Mock name='write_figure_image' id='136594496497920'>.call_count\nFAILED tests/test_coverage_round_2375.py::test_single_run_gif_conversion_error_is_reported[TypeError] - AssertionError: GIF export called after conversion failure\nassert 1 == 0\n +  where 1 = <Mock name='write_figure_image' id='136594459454032'>.call_count\n2 failed, 24 passed, 346 warnings in 3.30s\n"
       },
       "restored_sha256": "f3ffec1a90fe5888ca5ba357507e7542f4dc436117acea430348c87ab0b40e26",
       "restoration": {
@@ -393,15 +394,15 @@
           "--disable-warnings"
         ],
         "exit_code": 0,
-        "seconds": 6.619,
-        "raw_output_sha256": "1f55524e0528040c7a1ee282aea5fe227066ff79ed4b14185ab15c12d596de21",
-        "output_excerpt": "............                                                             [100%]\n12 passed, 139 warnings in 4.00s\n"
+        "seconds": 4.235,
+        "raw_output_sha256": "784bfd9350c504f945a2b0814b013fc1b5c210c25affd224199af957ada12a6e",
+        "output_excerpt": "..........................                                               [100%]\n26 passed, 346 warnings in 3.16s\n"
       }
     },
     {
       "name": "gif-animation-after-conversion-failure",
       "path": "pa_core/cli.py",
-      "case": "test_single_run_gif_conversion_error_is_reported",
+      "case": "tests/test_coverage_round_2375.py::test_single_run_gif_conversion_error_is_reported",
       "expected_failure": "Animation constructed after conversion failure",
       "mutant_sha256": "bcab5daa600371e07f70566c551927837fe368c439bdde1f8281140f1bf7f2ac",
       "patch": "--- pa_core/cli.py\n+++ pa_core/cli.py\n@@ -2151,7 +2151,7 @@\n                 print(f\"\u274c GIF export failed: Data conversion error - {e}\")\n                 print(\"\ud83d\udca1 Check that return data contains only numeric values\")\n                 _emit_run_end()\n-                return\n+                arr = _np.asarray([[0.0]])\n             anim = viz.animation.make(arr)\n             try:\n                 write_figure_image(anim, plots / \"paths.gif\", format=\"gif\")\n",
@@ -418,9 +419,9 @@
           "--disable-warnings"
         ],
         "exit_code": 1,
-        "seconds": 6.589,
-        "raw_output_sha256": "52e2d007e29e696b9dee116fa84b2aba9616a190cad9b0d0cd44323975d495be",
-        "output_excerpt": ".........F..                                                             [100%]\n=================================== FAILURES ===================================\n_______________ test_single_run_gif_conversion_error_is_reported _______________\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_coverage_round_2375.py:212: in test_single_run_gif_conversion_error_is_reported\n    assert animation_make.call_count == 0, \"Animation constructed after conversion failure\"\nE   AssertionError: Animation constructed after conversion failure\nE   assert 1 == 0\nE    +  where 1 = <Mock name='animation.make' id='130588298121232'>.call_count\n=========================== short test summary info ============================\nFAILED tests/test_coverage_round_2375.py::test_single_run_gif_conversion_error_is_reported - AssertionError: Animation constructed after conversion failure\nassert 1 == 0\n +  where 1 = <Mock name='animation.make' id='130588298121232'>.call_count\n1 failed, 11 passed, 139 warnings in 4.04s\n"
+        "seconds": 4.382,
+        "raw_output_sha256": "d5ca77026efe5b04fdb90c7e0ddf589fc9bb53676d51c1faff535ee5b18801bb",
+        "output_excerpt": ".........FF...............                                               [100%]\n=================================== FAILURES ===================================\n_________ test_single_run_gif_conversion_error_is_reported[ValueError] _________\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_coverage_round_2375.py:215: in test_single_run_gif_conversion_error_is_reported\n    assert animation_make.call_count == 0, \"Animation constructed after conversion failure\"\nE   AssertionError: Animation constructed after conversion failure\nE   assert 1 == 0\nE    +  where 1 = <Mock name='animation.make' id='133205570186144'>.call_count\n_________ test_single_run_gif_conversion_error_is_reported[TypeError] __________\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_coverage_round_2375.py:215: in test_single_run_gif_conversion_error_is_reported\n    assert animation_make.call_count == 0, \"Animation constructed after conversion failure\"\nE   AssertionError: Animation constructed after conversion failure\nE   assert 1 == 0\nE    +  where 1 = <Mock name='animation.make' id='133205569774864'>.call_count\n=========================== short test summary info ============================\nFAILED tests/test_coverage_round_2375.py::test_single_run_gif_conversion_error_is_reported[ValueError] - AssertionError: Animation constructed after conversion failure\nassert 1 == 0\n +  where 1 = <Mock name='animation.make' id='133205570186144'>.call_count\nFAILED tests/test_coverage_round_2375.py::test_single_run_gif_conversion_error_is_reported[TypeError] - AssertionError: Animation constructed after conversion failure\nassert 1 == 0\n +  where 1 = <Mock name='animation.make' id='133205569774864'>.call_count\n2 failed, 24 passed, 346 warnings in 3.25s\n"
       },
       "restored_sha256": "f3ffec1a90fe5888ca5ba357507e7542f4dc436117acea430348c87ab0b40e26",
       "restoration": {
@@ -436,13 +437,185 @@
           "--disable-warnings"
         ],
         "exit_code": 0,
-        "seconds": 6.455,
-        "raw_output_sha256": "bd1a354c3bde517badd010189e0e1aa6b74c16b743753931b0acc0e728d0017d",
-        "output_excerpt": "............                                                             [100%]\n12 passed, 139 warnings in 3.91s\n"
+        "seconds": 4.477,
+        "raw_output_sha256": "2a0c2fe93347c18de8d1e64148b5eb5fbee10f3577db43d818e72a90d80a6203",
+        "output_excerpt": "..........................                                               [100%]\n26 passed, 346 warnings in 3.32s\n"
+      }
+    },
+    {
+      "name": "gif-conversion-valueerror-handler-removed",
+      "path": "pa_core/cli.py",
+      "case": "tests/test_coverage_round_2375.py::test_single_run_gif_conversion_error_is_reported[ValueError]",
+      "expected_failure": "ValueError: not numeric",
+      "mutant_sha256": "dbf7eb01dc27611e81ee01901c723c46c9598e53845039f62d8c3db051825818",
+      "patch": "--- pa_core/cli.py\n+++ pa_core/cli.py\n@@ -2147,7 +2147,7 @@\n         if flags.gif:\n             try:\n                 arr = safe_to_numpy(next(iter(raw_returns_dict.values())))\n-            except (ValueError, TypeError) as e:\n+            except TypeError as e:\n                 print(f\"\u274c GIF export failed: Data conversion error - {e}\")\n                 print(\"\ud83d\udca1 Check that return data contains only numeric values\")\n                 _emit_run_end()\n",
+      "failure": {
+        "command": [
+          "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+          "-m",
+          "pytest",
+          "tests/test_coverage_round_2375.py::test_single_run_gif_conversion_error_is_reported",
+          "-q",
+          "-m",
+          "not slow",
+          "--tb=short",
+          "--disable-warnings"
+        ],
+        "exit_code": 1,
+        "seconds": 2.356,
+        "raw_output_sha256": "30718ee341b4659b46406d9db493f98d15313cbdc0c3077adfb2fe488da73bd7",
+        "output_excerpt": "F.                                                                       [100%]\n=================================== FAILURES ===================================\n_________ test_single_run_gif_conversion_error_is_reported[ValueError] _________\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_coverage_round_2375.py:211: in test_single_run_gif_conversion_error_is_reported\n    main(_single_run_argv(config, index, output, \"--gif\"))\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/pa_core/cli.py:399: in main\n    _main(argv, deps, warning_collector=warning_collector)\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/pa_core/cli.py:2149: in _main\n    arr = safe_to_numpy(next(iter(raw_returns_dict.values())))\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/unittest/mock.py:1176: in __call__\n    return self._mock_call(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/unittest/mock.py:1180: in _mock_call\n    return self._execute_mock_call(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/unittest/mock.py:1241: in _execute_mock_call\n    raise effect\nE   ValueError: not numeric\n----------------------------- Captured stdout call -----------------------------\n[BACKEND] Using backend: numpy\n\n\ud83d\udd0d Running sensitivity analysis...\n\n\ud83d\udcca Sensitivity Analysis Results:\n==================================================\n\ud83d\udcc8 sigma_E_+5%          | Delta:  +0.0037%\n\ud83d\udcc8 sigma_M_-5%          | Delta:  +0.0036%\n\ud83d\udcc9 sigma_E_-5%          | Delta:  -0.0009%\n\ud83d\udcc8 mu_H_+5%             | Delta:  +0.0008%\n\ud83d\udcc9 mu_H_-5%             | Delta:  -0.0008%\n\ud83d\udcc9 sigma_M_+5%          | Delta:  -0.0007%\n\ud83d\udcc9 sigma_H_-5%          | Delta:  -0.0004%\n\ud83d\udcc8 sigma_H_+5%          | Delta:  +0.0004%\n\ud83d\udcc9 mu_E_+5%             | Delta:  +0.0000%\n\ud83d\udcc9 mu_E_-5%             | Delta:  +0.0000%\n\ud83d\udcc9 mu_M_+5%             | Delta:  +0.0000%\n\ud83d\udcc9 mu_M_-5%             | Delta:  +0.0000%\n\n\u2705 Sensitivity analysis completed. Evaluated 12 scenarios.\n=========================== short test summary info ============================\nFAILED tests/test_coverage_round_2375.py::test_single_run_gif_conversion_error_is_reported[ValueError] - ValueError: not numeric\n1 failed, 1 passed, 49 warnings in 1.23s\n"
+      },
+      "restored_sha256": "f3ffec1a90fe5888ca5ba357507e7542f4dc436117acea430348c87ab0b40e26",
+      "restoration": {
+        "command": [
+          "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+          "-m",
+          "pytest",
+          "tests/test_coverage_round_2375.py::test_single_run_gif_conversion_error_is_reported",
+          "-q",
+          "-m",
+          "not slow",
+          "--tb=short",
+          "--disable-warnings"
+        ],
+        "exit_code": 0,
+        "seconds": 2.553,
+        "raw_output_sha256": "e4a1cd8b06f732e0323f8c70609898f98a823aee3619e8f7f5f2f82bd0d919ab",
+        "output_excerpt": "..                                                                       [100%]\n2 passed, 49 warnings in 1.30s\n"
+      }
+    },
+    {
+      "name": "gif-conversion-typeerror-handler-removed",
+      "path": "pa_core/cli.py",
+      "case": "tests/test_coverage_round_2375.py::test_single_run_gif_conversion_error_is_reported[TypeError]",
+      "expected_failure": "TypeError: not numeric",
+      "mutant_sha256": "9b5b3159e62ed9cd6eb5cf0623704404136a17ab33152415583b2c090bc30e74",
+      "patch": "--- pa_core/cli.py\n+++ pa_core/cli.py\n@@ -2147,7 +2147,7 @@\n         if flags.gif:\n             try:\n                 arr = safe_to_numpy(next(iter(raw_returns_dict.values())))\n-            except (ValueError, TypeError) as e:\n+            except ValueError as e:\n                 print(f\"\u274c GIF export failed: Data conversion error - {e}\")\n                 print(\"\ud83d\udca1 Check that return data contains only numeric values\")\n                 _emit_run_end()\n",
+      "failure": {
+        "command": [
+          "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+          "-m",
+          "pytest",
+          "tests/test_coverage_round_2375.py::test_single_run_gif_conversion_error_is_reported",
+          "-q",
+          "-m",
+          "not slow",
+          "--tb=short",
+          "--disable-warnings"
+        ],
+        "exit_code": 1,
+        "seconds": 2.347,
+        "raw_output_sha256": "f9bbc50b3b37f7b9426aa0ce8d63bd338943667282bad1abb1552fbdf993fcd2",
+        "output_excerpt": ".F                                                                       [100%]\n=================================== FAILURES ===================================\n_________ test_single_run_gif_conversion_error_is_reported[TypeError] __________\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_coverage_round_2375.py:211: in test_single_run_gif_conversion_error_is_reported\n    main(_single_run_argv(config, index, output, \"--gif\"))\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/pa_core/cli.py:399: in main\n    _main(argv, deps, warning_collector=warning_collector)\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/pa_core/cli.py:2149: in _main\n    arr = safe_to_numpy(next(iter(raw_returns_dict.values())))\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/unittest/mock.py:1176: in __call__\n    return self._mock_call(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/unittest/mock.py:1180: in _mock_call\n    return self._execute_mock_call(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/unittest/mock.py:1241: in _execute_mock_call\n    raise effect\nE   TypeError: not numeric\n----------------------------- Captured stdout call -----------------------------\n[BACKEND] Using backend: numpy\n\n\ud83d\udd0d Running sensitivity analysis...\n\n\ud83d\udcca Sensitivity Analysis Results:\n==================================================\n\ud83d\udcc8 sigma_E_+5%          | Delta:  +0.0037%\n\ud83d\udcc8 sigma_M_-5%          | Delta:  +0.0036%\n\ud83d\udcc9 sigma_E_-5%          | Delta:  -0.0009%\n\ud83d\udcc8 mu_H_+5%             | Delta:  +0.0008%\n\ud83d\udcc9 mu_H_-5%             | Delta:  -0.0008%\n\ud83d\udcc9 sigma_M_+5%          | Delta:  -0.0007%\n\ud83d\udcc9 sigma_H_-5%          | Delta:  -0.0004%\n\ud83d\udcc8 sigma_H_+5%          | Delta:  +0.0004%\n\ud83d\udcc9 mu_E_+5%             | Delta:  +0.0000%\n\ud83d\udcc9 mu_E_-5%             | Delta:  +0.0000%\n\ud83d\udcc9 mu_M_+5%             | Delta:  +0.0000%\n\ud83d\udcc9 mu_M_-5%             | Delta:  +0.0000%\n\n\u2705 Sensitivity analysis completed. Evaluated 12 scenarios.\n=========================== short test summary info ============================\nFAILED tests/test_coverage_round_2375.py::test_single_run_gif_conversion_error_is_reported[TypeError] - TypeError: not numeric\n1 failed, 1 passed, 49 warnings in 1.18s\n"
+      },
+      "restored_sha256": "f3ffec1a90fe5888ca5ba357507e7542f4dc436117acea430348c87ab0b40e26",
+      "restoration": {
+        "command": [
+          "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+          "-m",
+          "pytest",
+          "tests/test_coverage_round_2375.py::test_single_run_gif_conversion_error_is_reported",
+          "-q",
+          "-m",
+          "not slow",
+          "--tb=short",
+          "--disable-warnings"
+        ],
+        "exit_code": 0,
+        "seconds": 2.162,
+        "raw_output_sha256": "cfc4cf1f3b332804a0da8818bc6d4b8e6bd78b1de927271ac098f2bd4cf055ca",
+        "output_excerpt": "..                                                                       [100%]\n2 passed, 49 warnings in 1.05s\n"
+      }
+    },
+    {
+      "name": "gif-conversion-bypass-safe-to-numpy",
+      "path": "pa_core/cli.py",
+      "case": "tests/test_coverage_round_2375.py::test_single_run_gif_conversion_error_is_reported",
+      "expected_failure": "GIF export failed: Data conversion error - not numeric",
+      "mutant_sha256": "f265253afb191da6a3ce1a3dd8f9131a8ec6dd468eb10b732f40e36f96224579",
+      "patch": "--- pa_core/cli.py\n+++ pa_core/cli.py\n@@ -2146,7 +2146,7 @@\n             )\n         if flags.gif:\n             try:\n-                arr = safe_to_numpy(next(iter(raw_returns_dict.values())))\n+                arr = _np.asarray(next(iter(raw_returns_dict.values())))\n             except (ValueError, TypeError) as e:\n                 print(f\"\u274c GIF export failed: Data conversion error - {e}\")\n                 print(\"\ud83d\udca1 Check that return data contains only numeric values\")\n",
+      "failure": {
+        "command": [
+          "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+          "-m",
+          "pytest",
+          "tests/test_coverage_round_2375.py::test_single_run_gif_conversion_error_is_reported",
+          "-q",
+          "-m",
+          "not slow",
+          "--tb=short",
+          "--disable-warnings"
+        ],
+        "exit_code": 1,
+        "seconds": 2.177,
+        "raw_output_sha256": "19c770458b0d21bdee1ed93fb9717c8ad5d0f1ebdf6e1b6e6f9fcd0f8fb811cb",
+        "output_excerpt": "FF                                                                       [100%]\n=================================== FAILURES ===================================\n_________ test_single_run_gif_conversion_error_is_reported[ValueError] _________\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_coverage_round_2375.py:213: in test_single_run_gif_conversion_error_is_reported\n    assert \"\u274c GIF export failed: Data conversion error - not numeric\" in capsys.readouterr().out\nE   AssertionError: assert '\u274c GIF export failed: Data conversion error - not numeric' in '[BACKEND] Using backend: numpy\\n\\n\ud83d\udd0d Running sensitivity analysis...\\n\\n\ud83d\udcca Sensitivity Analysis Results:\\n=============...a:  +0.0000%\\n\ud83d\udcc9 mu_M_-5%             | Delta:  +0.0000%\\n\\n\u2705 Sensitivity analysis completed. Evaluated 12 scenarios.\\n'\nE    +  where '[BACKEND] Using backend: numpy\\n\\n\ud83d\udd0d Running sensitivity analysis...\\n\\n\ud83d\udcca Sensitivity Analysis Results:\\n=============...a:  +0.0000%\\n\ud83d\udcc9 mu_M_-5%             | Delta:  +0.0000%\\n\\n\u2705 Sensitivity analysis completed. Evaluated 12 scenarios.\\n' = CaptureResult(out='[BACKEND] Using backend: numpy\\n\\n\ud83d\udd0d Running sensitivity analysis...\\n\\n\ud83d\udcca Sensitivity Analysis Resul...00%\\n\ud83d\udcc9 mu_M_-5%             | Delta:  +0.0000%\\n\\n\u2705 Sensitivity analysis completed. Evaluated 12 scenarios.\\n', err='').ou... [truncated]\nE    +    where CaptureResult(out='[BACKEND] Using backend: numpy\\n\\n\ud83d\udd0d Running sensitivity analysis...\\n\\n\ud83d\udcca Sensitivity Analysis Resul...00%\\n\ud83d\udcc9 mu_M_-5%             | Delta:  +0.0000%\\n\\n\u2705 Sensitivity analysis completed. Evaluated 12 scenarios.\\n', err='') = readouterr()\nE    +      where readouterr = <_pytest.capture.CaptureFixture object at 0x788d46999400>.readouterr\n_________ test_single_run_gif_conversion_error_is_reported[TypeError] __________\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_coverage_round_2375.py:213: in test_single_run_gif_conversion_error_is_reported\n    assert \"\u274c GIF export failed: Data conversion error - not numeric\" in capsys.readouterr().out\nE   AssertionError: assert '\u274c GIF export failed: Data conversion error - not numeric' in '[BACKEND] Using backend: numpy\\n\\n\ud83d\udd0d Running sensitivity analysis...\\n\\n\ud83d\udcca Sensitivity Analysis Results:\\n=============...a:  +0.0000%\\n\ud83d\udcc9 mu_M_-5%             | Delta:  +0.0000%\\n\\n\u2705 Sensitivity analysis completed. Evaluated 12 scenarios.\\n'\nE    +  where '[BACKEND] Using backend: numpy\\n\\n\ud83d\udd0d Running sensitivity analysis...\\n\\n\ud83d\udcca Sensitivity Analysis Results:\\n=============...a:  +0.0000%\\n\ud83d\udcc9 mu_M_-5%             | Delta:  +0.0000%\\n\\n\u2705 Sensitivity analysis completed. Evaluated 12 scenarios.\\n' = CaptureResult(out='[BACKEND] Using backend: numpy\\n\\n\ud83d\udd0d Running sensitivity analysis...\\n\\n\ud83d\udcca Sensitivity Analysis Resul...00%\\n\ud83d\udcc9 mu_M_-5%             | Delta:  +0.0000%\\n\\n\u2705 Sensitivity analysis completed. Evaluated 12 scenarios.\\n', err='').ou... [truncated]\nE    +    where CaptureResult(out='[BACKEND] Using backend: numpy\\n\\n\ud83d\udd0d Running sensitivity analysis...\\n\\n\ud83d\udcca Sensitivity Analysis Resul...00%\\n\ud83d\udcc9 mu_M_-5%             | Delta:  +0.0000%\\n\\n\u2705 Sensitivity analysis completed. Evaluated 12 scenarios.\\n', err='') = readouterr()\nE    +      where readouterr = <_pytest.capture.CaptureFixture object at 0x788d26afc7d0>.readouterr\n=========================== short test summary info ============================\nFAILED tests/test_coverage_round_2375.py::test_single_run_gif_conversion_error_is_reported[ValueError] - AssertionError: assert '\u274c GIF export failed: Data conversion error - not numeric' in '[BACKEND] Using backend: numpy\\n\\n\ud83d\udd0d Running sensitivity analysis...\\n\\n\ud83d\udcca Sensitivity Analysis Results:\\n=============...a:  +0.0000%\\n\ud83d\udcc9 mu_M_-5%             | Delta:  +0.0000%\\n\\n\u2705 Sensitivity analysis completed. Evaluated 12 scenarios.\\n'\n +  where '[BACKEND] Using backend: numpy\\n\\n\ud83d\udd0d Running sensitivity analysis...\\n\\n\ud83d\udcca Sensitivity Analysis Results:\\n=============...a:  +0.0000%\\n\ud83d\udcc9 mu_M_-5%             | Delta:  +0.0000%\\n\\n\u2705 Sensitivity analysis completed. Evaluated 12 scenarios.\\n' = CaptureResult(out='[BACKEND] Using backend: numpy\\n\\n\ud83d\udd0d Running sensitivity analysis...\\n\\n\ud83d\udcca Sensitivity Analysis Resul...00%\\n\ud83d\udcc9 mu_M_-5%             | Delta:  +0.0000%\\n\\n\u2705 Sensitivity analysis completed. Evaluated 12 scenarios.\\n', err='').out\n +    where CaptureResult(out='[BACKEND] Using backend: numpy\\n\\n\ud83d\udd0d Running sensitivity analysis...\\n\\n\ud83d\udcca Sensitivity Analysis Resul...00%\\n\ud83d\udcc9 mu_M_-5%             | Delta:  +0.0000%\\n\\n\u2705 Sensitivit\n... [truncated]"
+      },
+      "restored_sha256": "f3ffec1a90fe5888ca5ba357507e7542f4dc436117acea430348c87ab0b40e26",
+      "restoration": {
+        "command": [
+          "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+          "-m",
+          "pytest",
+          "tests/test_coverage_round_2375.py::test_single_run_gif_conversion_error_is_reported",
+          "-q",
+          "-m",
+          "not slow",
+          "--tb=short",
+          "--disable-warnings"
+        ],
+        "exit_code": 0,
+        "seconds": 2.127,
+        "raw_output_sha256": "4ca726f422766eccf89fc4c9945d59cda238d4b310b10f6911b601baf5f162cd",
+        "output_excerpt": "..                                                                       [100%]\n2 passed, 49 warnings in 1.04s\n"
       }
     },
     {
       "name": "attribution-old-numpy-name",
+      "path": "pa_core/cli.py",
+      "case": "tests/test_coverage_round_2375.py::test_single_run_attribution_fallback_exports_totals",
+      "expected_failure": "NameError: name 'np' is not defined",
+      "mutant_sha256": "d979ab73274b096be0f5f0f90edf7644550aba09ac8b4d3b50b058780dba567e",
+      "patch": "--- pa_core/cli.py\n+++ pa_core/cli.py\n@@ -1552,7 +1552,7 @@\n         try:\n             rows: list[dict[str, object]] = []\n             for agent, arr in returns.items():\n-                mean_month = float(_np.asarray(arr).mean())\n+                mean_month = float(np.asarray(arr).mean())\n                 ann = 12.0 * mean_month\n                 rows.append({\"Agent\": agent, \"Sub\": \"Total\", \"Return\": ann})\n             inputs_dict[\"_attribution_df\"] = pd.DataFrame(rows)\n",
+      "failure": {
+        "command": [
+          "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+          "-m",
+          "pytest",
+          "tests/test_coverage_round_2375.py::test_single_run_attribution_fallback_exports_totals",
+          "-q",
+          "-m",
+          "not slow",
+          "--tb=short",
+          "--disable-warnings"
+        ],
+        "exit_code": 1,
+        "seconds": 1.997,
+        "raw_output_sha256": "7da202a59ade624c4d7cffabe4370426762a348f1189f5873d139386fb3b6131",
+        "output_excerpt": "F                                                                        [100%]\n=================================== FAILURES ===================================\n_____________ test_single_run_attribution_fallback_exports_totals ______________\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_coverage_round_2375.py:400: in unavailable\n    raise TypeError(\"detailed attribution unavailable\")\nE   TypeError: detailed attribution unavailable\n\nDuring handling of the above exception, another exception occurred:\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_coverage_round_2375.py:405: in test_single_run_attribution_fallback_exports_totals\n    main(_single_run_argv(config, index, output))\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/pa_core/cli.py:399: in main\n    _main(argv, deps, warning_collector=warning_collector)\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/pa_core/cli.py:1555: in _main\n    mean_month = float(np.asarray(arr).mean())\n                       ^^\nE   NameError: name 'np' is not defined\n----------------------------- Captured stdout call -----------------------------\n[BACKEND] Using backend: numpy\n=========================== short test summary info ============================\nFAILED tests/test_coverage_round_2375.py::test_single_run_attribution_fallback_exports_totals - NameError: name 'np' is not defined\n1 failed, 17 warnings in 0.91s\n"
+      },
+      "restored_sha256": "f3ffec1a90fe5888ca5ba357507e7542f4dc436117acea430348c87ab0b40e26",
+      "restoration": {
+        "command": [
+          "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+          "-m",
+          "pytest",
+          "tests/test_coverage_round_2375.py::test_single_run_attribution_fallback_exports_totals",
+          "-q",
+          "-m",
+          "not slow",
+          "--tb=short",
+          "--disable-warnings"
+        ],
+        "exit_code": 0,
+        "seconds": 2.082,
+        "raw_output_sha256": "85d39738be1e92af9bb7076b56b83f49da48ad265e34c71d72165aa45824f825",
+        "output_excerpt": ".                                                                        [100%]\n1 passed, 31 warnings in 0.99s\n"
+      }
+    },
+    {
+      "name": "attribution-fallback-dedicated-regression",
       "path": "pa_core/cli.py",
       "case": "tests/test_cli_attribution_fallback.py::test_attribution_fallback_exports_annualised_totals",
       "expected_failure": "NameError: name 'np' is not defined",
@@ -461,9 +634,9 @@
           "--disable-warnings"
         ],
         "exit_code": 1,
-        "seconds": 4.924,
-        "raw_output_sha256": "2aae913cfe4acc6bda698ce526d4d754d6128aab42b7eebef88ee41ad7d181d6",
-        "output_excerpt": "F                                                                        [100%]\n=================================== FAILURES ===================================\n_____________ test_attribution_fallback_exports_annualised_totals ______________\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_cli_attribution_fallback.py:28: in unavailable\n    raise TypeError(\"detailed attribution unavailable\")\nE   TypeError: detailed attribution unavailable\n\nDuring handling of the above exception, another exception occurred:\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_cli_attribution_fallback.py:46: in test_attribution_fallback_exports_annualised_totals\n    main(\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/pa_core/cli.py:399: in main\n    _main(argv, deps, warning_collector=warning_collector)\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/pa_core/cli.py:1555: in _main\n    mean_month = float(np.asarray(arr).mean())\n                       ^^\nE   NameError: name 'np' is not defined\n=========================== short test summary info ============================\nFAILED tests/test_cli_attribution_fallback.py::test_attribution_fallback_exports_annualised_totals - NameError: name 'np' is not defined\n1 failed, 17 warnings in 2.44s\n"
+        "seconds": 1.905,
+        "raw_output_sha256": "fd7577b141b7f33df9e5b0c85a3ba76813f3800c9966bdc5d7ddf26d9561fe59",
+        "output_excerpt": "F                                                                        [100%]\n=================================== FAILURES ===================================\n_____________ test_attribution_fallback_exports_annualised_totals ______________\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_cli_attribution_fallback.py:28: in unavailable\n    raise TypeError(\"detailed attribution unavailable\")\nE   TypeError: detailed attribution unavailable\n\nDuring handling of the above exception, another exception occurred:\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_cli_attribution_fallback.py:46: in test_attribution_fallback_exports_annualised_totals\n    main(\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/pa_core/cli.py:399: in main\n    _main(argv, deps, warning_collector=warning_collector)\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/pa_core/cli.py:1555: in _main\n    mean_month = float(np.asarray(arr).mean())\n                       ^^\nE   NameError: name 'np' is not defined\n----------------------------- Captured stdout call -----------------------------\n[BACKEND] Using backend: numpy\n=========================== short test summary info ============================\nFAILED tests/test_cli_attribution_fallback.py::test_attribution_fallback_exports_annualised_totals - NameError: name 'np' is not defined\n1 failed, 17 warnings in 0.89s\n"
       },
       "restored_sha256": "f3ffec1a90fe5888ca5ba357507e7542f4dc436117acea430348c87ab0b40e26",
       "restoration": {
@@ -479,13 +652,572 @@
           "--disable-warnings"
         ],
         "exit_code": 0,
-        "seconds": 4.996,
-        "raw_output_sha256": "860341ff0eecf27e01da974596aa76abfdaee07ec47943caba8bb6744906394b",
-        "output_excerpt": ".                                                                        [100%]\n1 passed, 31 warnings in 2.52s\n"
+        "seconds": 2.08,
+        "raw_output_sha256": "cd169acc16cc093e0ec9e5c54c1bfc381f63855c7a7c43af16d6828fc4ac07fc",
+        "output_excerpt": ".                                                                        [100%]\n1 passed, 31 warnings in 0.98s\n"
+      }
+    },
+    {
+      "name": "compare-runs-helpers-unusable-artifacts",
+      "path": "pa_core/llm/compare_runs.py",
+      "case": "tests/test_coverage_round_2375.py::test_compare_run_helpers_reject_unusable_artifacts",
+      "expected_failure": "FAILED tests/test_coverage_round_2375.py::test_compare_run_helpers_reject_unusable_artifacts",
+      "mutant_sha256": "e1180f225f2b7f0fc6e502870d56f20cefbe6867b4785f3458f37a7e032357fb",
+      "patch": "--- pa_core/llm/compare_runs.py\n+++ pa_core/llm/compare_runs.py\n@@ -99,7 +99,7 @@\n         return None, prev_manifest_path\n \n     loaded = json.loads(prev_manifest_path.read_text())\n-    if not isinstance(loaded, dict):\n+    if False:\n         return None, prev_manifest_path\n     return loaded, prev_manifest_path\n \n",
+      "failure": {
+        "command": [
+          "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+          "-m",
+          "pytest",
+          "tests/test_coverage_round_2375.py::test_compare_run_helpers_reject_unusable_artifacts",
+          "-q",
+          "-m",
+          "not slow",
+          "--tb=short",
+          "--disable-warnings"
+        ],
+        "exit_code": 1,
+        "seconds": 1.763,
+        "raw_output_sha256": "32f4ff592b924a589a59d5828a9ee008df2c1a4e1b33c4ea2119272aac739204",
+        "output_excerpt": "F                                                                        [100%]\n=================================== FAILURES ===================================\n______________ test_compare_run_helpers_reject_unusable_artifacts ______________\ntests/test_coverage_round_2375.py:37: in test_compare_run_helpers_reject_unusable_artifacts\n    assert load_prior_manifest({\"previous_run\": str(non_mapping_path)}) == (\nE   AssertionError: assert (['not', 'a',...nifest.json')) == (None, PosixP...nifest.json'))\nE     \nE     At index 0 diff: ['not', 'a', 'mapping'] != None\nE     \nE     Full diff: (-: missing in left side, +: extra in left side)\nE       (\nE     -     None,\nE     +     [\nE     +         'not',\nE     +         'a',\nE     +         'mapping',\nE     +     ],\nE           PosixPath('/tmp/pytest-of-runner/pytest-56/test_compare_run_helpers_rejec0/not-a-manifest.json'),\nE       )\n=========================== short test summary info ============================\nFAILED tests/test_coverage_round_2375.py::test_compare_run_helpers_reject_unusable_artifacts - AssertionError: assert (['not', 'a',...nifest.json')) == (None, PosixP...nifest.json'))\n  \n  At index 0 diff: ['not', 'a', 'mapping'] != None\n  \n  Full diff: (-: missing in left side, +: extra in left side)\n    (\n  -     None,\n  +     [\n  +         'not',\n  +         'a',\n  +         'mapping',\n  +     ],\n        PosixPath('/tmp/pytest-of-runner/pytest-56/test_compare_run_helpers_rejec0/not-a-manifest.json'),\n    )\n1 failed, 13 warnings in 0.78s\n"
+      },
+      "restored_sha256": "b0da9e9b3972cc107f726799ded5b5efa478aceb13408408b6e31f48c8e5fc4e",
+      "restoration": {
+        "command": [
+          "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+          "-m",
+          "pytest",
+          "tests/test_coverage_round_2375.py::test_compare_run_helpers_reject_unusable_artifacts",
+          "-q",
+          "-m",
+          "not slow",
+          "--tb=short",
+          "--disable-warnings"
+        ],
+        "exit_code": 0,
+        "seconds": 1.894,
+        "raw_output_sha256": "b6b5e01f7b422214aaadd72ab629a4191de347fa5eb0500d73691fed5299981f",
+        "output_excerpt": ".                                                                        [100%]\n1 passed, 13 warnings in 0.72s\n"
+      }
+    },
+    {
+      "name": "compare-runs-missing-prior-summary",
+      "path": "pa_core/llm/compare_runs.py",
+      "case": "tests/test_coverage_round_2375.py::test_compare_runs_explains_missing_prior_summary",
+      "expected_failure": "FAILED tests/test_coverage_round_2375.py::test_compare_runs_explains_missing_prior_summary",
+      "mutant_sha256": "19f91bf1990be816852677b934a41f15735047d638c1f5d73e2001a8b2158781",
+      "patch": "--- pa_core/llm/compare_runs.py\n+++ pa_core/llm/compare_runs.py\n@@ -399,7 +399,7 @@\n     )\n     if prior_summary is None:\n         expected = str(prior_summary_path) if prior_summary_path else \"<unset>\"\n-        raise ValueError(f\"No readable prior summary found at expected path: {expected}\")\n+        raise ValueError(\"Summary omitted\")\n \n     config_diff = format_config_diff(current_manifest, prior_manifest)\n     metrics_a = build_metric_catalog(current_summary)\n",
+      "failure": {
+        "command": [
+          "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+          "-m",
+          "pytest",
+          "tests/test_coverage_round_2375.py::test_compare_runs_explains_missing_prior_summary",
+          "-q",
+          "-m",
+          "not slow",
+          "--tb=short",
+          "--disable-warnings"
+        ],
+        "exit_code": 1,
+        "seconds": 1.777,
+        "raw_output_sha256": "7815cdd791421b17eb3352db5e95997f4daeccbcf2dbf2cf5fced070b612e4c7",
+        "output_excerpt": "F                                                                        [100%]\n=================================== FAILURES ===================================\n_______________ test_compare_runs_explains_missing_prior_summary _______________\ntests/test_coverage_round_2375.py:50: in test_compare_runs_explains_missing_prior_summary\n    with pytest.raises(ValueError, match=\"No readable prior summary found\"):\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE   AssertionError: Regex pattern did not match.\nE     Expected regex: 'No readable prior summary found'\nE     Actual message: 'Summary omitted'\n=========================== short test summary info ============================\nFAILED tests/test_coverage_round_2375.py::test_compare_runs_explains_missing_prior_summary - AssertionError: Regex pattern did not match.\n  Expected regex: 'No readable prior summary found'\n  Actual message: 'Summary omitted'\n1 failed, 13 warnings in 0.78s\n"
+      },
+      "restored_sha256": "b0da9e9b3972cc107f726799ded5b5efa478aceb13408408b6e31f48c8e5fc4e",
+      "restoration": {
+        "command": [
+          "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+          "-m",
+          "pytest",
+          "tests/test_coverage_round_2375.py::test_compare_runs_explains_missing_prior_summary",
+          "-q",
+          "-m",
+          "not slow",
+          "--tb=short",
+          "--disable-warnings"
+        ],
+        "exit_code": 0,
+        "seconds": 1.687,
+        "raw_output_sha256": "3da3bb3011758e93be3636ff50299617a8fa868f73c7e7bf863ad7791ec55015",
+        "output_excerpt": ".                                                                        [100%]\n1 passed, 13 warnings in 0.69s\n"
+      }
+    },
+    {
+      "name": "compare-runs-missing-prior-manifest",
+      "path": "pa_core/llm/compare_runs.py",
+      "case": "tests/test_coverage_round_2375.py::test_compare_runs_rejects_missing_prior_manifest",
+      "expected_failure": "FAILED tests/test_coverage_round_2375.py::test_compare_runs_rejects_missing_prior_manifest",
+      "mutant_sha256": "6f0a4828ee380e76d72a81eb6a7a88539e6084d71bd633a23081b0536198c657",
+      "patch": "--- pa_core/llm/compare_runs.py\n+++ pa_core/llm/compare_runs.py\n@@ -392,7 +392,7 @@\n     questions = questions.strip() or DEFAULT_COMPARISON_QUESTIONS\n     prior_manifest, prior_manifest_path = load_prior_manifest(current_manifest)\n     if prior_manifest is None:\n-        raise ValueError(\"No readable prior manifest found from manifest_data['previous_run'].\")\n+        raise ValueError(\"Manifest omitted\")\n \n     prior_summary, prior_summary_path = load_prior_summary(\n         prior_manifest, manifest_path=prior_manifest_path\n",
+      "failure": {
+        "command": [
+          "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+          "-m",
+          "pytest",
+          "tests/test_coverage_round_2375.py::test_compare_runs_rejects_missing_prior_manifest",
+          "-q",
+          "-m",
+          "not slow",
+          "--tb=short",
+          "--disable-warnings"
+        ],
+        "exit_code": 1,
+        "seconds": 1.736,
+        "raw_output_sha256": "0664c7e70b745d9b25aef5d6faa0ea22bd3611912ad69ab0ea6cd4c3552b7446",
+        "output_excerpt": "F                                                                        [100%]\n=================================== FAILURES ===================================\n_______________ test_compare_runs_rejects_missing_prior_manifest _______________\ntests/test_coverage_round_2375.py:60: in test_compare_runs_rejects_missing_prior_manifest\n    with pytest.raises(ValueError, match=\"No readable prior manifest\"):\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE   AssertionError: Regex pattern did not match.\nE     Expected regex: 'No readable prior manifest'\nE     Actual message: 'Manifest omitted'\n=========================== short test summary info ============================\nFAILED tests/test_coverage_round_2375.py::test_compare_runs_rejects_missing_prior_manifest - AssertionError: Regex pattern did not match.\n  Expected regex: 'No readable prior manifest'\n  Actual message: 'Manifest omitted'\n1 failed, 13 warnings in 0.78s\n"
+      },
+      "restored_sha256": "b0da9e9b3972cc107f726799ded5b5efa478aceb13408408b6e31f48c8e5fc4e",
+      "restoration": {
+        "command": [
+          "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+          "-m",
+          "pytest",
+          "tests/test_coverage_round_2375.py::test_compare_runs_rejects_missing_prior_manifest",
+          "-q",
+          "-m",
+          "not slow",
+          "--tb=short",
+          "--disable-warnings"
+        ],
+        "exit_code": 0,
+        "seconds": 1.641,
+        "raw_output_sha256": "3da3bb3011758e93be3636ff50299617a8fa868f73c7e7bf863ad7791ec55015",
+        "output_excerpt": ".                                                                        [100%]\n1 passed, 13 warnings in 0.69s\n"
+      }
+    },
+    {
+      "name": "compare-runs-fleet-event-failure-propagates",
+      "path": "pa_core/llm/compare_runs.py",
+      "case": "tests/test_coverage_round_2375.py::test_compare_runs_survives_fleet_event_failure",
+      "expected_failure": "RuntimeError: telemetry unavailable",
+      "mutant_sha256": "48052829212b0d20a329e605d5de5306c4d9b5ebee92fb9fd9d239440e5a4f28",
+      "patch": "--- pa_core/llm/compare_runs.py\n+++ pa_core/llm/compare_runs.py\n@@ -502,7 +502,7 @@\n             )\n         )\n     except Exception:\n-        logger.warning(\"Failed to record run-comparison fleet event\", exc_info=True)\n+        raise\n     return text, trace_url, payload\n \n \n",
+      "failure": {
+        "command": [
+          "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+          "-m",
+          "pytest",
+          "tests/test_coverage_round_2375.py::test_compare_runs_survives_fleet_event_failure",
+          "-q",
+          "-m",
+          "not slow",
+          "--tb=short",
+          "--disable-warnings"
+        ],
+        "exit_code": 1,
+        "seconds": 1.746,
+        "raw_output_sha256": "59b400803c2a39ae830f567ea4f096b3df41021138673c52be3d65663b9ef066",
+        "output_excerpt": "F                                                                        [100%]\n=================================== FAILURES ===================================\n________________ test_compare_runs_survives_fleet_event_failure ________________\ntests/test_coverage_round_2375.py:88: in test_compare_runs_survives_fleet_event_failure\n    text, _, payload = compare_runs(\npa_core/llm/compare_runs.py:476: in compare_runs\n    record_fleet_event(\ntests/test_coverage_round_2375.py:85: in <lambda>\n    lambda _event: (_ for _ in ()).throw(RuntimeError(\"telemetry unavailable\")),\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntests/test_coverage_round_2375.py:85: in <genexpr>\n    lambda _event: (_ for _ in ()).throw(RuntimeError(\"telemetry unavailable\")),\nE   RuntimeError: telemetry unavailable\n=========================== short test summary info ============================\nFAILED tests/test_coverage_round_2375.py::test_compare_runs_survives_fleet_event_failure - RuntimeError: telemetry unavailable\n1 failed, 13 warnings in 0.78s\n"
+      },
+      "restored_sha256": "b0da9e9b3972cc107f726799ded5b5efa478aceb13408408b6e31f48c8e5fc4e",
+      "restoration": {
+        "command": [
+          "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+          "-m",
+          "pytest",
+          "tests/test_coverage_round_2375.py::test_compare_runs_survives_fleet_event_failure",
+          "-q",
+          "-m",
+          "not slow",
+          "--tb=short",
+          "--disable-warnings"
+        ],
+        "exit_code": 0,
+        "seconds": 1.709,
+        "raw_output_sha256": "b6b5e01f7b422214aaadd72ab629a4191de347fa5eb0500d73691fed5299981f",
+        "output_excerpt": ".                                                                        [100%]\n1 passed, 13 warnings in 0.72s\n"
+      }
+    },
+    {
+      "name": "compare-runs-metric-catalog-validation",
+      "path": "pa_core/llm/compare_runs.py",
+      "case": "tests/test_coverage_round_2375.py::test_metric_catalog_rejects_non_dataframe_and_empty_delta",
+      "expected_failure": "FAILED tests/test_coverage_round_2375.py::test_metric_catalog_rejects_non_dataframe_and_empty_delta",
+      "mutant_sha256": "3bb927def7a273fcf8b8a039e765a75bdf6aa9cc39a467d0cb672ff32a332d16",
+      "patch": "--- pa_core/llm/compare_runs.py\n+++ pa_core/llm/compare_runs.py\n@@ -291,7 +291,7 @@\n def build_metric_catalog(summary_df: pd.DataFrame) -> dict[str, float]:\n     \"\"\"Extract compact metrics used by compare/explain output.\"\"\"\n \n-    if not isinstance(summary_df, pd.DataFrame):\n+    if False:\n         raise TypeError(\"summary_df must be a pandas DataFrame\")\n \n     metrics: dict[str, float] = {}\n",
+      "failure": {
+        "command": [
+          "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+          "-m",
+          "pytest",
+          "tests/test_coverage_round_2375.py::test_metric_catalog_rejects_non_dataframe_and_empty_delta",
+          "-q",
+          "-m",
+          "not slow",
+          "--tb=short",
+          "--disable-warnings"
+        ],
+        "exit_code": 1,
+        "seconds": 1.734,
+        "raw_output_sha256": "848fb3880e3cbe9aa291e12d8d85b56aa9c430aa0b96654b28901401700b16f4",
+        "output_excerpt": "F                                                                        [100%]\n=================================== FAILURES ===================================\n__________ test_metric_catalog_rejects_non_dataframe_and_empty_delta ___________\ntests/test_coverage_round_2375.py:101: in test_metric_catalog_rejects_non_dataframe_and_empty_delta\n    build_metric_catalog(\"not-a-dataframe\")\npa_core/llm/compare_runs.py:305: in build_metric_catalog\n    if column in summary_df.columns and pd.api.types.is_numeric_dtype(summary_df[column]):\n                 ^^^^^^^^^^^^^^^^^^\nE   AttributeError: 'str' object has no attribute 'columns'\n=========================== short test summary info ============================\nFAILED tests/test_coverage_round_2375.py::test_metric_catalog_rejects_non_dataframe_and_empty_delta - AttributeError: 'str' object has no attribute 'columns'\n1 failed, 13 warnings in 0.76s\n"
+      },
+      "restored_sha256": "b0da9e9b3972cc107f726799ded5b5efa478aceb13408408b6e31f48c8e5fc4e",
+      "restoration": {
+        "command": [
+          "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+          "-m",
+          "pytest",
+          "tests/test_coverage_round_2375.py::test_metric_catalog_rejects_non_dataframe_and_empty_delta",
+          "-q",
+          "-m",
+          "not slow",
+          "--tb=short",
+          "--disable-warnings"
+        ],
+        "exit_code": 0,
+        "seconds": 1.704,
+        "raw_output_sha256": "b6b5e01f7b422214aaadd72ab629a4191de347fa5eb0500d73691fed5299981f",
+        "output_excerpt": ".                                                                        [100%]\n1 passed, 13 warnings in 0.72s\n"
+      }
+    },
+    {
+      "name": "cli-packet-failure-classification",
+      "path": "pa_core/cli.py",
+      "case": "tests/test_coverage_round_2375.py::test_single_run_packet_failure_reports_the_failure_class",
+      "expected_failure": "FAILED tests/test_coverage_round_2375.py::test_single_run_packet_failure_reports_the_failure_class",
+      "mutant_sha256": "61e190ce07f3f637da94ab26eb428ac4725713b80c90438a8094c64441be6251",
+      "patch": "--- pa_core/cli.py\n+++ pa_core/cli.py\n@@ -2016,13 +2016,10 @@\n                 print(\"\u2705 Export packet created:\")\n                 print(f\"   \ud83d\udcca Excel: {excel_path}\")\n                 print(f\"   \ud83d\udccb PowerPoint: {pptx_path}\")\n-            except RuntimeError as e:\n-                print(f\"\u274c Export packet failed: {e}\")\n+            except (RuntimeError, ImportError, ModuleNotFoundError, ValueError, OSError) as e:\n+                print(\"packet error suppressed\")\n                 _emit_run_end()\n                 return\n-            except (ImportError, ModuleNotFoundError) as e:\n-                logger.error(f\"Export packet failed due to missing dependency: {e}\")\n-                print(f\"\u274c Export packet failed due to missing dependency: {e}\")\n                 print(\n                     \"\ud83d\udca1 Install required packages: pip install plotly kaleido openpyxl python-pptx\"\n                 )\n",
+      "failure": {
+        "command": [
+          "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+          "-m",
+          "pytest",
+          "tests/test_coverage_round_2375.py::test_single_run_packet_failure_reports_the_failure_class",
+          "-q",
+          "-m",
+          "not slow",
+          "--tb=short",
+          "--disable-warnings"
+        ],
+        "exit_code": 1,
+        "seconds": 2.429,
+        "raw_output_sha256": "6c727d3a47d07be8de30f079e4d1ef59d367c62fd75bafb9e0b4302a30c96b95",
+        "output_excerpt": "FFFF                                                                     [100%]\n=================================== FAILURES ===================================\n_ test_single_run_packet_failure_reports_the_failure_class[RuntimeError-Export packet failed: packet unavailable] _\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_coverage_round_2375.py:187: in test_single_run_packet_failure_reports_the_failure_class\n    assert f\"\u274c {expected}\" in capsys.readouterr().out\nE   AssertionError: assert '\u274c Export packet failed: packet unavailable' in '[BACKEND] Using backend: numpy\\n\\n\ud83d\udd0d Running sensitivity analysis...\\n\\n\ud83d\udcca Sensitivity Analysis Results:\\n=============...            | Delta:  +0.0000%\\n\\n\u2705 Sensitivity analysis completed. Evaluated 12 scenarios.\\npacket error suppressed\\n'\nE    +  where '[BACKEND] Using backend: numpy\\n\\n\ud83d\udd0d Running sensitivity analysis...\\n\\n\ud83d\udcca Sensitivity Analysis Results:\\n=============...            | Delta:  +0.0000%\\n\\n\u2705 Sensitivity analysis completed. Evaluated 12 scenarios.\\npacket error suppressed\\n' = CaptureResult(out='[BACKEND] Using backend: numpy\\n\\n\ud83d\udd0d Running sensitivity analysis...\\n\\n\ud83d\udcca Sensitivity Analysis Resul...   | Delta:  +0.0000%\\n\\n\u2705 Sensitivity analysis completed. Evaluated 12 scenarios.\\npacket error suppressed\\n', err='').ou... [truncated]\nE    +    where CaptureResult(out='[BACKEND] Using backend: numpy\\n\\n\ud83d\udd0d Running sensitivity analysis...\\n\\n\ud83d\udcca Sensitivity Analysis Resul...   | Delta:  +0.0000%\\n\\n\u2705 Sensitivity analysis completed. Evaluated 12 scenarios.\\npacket error suppressed\\n', err='') = readouterr()\nE    +      where readouterr = <_pytest.capture.CaptureFixture object at 0x7a2ac9111400>.readouterr\n_ test_single_run_packet_failure_reports_the_failure_class[ImportError-Export packet failed due to missing dependency: packet unavailable] _\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_coverage_round_2375.py:187: in test_single_run_packet_failure_reports_the_failure_class\n    assert f\"\u274c {expected}\" in capsys.readouterr().out\nE   AssertionError: assert '\u274c Export packet failed due to missing dependency: packet unavailable' in '[BACKEND] Using backend: numpy\\n\\n\ud83d\udd0d Running sensitivity analysis...\\n\\n\ud83d\udcca Sensitivity Analysis Results:\\n=============...            | Delta:  +0.0000%\\n\\n\u2705 Sensitivity analysis completed. Evaluated 12 scenarios.\\npacket error suppressed\\n'\nE    +  where '[BACKEND] Using backend: numpy\\n\\n\ud83d\udd0d Running sensitivity analysis...\\n\\n\ud83d\udcca Sensitivity Analysis Results:\\n=============...            | Delta:  +0.0000%\\n\\n\u2705 Sensitivity analysis completed. Evaluated 12 scenarios.\\npacket error suppressed\\n' = CaptureResult(out='[BACKEND] Using backend: numpy\\n\\n\ud83d\udd0d Running sensitivity analysis...\\n\\n\ud83d\udcca Sensitivity Analysis Resul...   | Delta:  +0.0000%\\n\\n\u2705 Sensitivity analysis completed. Evaluated 12 scenarios.\\npacket error suppressed\\n', err='').ou... [truncated]\nE    +    where CaptureResult(out='[BACKEND] Using backend: numpy\\n\\n\ud83d\udd0d Running sensitivity analysis...\\n\\n\ud83d\udcca Sensitivity Analysis Resul...   | Delta:  +0.0000%\\n\\n\u2705 Sensitivity analysis completed. Evaluated 12 scenarios.\\npacket error suppressed\\n', err='') = readouterr()\nE    +      where readouterr = <_pytest.capture.CaptureFixture object at 0x7a2aa94e0a50>.readouterr\n_ test_single_run_packet_failure_reports_the_failure_class[ValueError-Export packet failed due to data or configuration issue: packet unavailable] _\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_coverage_round_2375.py:187: in test_single_run_packet_failure_reports_the_failure_class\n    assert f\"\u274c {expected}\" in capsys.readouterr().out\nE   AssertionError: assert '\u274c Export packet failed due to data or configuration issue: packet unavailable' in '[BACKEND] Using backend: numpy\\n\\n\ud83d\udd0d Running sensitivity analysis...\\n\\n\ud83d\udcca Sensitivity Analysis Results:\\n=============...            | Delta:  +0.0000%\\n\\n\u2705 Sensitivity analysis completed. Evaluated 12 scenarios.\\npacket error suppressed\\n'\nE    +  where '[BACKEND] Using backend: numpy\\n\\n\ud83d\udd0d Running sensitivity analysis...\\n\\n\ud83d\udcca Sensitivity Analysis Results:\\n=============...            | Delta:  +0.0000%\\n\\n\u2705 Sensitivity analysis completed. Evaluated 12 scenarios.\\npacket error suppressed\\n' = CaptureResult(out='[BACKEND] Using backend: numpy\\n\\n\ud83d\udd0d Running sensitivity analysis...\\n\\n\ud83d\udcca Sensitivity Analysis Resul...   | Delta:  +0.0000%\\n\\n\u2705 Sensitivity analysis completed. Evaluated 12\n... [truncated]"
+      },
+      "restored_sha256": "f3ffec1a90fe5888ca5ba357507e7542f4dc436117acea430348c87ab0b40e26",
+      "restoration": {
+        "command": [
+          "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+          "-m",
+          "pytest",
+          "tests/test_coverage_round_2375.py::test_single_run_packet_failure_reports_the_failure_class",
+          "-q",
+          "-m",
+          "not slow",
+          "--tb=short",
+          "--disable-warnings"
+        ],
+        "exit_code": 0,
+        "seconds": 2.332,
+        "raw_output_sha256": "6ed577f3f4192bed0175b01806fec589d536de5713099a634c1d7f0056f21fcf",
+        "output_excerpt": "....                                                                     [100%]\n4 passed, 85 warnings in 1.27s\n"
+      }
+    },
+    {
+      "name": "cli-dashboard-missing-file-check",
+      "path": "pa_core/cli.py",
+      "case": "tests/test_coverage_round_2375.py::test_single_run_dashboard_missing_file_is_reported",
+      "expected_failure": "FAILED tests/test_coverage_round_2375.py::test_single_run_dashboard_missing_file_is_reported",
+      "mutant_sha256": "4469e153be623ab0324b0d554e2755f50bebad1073660fb47a2a64eaace3d8b6",
+      "patch": "--- pa_core/cli.py\n+++ pa_core/cli.py\n@@ -2169,7 +2169,7 @@\n             # Use the same Python interpreter with -m streamlit to ensure venv\n             try:\n                 dashboard_path = Path(\"dashboard/app.py\")\n-                if not dashboard_path.exists():\n+                if False:\n                     raise FileNotFoundError(f\"Dashboard file not found: {dashboard_path}\")\n \n                 subprocess.run(\n",
+      "failure": {
+        "command": [
+          "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+          "-m",
+          "pytest",
+          "tests/test_coverage_round_2375.py::test_single_run_dashboard_missing_file_is_reported",
+          "-q",
+          "-m",
+          "not slow",
+          "--tb=short",
+          "--disable-warnings"
+        ],
+        "exit_code": 1,
+        "seconds": 2.368,
+        "raw_output_sha256": "3b29e0f08a458d784b6a58c4acff7523fff72f02f5e74f50b5edbd4793128ea3",
+        "output_excerpt": "F                                                                        [100%]\n=================================== FAILURES ===================================\n______________ test_single_run_dashboard_missing_file_is_reported ______________\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_coverage_round_2375.py:230: in test_single_run_dashboard_missing_file_is_reported\n    assert \"\u274c Dashboard launch failed: Dashboard file not found\" in capsys.readouterr().out\nE   assert '\u274c Dashboard launch failed: Dashboard file not found' in \"[BACKEND] Using backend: numpy\\n\\n\ud83d\udd0d Running sensitivity analysis...\\n\\n\ud83d\udcca Sensitivity Analysis Results:\\n=============...t\\n   \u2022 Check if 'dashboard/app.py' is valid Python code\\n   \u2022 Verify your Python environment is properly configured\\n\"\nE    +  where \"[BACKEND] Using backend: numpy\\n\\n\ud83d\udd0d Running sensitivity analysis...\\n\\n\ud83d\udcca Sensitivity Analysis Results:\\n=============...t\\n   \u2022 Check if 'dashboard/app.py' is valid Python code\\n   \u2022 Verify your Python environment is properly configured\\n\" = CaptureResult(out=\"[BACKEND] Using backend: numpy\\n\\n\ud83d\udd0d Running sensitivity analysis...\\n\\n\ud83d\udcca Sensitivity Analysis Resul...heck if 'dashboard/app.py' is valid Python code\\n   \u2022 Verify your Python environment is properly configured\\n\", err='').ou... [truncated]\nE    +    where CaptureResult(out=\"[BACKEND] Using backend: numpy\\n\\n\ud83d\udd0d Running sensitivity analysis...\\n\\n\ud83d\udcca Sensitivity Analysis Resul...heck if 'dashboard/app.py' is valid Python code\\n   \u2022 Verify your Python environment is properly configured\\n\", err='') = readouterr()\nE    +      where readouterr = <_pytest.capture.CaptureFixture object at 0x7daec7124830>.readouterr\n----------------------------- Captured stderr call -----------------------------\nUsage: streamlit run [OPTIONS] [TARGET] [ARGS]...\nTry 'streamlit run --help' for help.\n\nError: Invalid value: File does not exist: dashboard/app.py\n=========================== short test summary info ============================\nFAILED tests/test_coverage_round_2375.py::test_single_run_dashboard_missing_file_is_reported - assert '\u274c Dashboard launch failed: Dashboard file not found' in \"[BACKEND] Using backend: numpy\\n\\n\ud83d\udd0d Running sensitivity analysis...\\n\\n\ud83d\udcca Sensitivity Analysis Results:\\n=============...t\\n   \u2022 Check if 'dashboard/app.py' is valid Python code\\n   \u2022 Verify your Python environment is properly configured\\n\"\n +  where \"[BACKEND] Using backend: numpy\\n\\n\ud83d\udd0d Running sensitivity analysis...\\n\\n\ud83d\udcca Sensitivity Analysis Results:\\n=============...t\\n   \u2022 Check if 'dashboard/app.py' is valid Python code\\n   \u2022 Verify your Python environment is properly configured\\n\" = CaptureResult(out=\"[BACKEND] Using backend: numpy\\n\\n\ud83d\udd0d Running sensitivity analysis...\\n\\n\ud83d\udcca Sensitivity Analysis Resul...heck if 'dashboard/app.py' is valid Python code\\n   \u2022 Verify your Python environment is properly configured\\n\", err='').out\n +    where CaptureResult(out=\"[BACKEND] Using backend: numpy\\n\\n\ud83d\udd0d Running sensitivity analysis...\\n\\n\ud83d\udcca Sensitivity Analysis Resul...heck if 'dashboard/app.py' is valid Python code\\n   \u2022 Verify your Python environment is properly configured\\n\", err='') = readouterr()\n +      where readouterr = <_pytest.capture.CaptureFixture object at 0x7daec7124830>.readouterr\n1 failed, 31 warnings in 1.34s\n"
+      },
+      "restored_sha256": "f3ffec1a90fe5888ca5ba357507e7542f4dc436117acea430348c87ab0b40e26",
+      "restoration": {
+        "command": [
+          "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+          "-m",
+          "pytest",
+          "tests/test_coverage_round_2375.py::test_single_run_dashboard_missing_file_is_reported",
+          "-q",
+          "-m",
+          "not slow",
+          "--tb=short",
+          "--disable-warnings"
+        ],
+        "exit_code": 0,
+        "seconds": 1.958,
+        "raw_output_sha256": "bff25aac6f9cce7dff9f6868a308d413c09018c86208df8e3ac5faec735a590e",
+        "output_excerpt": ".                                                                        [100%]\n1 passed, 31 warnings in 0.93s\n"
+      }
+    },
+    {
+      "name": "cli-rejects-daily-index",
+      "path": "pa_core/cli.py",
+      "case": "tests/test_coverage_round_2375.py::test_single_run_rejects_daily_index_before_simulation",
+      "expected_failure": "FAILED tests/test_coverage_round_2375.py::test_single_run_rejects_daily_index_before_simulation",
+      "mutant_sha256": "9eb07f49160f35e4678c8163c5382816da7de4bc137e6bd2a433230ea6af523d",
+      "patch": "--- pa_core/cli.py\n+++ pa_core/cli.py\n@@ -1169,8 +1169,8 @@\n     freq_strict = not bool(args.index_frequency)\n     try:\n         validate_frequency(idx_series, expected=\"monthly\", strict=freq_strict)\n-    except FrequencyValidationError as e:\n-        raise SystemExit(f\"Error: {e}\") from None\n+    except FrequencyValidationError:\n+        pass\n \n     from .units import get_index_series_unit, normalize_index_series\n \n",
+      "failure": {
+        "command": [
+          "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+          "-m",
+          "pytest",
+          "tests/test_coverage_round_2375.py::test_single_run_rejects_daily_index_before_simulation",
+          "-q",
+          "-m",
+          "not slow",
+          "--tb=short",
+          "--disable-warnings"
+        ],
+        "exit_code": 1,
+        "seconds": 2.126,
+        "raw_output_sha256": "92a8c5301a89eb71bc1be3243422422ca7d326243871af63494aff917386148b",
+        "output_excerpt": "F                                                                        [100%]\n=================================== FAILURES ===================================\n____________ test_single_run_rejects_daily_index_before_simulation _____________\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_coverage_round_2375.py:304: in test_single_run_rejects_daily_index_before_simulation\n    with pytest.raises(SystemExit, match=\"Expected monthly data, got daily\"):\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE   Failed: DID NOT RAISE SystemExit\n----------------------------- Captured stdout call -----------------------------\n[BACKEND] Using backend: numpy\n\u256d\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 Understanding Your Results \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u256e\n\u2502 Portfolio Analysis Results                                                   \u2502\n\u2502 Metrics Explanation:                                                         \u2502\n\u2502 \u2022 terminal_AnnReturn: annualised return (%)                                  \u2502\n\u2502 \u2022 monthly_AnnVol: annualised volatility (%)                                  \u2502\n\u2502 \u2022 monthly_VaR: Value at Risk (95% confidence)                                \u2502\n\u2502 \u2022 monthly_BreachProb: Share of simulated months below the monthly breach     \u2502\n\u2502 threshold                                                                    \u2502\n\u2502 \u2022 terminal_ShortfallProb: Probability terminal compounded return is below    \u2502\n\u2502 the annual threshold                                                         \u2502\n\u2502 \u2022 monthly_MaxDD: Worst peak-to-trough decline of compounded wealth           \u2502\n\u2502 \u2022 monthly_TimeUnderWater: Fraction of periods with compounded return below   \u2502\n\u2502 zero                                                                         \u2502\n\u2502 \u2022 monthly_TE: annualised active return volatility vs benchmark               \u2502\n\u2502                                                                              \u2502\n\u2570\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u256f\n\u250f\u2501\u2501\u2533\u2501\u2501\u2533\u2501\u2501\u2533\u2501\u2501\u2533\u2501\u2501\u2533\u2501\u2501\u2533\u2501\u2501\u2533\u2501\u2501\u2533\u2501\u2501\u2533\u2501\u2501\u2533\u2501\u2501\u2533\u2501\u2501\u2501\u2533\u2501\u2501\u2533\u2501\u2501\u2501\u2533\u2501\u2501\u2533\u2501\u2501\u2501\u2533\u2501\u2501\u2533\u2501\u2501\u2501\u2533\u2501\u2501\u2533\u2501\u2501\u2501\u2533\u2501\u2501\u2533\u2501\u2501\u2501\u2533\u2501\u2501\u2533\u2501\u2501\u2501\u2513\n\u2503  \u2503  \u2503  \u2503  \u2503  \u2503  \u2503  \u2503  \u2503  \u2503  \u2503  \u2503 \u2026 \u2503  \u2503 \u2026 \u2503  \u2503 \u2026 \u2503  \u2503 \u2026 \u2503  \u2503 \u2026 \u2503  \u2503 \u2026 \u2503  \u2503 \u2026 \u2503\n\u2521\u2501\u2501\u2547\u2501\u2501\u2547\u2501\u2501\u2547\u2501\u2501\u2547\u2501\u2501\u2547\u2501\u2501\u2547\u2501\u2501\u2547\u2501\u2501\u2547\u2501\u2501\u2547\u2501\u2501\u2547\u2501\u2501\u2547\u2501\u2501\u2501\u2547\u2501\u2501\u2547\u2501\u2501\u2501\u2547\u2501\u2501\u2547\u2501\u2501\u2501\u2547\u2501\u2501\u2547\u2501\u2501\u2501\u2547\u2501\u2501\u2547\u2501\u2501\u2501\u2547\u2501\u2501\u2547\u2501\u2501\u2501\u2547\u2501\u2501\u2547\u2501\u2501\u2501\u2529\n\u2502  \u2502  \u2502  \u2502  \u2502  \u2502  \u2502  \u2502  \u2502  \u2502  \u2502  \u2502 \u2026 \u2502  \u2502 \u2026 \u2502  \u2502 \u2026 \u2502  \u2502 \u2026 \u2502  \u2502 \u2026 \u2502  \u2502 \u2026 \u2502  \u2502 \u2026 \u2502\n\u2502  \u2502  \u2502  \u2502  \u2502  \u2502  \u2502  \u2502  \u2502  \u2502  \u2502  \u2502 \u2026 \u2502  \u2502 \u2026 \u2502  \u2502 \u2026 \u2502  \u2502 \u2026 \u2502  \u2502 \u2026 \u2502  \u2502 \u2026 \u2502  \u2502 \u2026 \u2502\n\u2502  \u2502  \u2502  \u2502  \u2502  \u2502  \u2502  \u2502  \u2502  \u2502  \u2502  \u2502 \u2026 \u2502  \u2502 \u2026 \u2502  \u2502 \u2026 \u2502  \u2502 \u2026 \u2502  \u2502 \u2026 \u2502  \u2502 \u2026 \u2502  \u2502 \u2026 \u2502\n\u2514\u2500\u2500\u2534\u2500\u2500\u2534\u2500\u2500\u2534\u2500\u2500\u2534\u2500\u2500\u2534\u2500\u2500\u2534\u2500\u2500\u2534\u2500\u2500\u2534\u2500\u2500\u2534\u2500\u2500\u2534\u2500\u2500\u2534\u2500\u2500\u2500\u2534\u2500\u2500\u2534\u2500\u2500\u2500\u2534\u2500\u2500\u2534\u2500\u2500\u2500\u2534\u2500\u2500\u2534\u2500\u2500\u2500\u2534\u2500\u2500\u2534\u2500\u2500\u2500\u2534\u2500\u2500\u2534\u2500\u2500\u2500\u2534\u2500\u2500\u2534\u2500\u2500\u2500\u2518\n\n\ud83d\udca1 Interpretation Tips:\n\u2022 Lower terminal_ShortfallProb means fewer paths breach the terminal return \nthreshold\n\u2022 Higher terminal_AnnReturn with lower monthly_AnnVol indicates better \nrisk-adjusted returns\n\u2022 monthly_TE shows how volatile active returns are relative to the benchmark\n\n\n\ud83d\udd0d Running sensitivity analysis...\n\n\ud83d\udcca Sensitivity Analysis Results:\n==================================================\n\ud83d\udcc9 sigma_E_-5%          | Delta:  -0.0497%\n\ud83d\udcc9 sigma_M_+5%          | Delta:  -0.0495%\n\ud83d\udcc9 sigma_E_+5%          | Delta:  -0.0402%\n\ud83d\udcc9 sigma_M_-5%          | Delta:  -0.0401%\n\ud83d\udcc8 mu_H_+5%             | Delta:  +0.0011%\n\ud83d\udcc9 mu_H_-5%             | Delta:  -0.0011%\n\ud83d\udcc9 sigma_H_-5%          | Delta:  -0.0008%\n\ud83d\udcc8 sigma_H_+5%          | Delta:  +0.0008%\n\ud83d\udcc9 mu_E_+5%             | Delta:  +0.0000%\n\ud83d\udcc9 mu_E_-5%             | Delta:  +0.0000%\n\ud83d\udcc9 mu_M_+5%             | Delta:  +0.0000%\n\ud83d\udcc9 mu_M_-5%             | Delta:  +0.0000%\n\n\u2705 Sensitivity analysis completed. Evaluated 12 scenarios.\n=========================== short test summary info ============================\nFAILED tests/test_coverage_round_2375.py::test_single_run_rejects_daily_index_before_simulation - Failed: DID NOT RAISE SystemExit\n1 failed, 31 warnings in 1.08s\n"
+      },
+      "restored_sha256": "f3ffec1a90fe5888ca5ba357507e7542f4dc436117acea430348c87ab0b40e26",
+      "restoration": {
+        "command": [
+          "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+          "-m",
+          "pytest",
+          "tests/test_coverage_round_2375.py::test_single_run_rejects_daily_index_before_simulation",
+          "-q",
+          "-m",
+          "not slow",
+          "--tb=short",
+          "--disable-warnings"
+        ],
+        "exit_code": 0,
+        "seconds": 1.957,
+        "raw_output_sha256": "c9245174b40495715cd5eab51567cfb72918fa7c3b8694d1e70dfd0ec81bdd1a",
+        "output_excerpt": ".                                                                        [100%]\n1 passed, 16 warnings in 0.85s\n"
+      }
+    },
+    {
+      "name": "cli-dashboard-launch-failure-classification",
+      "path": "pa_core/cli.py",
+      "case": "tests/test_coverage_round_2375.py::test_single_run_dashboard_launch_failure",
+      "expected_failure": "FAILED tests/test_coverage_round_2375.py::test_single_run_dashboard_launch_failure",
+      "mutant_sha256": "62878cc0b7228c82c0abe8f1f51474fbd740610ffd3da7113203db28c5c9d68f",
+      "patch": "--- pa_core/cli.py\n+++ pa_core/cli.py\n@@ -2182,9 +2182,11 @@\n                 print(\"\ud83d\udca1 Ensure the dashboard files are present in the 'dashboard/' directory.\")\n                 _emit_run_end()\n                 return\n+            except (subprocess.CalledProcessError, ImportError, OSError, PermissionError) as e:\n+                print(\"dashboard error suppressed\")\n+                _emit_run_end()\n+                return\n             except subprocess.CalledProcessError as e:\n-                logger.error(f\"Dashboard launch failed with exit code {e.returncode}: {e}\")\n-                print(f\"\u274c Dashboard launch failed with exit code {e.returncode}\")\n                 print(\"\ud83d\udca1 Common solutions:\")\n                 print(\"   \u2022 Install Streamlit: pip install streamlit\")\n                 print(\"   \u2022 Check if 'dashboard/app.py' is valid Python code\")\n",
+      "failure": {
+        "command": [
+          "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+          "-m",
+          "pytest",
+          "tests/test_coverage_round_2375.py::test_single_run_dashboard_launch_failure",
+          "-q",
+          "-m",
+          "not slow",
+          "--tb=short",
+          "--disable-warnings"
+        ],
+        "exit_code": 1,
+        "seconds": 2.315,
+        "raw_output_sha256": "f6ac3c5d767f8499ba70c775a01ef95cad122aade8e42b0769af90b4b30f3814",
+        "output_excerpt": "FFF                                                                      [100%]\n=================================== FAILURES ===================================\n_____________ test_single_run_dashboard_launch_failure[exit-code] ______________\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_coverage_round_2375.py:344: in test_single_run_dashboard_launch_failure\n    assert (\nE   AssertionError: assert '\u274c Dashboard launch failed with exit code 7' in '[BACKEND] Using backend: numpy\\n\\n\ud83d\udd0d Running sensitivity analysis...\\n\\n\ud83d\udcca Sensitivity Analysis Results:\\n=============...         | Delta:  +0.0000%\\n\\n\u2705 Sensitivity analysis completed. Evaluated 12 scenarios.\\ndashboard error suppressed\\n'\nE    +  where '[BACKEND] Using backend: numpy\\n\\n\ud83d\udd0d Running sensitivity analysis...\\n\\n\ud83d\udcca Sensitivity Analysis Results:\\n=============...         | Delta:  +0.0000%\\n\\n\u2705 Sensitivity analysis completed. Evaluated 12 scenarios.\\ndashboard error suppressed\\n' = CaptureResult(out='[BACKEND] Using backend: numpy\\n\\n\ud83d\udd0d Running sensitivity analysis...\\n\\n\ud83d\udcca Sensitivity Analysis Resul...| Delta:  +0.0000%\\n\\n\u2705 Sensitivity analysis completed. Evaluated 12 scenarios.\\ndashboard error suppressed\\n', err='').ou... [truncated]\nE    +    where CaptureResult(out='[BACKEND] Using backend: numpy\\n\\n\ud83d\udd0d Running sensitivity analysis...\\n\\n\ud83d\udcca Sensitivity Analysis Resul...| Delta:  +0.0000%\\n\\n\u2705 Sensitivity analysis completed. Evaluated 12 scenarios.\\ndashboard error suppressed\\n', err='') = readouterr()\nE    +      where readouterr = <_pytest.capture.CaptureFixture object at 0x705ba5759400>.readouterr\n_____________ test_single_run_dashboard_launch_failure[dependency] _____________\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_coverage_round_2375.py:344: in test_single_run_dashboard_launch_failure\n    assert (\nE   AssertionError: assert '\u274c Dashboard launch failed: Streamlit not available - streamlit missing' in '[BACKEND] Using backend: numpy\\n\\n\ud83d\udd0d Running sensitivity analysis...\\n\\n\ud83d\udcca Sensitivity Analysis Results:\\n=============...         | Delta:  +0.0000%\\n\\n\u2705 Sensitivity analysis completed. Evaluated 12 scenarios.\\ndashboard error suppressed\\n'\nE    +  where '[BACKEND] Using backend: numpy\\n\\n\ud83d\udd0d Running sensitivity analysis...\\n\\n\ud83d\udcca Sensitivity Analysis Results:\\n=============...         | Delta:  +0.0000%\\n\\n\u2705 Sensitivity analysis completed. Evaluated 12 scenarios.\\ndashboard error suppressed\\n' = CaptureResult(out='[BACKEND] Using backend: numpy\\n\\n\ud83d\udd0d Running sensitivity analysis...\\n\\n\ud83d\udcca Sensitivity Analysis Resul...| Delta:  +0.0000%\\n\\n\u2705 Sensitivity analysis completed. Evaluated 12 scenarios.\\ndashboard error suppressed\\n', err='').ou... [truncated]\nE    +    where CaptureResult(out='[BACKEND] Using backend: numpy\\n\\n\ud83d\udd0d Running sensitivity analysis...\\n\\n\ud83d\udcca Sensitivity Analysis Resul...| Delta:  +0.0000%\\n\\n\u2705 Sensitivity analysis completed. Evaluated 12 scenarios.\\ndashboard error suppressed\\n', err='') = readouterr()\nE    +      where readouterr = <_pytest.capture.CaptureFixture object at 0x705b8568fb10>.readouterr\n_____________ test_single_run_dashboard_launch_failure[permission] _____________\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_coverage_round_2375.py:344: in test_single_run_dashboard_launch_failure\n    assert (\nE   AssertionError: assert '\u274c Dashboard launch failed: System/permission error - launch denied' in '[BACKEND] Using backend: numpy\\n\\n\ud83d\udd0d Running sensitivity analysis...\\n\\n\ud83d\udcca Sensitivity Analysis Results:\\n=============...         | Delta:  +0.0000%\\n\\n\u2705 Sensitivity analysis completed. Evaluated 12 scenarios.\\ndashboard error suppressed\\n'\nE    +  where '[BACKEND] Using backend: numpy\\n\\n\ud83d\udd0d Running sensitivity analysis...\\n\\n\ud83d\udcca Sensitivity Analysis Results:\\n=============...         | Delta:  +0.0000%\\n\\n\u2705 Sensitivity analysis completed. Evaluated 12 scenarios.\\ndashboard error suppressed\\n' = CaptureResult(out='[BACKEND] Using backend: numpy\\n\\n\ud83d\udd0d Running sensitivity analysis...\\n\\n\ud83d\udcca Sensitivity Analysis Resul...| Delta:  +0.0000%\\n\\n\u2705 Sensitivity analysis completed. Evaluated 12 scenarios.\\ndashboard error suppressed\\n', err='').ou... [truncated]\nE    +    where CaptureResult(out='[BACKEND] Using backend: numpy\\n\\n\ud83d\udd0d Running sensitivity analysis...\\n\\n\ud83d\udcca Sensitivity Analysis Resul...| Delta:  +0.0000%\\n\\n\u2705 Sensitivity analysis completed. Evaluated 12 scenarios.\\ndashboard error suppressed\\n', err='') = readouterr()\nE   \n... [truncated]"
+      },
+      "restored_sha256": "f3ffec1a90fe5888ca5ba357507e7542f4dc436117acea430348c87ab0b40e26",
+      "restoration": {
+        "command": [
+          "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+          "-m",
+          "pytest",
+          "tests/test_coverage_round_2375.py::test_single_run_dashboard_launch_failure",
+          "-q",
+          "-m",
+          "not slow",
+          "--tb=short",
+          "--disable-warnings"
+        ],
+        "exit_code": 0,
+        "seconds": 2.194,
+        "raw_output_sha256": "ce8ae48e5dda757253e0bd7027292e11c2e376c417aeb26ad5bd3d92d57fc398",
+        "output_excerpt": "...                                                                      [100%]\n3 passed, 67 warnings in 1.15s\n"
+      }
+    },
+    {
+      "name": "cli-gif-export-failure-classification",
+      "path": "pa_core/cli.py",
+      "case": "tests/test_coverage_round_2375.py::test_single_run_gif_export_failure",
+      "expected_failure": "FAILED tests/test_coverage_round_2375.py::test_single_run_gif_export_failure",
+      "mutant_sha256": "1f1468adcf96214710526742fc99dfae2e676d1dacae6a9fa2752616a44d18c0",
+      "patch": "--- pa_core/cli.py\n+++ pa_core/cli.py\n@@ -2156,11 +2156,7 @@\n             try:\n                 write_figure_image(anim, plots / \"paths.gif\", format=\"gif\")\n             except Exception as e:\n-                if \"Chrome\" in str(e) or \"Kaleido\" in str(e) or \"Chromium\" in str(e):\n-                    print(\"\u274c GIF export failed: Chrome/Chromium required\")\n-                    print(\"\ud83d\udca1 Install with: sudo apt-get install chromium-browser\")\n-                else:\n-                    print(f\"\u274c GIF export failed: {e}\")\n+                print(\"gif export error suppressed\")\n         if flags.dashboard:\n             import os\n             import subprocess\n",
+      "failure": {
+        "command": [
+          "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+          "-m",
+          "pytest",
+          "tests/test_coverage_round_2375.py::test_single_run_gif_export_failure",
+          "-q",
+          "-m",
+          "not slow",
+          "--tb=short",
+          "--disable-warnings"
+        ],
+        "exit_code": 1,
+        "seconds": 2.173,
+        "raw_output_sha256": "a4a55f3c0743f02755f288fc444352fcaa3d14c123cbb187ec9b087186fee273",
+        "output_excerpt": "FF                                                                       [100%]\n=================================== FAILURES ===================================\n_________________ test_single_run_gif_export_failure[renderer] _________________\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_coverage_round_2375.py:386: in test_single_run_gif_export_failure\n    assert f\"\u274c GIF export failed: {expected}\" in capsys.readouterr().out\nE   AssertionError: assert '\u274c GIF export failed: Chrome/Chromium required' in '[BACKEND] Using backend: numpy\\n\\n\ud83d\udd0d Running sensitivity analysis...\\n\\n\ud83d\udcca Sensitivity Analysis Results:\\n=============...        | Delta:  +0.0000%\\n\\n\u2705 Sensitivity analysis completed. Evaluated 12 scenarios.\\ngif export error suppressed\\n'\nE    +  where '[BACKEND] Using backend: numpy\\n\\n\ud83d\udd0d Running sensitivity analysis...\\n\\n\ud83d\udcca Sensitivity Analysis Results:\\n=============...        | Delta:  +0.0000%\\n\\n\u2705 Sensitivity analysis completed. Evaluated 12 scenarios.\\ngif export error suppressed\\n' = CaptureResult(out='[BACKEND] Using backend: numpy\\n\\n\ud83d\udd0d Running sensitivity analysis...\\n\\n\ud83d\udcca Sensitivity Analysis Resul... Delta:  +0.0000%\\n\\n\u2705 Sensitivity analysis completed. Evaluated 12 scenarios.\\ngif export error suppressed\\n', err='').ou... [truncated]\nE    +    where CaptureResult(out='[BACKEND] Using backend: numpy\\n\\n\ud83d\udd0d Running sensitivity analysis...\\n\\n\ud83d\udcca Sensitivity Analysis Resul... Delta:  +0.0000%\\n\\n\u2705 Sensitivity analysis completed. Evaluated 12 scenarios.\\ngif export error suppressed\\n', err='') = readouterr()\nE    +      where readouterr = <_pytest.capture.CaptureFixture object at 0x77611a62d400>.readouterr\n_________________ test_single_run_gif_export_failure[encoder] __________________\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_coverage_round_2375.py:386: in test_single_run_gif_export_failure\n    assert f\"\u274c GIF export failed: {expected}\" in capsys.readouterr().out\nE   AssertionError: assert '\u274c GIF export failed: encoder failed' in '[BACKEND] Using backend: numpy\\n\\n\ud83d\udd0d Running sensitivity analysis...\\n\\n\ud83d\udcca Sensitivity Analysis Results:\\n=============...        | Delta:  +0.0000%\\n\\n\u2705 Sensitivity analysis completed. Evaluated 12 scenarios.\\ngif export error suppressed\\n'\nE    +  where '[BACKEND] Using backend: numpy\\n\\n\ud83d\udd0d Running sensitivity analysis...\\n\\n\ud83d\udcca Sensitivity Analysis Results:\\n=============...        | Delta:  +0.0000%\\n\\n\u2705 Sensitivity analysis completed. Evaluated 12 scenarios.\\ngif export error suppressed\\n' = CaptureResult(out='[BACKEND] Using backend: numpy\\n\\n\ud83d\udd0d Running sensitivity analysis...\\n\\n\ud83d\udcca Sensitivity Analysis Resul... Delta:  +0.0000%\\n\\n\u2705 Sensitivity analysis completed. Evaluated 12 scenarios.\\ngif export error suppressed\\n', err='').ou... [truncated]\nE    +    where CaptureResult(out='[BACKEND] Using backend: numpy\\n\\n\ud83d\udd0d Running sensitivity analysis...\\n\\n\ud83d\udcca Sensitivity Analysis Resul... Delta:  +0.0000%\\n\\n\u2705 Sensitivity analysis completed. Evaluated 12 scenarios.\\ngif export error suppressed\\n', err='') = readouterr()\nE    +      where readouterr = <_pytest.capture.CaptureFixture object at 0x7760fa968410>.readouterr\n=========================== short test summary info ============================\nFAILED tests/test_coverage_round_2375.py::test_single_run_gif_export_failure[renderer] - AssertionError: assert '\u274c GIF export failed: Chrome/Chromium required' in '[BACKEND] Using backend: numpy\\n\\n\ud83d\udd0d Running sensitivity analysis...\\n\\n\ud83d\udcca Sensitivity Analysis Results:\\n=============...        | Delta:  +0.0000%\\n\\n\u2705 Sensitivity analysis completed. Evaluated 12 scenarios.\\ngif export error suppressed\\n'\n +  where '[BACKEND] Using backend: numpy\\n\\n\ud83d\udd0d Running sensitivity analysis...\\n\\n\ud83d\udcca Sensitivity Analysis Results:\\n=============...        | Delta:  +0.0000%\\n\\n\u2705 Sensitivity analysis completed. Evaluated 12 scenarios.\\ngif export error suppressed\\n' = CaptureResult(out='[BACKEND] Using backend: numpy\\n\\n\ud83d\udd0d Running sensitivity analysis...\\n\\n\ud83d\udcca Sensitivity Analysis Resul... Delta:  +0.0000%\\n\\n\u2705 Sensitivity analysis completed. Evaluated 12 scenarios.\\ngif export error suppressed\\n', err='').out\n +    where CaptureResult(out='[BACKEND] Using backend: numpy\\n\\n\ud83d\udd0d Running sensitivity analysis...\\n\\n\ud83d\udcca Sensitivity Analysis Resul... Delta:  +0.0000%\\n\\n\u2705 Sensitivity analysis completed. Evaluated 12 scenarios.\\ngif export error suppressed\\n', err='') = readouterr()\n +      where readouterr = <_pytest.capture.CaptureFixture obj\n... [truncated]"
+      },
+      "restored_sha256": "f3ffec1a90fe5888ca5ba357507e7542f4dc436117acea430348c87ab0b40e26",
+      "restoration": {
+        "command": [
+          "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+          "-m",
+          "pytest",
+          "tests/test_coverage_round_2375.py::test_single_run_gif_export_failure",
+          "-q",
+          "-m",
+          "not slow",
+          "--tb=short",
+          "--disable-warnings"
+        ],
+        "exit_code": 0,
+        "seconds": 2.057,
+        "raw_output_sha256": "506ee8c8aa1867f6af2347b0929cf6c4d59f673158d618ee27b2849ca39d5d92",
+        "output_excerpt": "..                                                                       [100%]\n2 passed, 49 warnings in 1.03s\n"
+      }
+    },
+    {
+      "name": "cli-tradeoff-table-handling",
+      "path": "pa_core/cli.py",
+      "case": "tests/test_coverage_round_2375.py::test_single_run_tradeoff_table",
+      "expected_failure": "FAILED tests/test_coverage_round_2375.py::test_single_run_tradeoff_table",
+      "mutant_sha256": "ff375b3964ddf6098637f0ec6b4b90b93552c8dfeae8953c5f9887e76f80a2b5",
+      "patch": "--- pa_core/cli.py\n+++ pa_core/cli.py\n@@ -1600,7 +1600,7 @@\n     except (AttributeError, KeyError, TypeError, ValueError) as e:\n         logger.debug(f\"Constraint report unavailable: {e}\")\n     # Optional: compute trade-off table (non-interactive) and attach for export\n-    if args.tradeoff_table:\n+    if False:\n         try:\n             suggest_seed = args.seed\n             trade_df = suggest_sleeve_sizes(\n",
+      "failure": {
+        "command": [
+          "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+          "-m",
+          "pytest",
+          "tests/test_coverage_round_2375.py::test_single_run_tradeoff_table",
+          "-q",
+          "-m",
+          "not slow",
+          "--tb=short",
+          "--disable-warnings"
+        ],
+        "exit_code": 1,
+        "seconds": 2.34,
+        "raw_output_sha256": "3dd315172feb5b44890568b290df0361ed8beab3169bd04dc3e4fdf339fca2a2",
+        "output_excerpt": "FF                                                                       [100%]\n=================================== FAILURES ===================================\n____________________ test_single_run_tradeoff_table[export] ____________________\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_coverage_round_2375.py:441: in test_single_run_tradeoff_table\n    assert len(calls) == 1 and calls[0][\"seed\"] == 123\nE   assert (0 == 1)\nE    +  where 0 = len([])\n----------------------------- Captured stdout call -----------------------------\n[BACKEND] Using backend: numpy\n\u256d\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 Understanding Your Results \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u256e\n\u2502 Portfolio Analysis Results                                                   \u2502\n\u2502 Metrics Explanation:                                                         \u2502\n\u2502 \u2022 terminal_AnnReturn: annualised return (%)                                  \u2502\n\u2502 \u2022 monthly_AnnVol: annualised volatility (%)                                  \u2502\n\u2502 \u2022 monthly_VaR: Value at Risk (95% confidence)                                \u2502\n\u2502 \u2022 monthly_BreachProb: Share of simulated months below the monthly breach     \u2502\n\u2502 threshold                                                                    \u2502\n\u2502 \u2022 terminal_ShortfallProb: Probability terminal compounded return is below    \u2502\n\u2502 the annual threshold                                                         \u2502\n\u2502 \u2022 monthly_MaxDD: Worst peak-to-trough decline of compounded wealth           \u2502\n\u2502 \u2022 monthly_TimeUnderWater: Fraction of periods with compounded return below   \u2502\n\u2502 zero                                                                         \u2502\n\u2502 \u2022 monthly_TE: annualised active return volatility vs benchmark               \u2502\n\u2502                                                                              \u2502\n\u2570\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u256f\n\u250f\u2501\u2501\u2533\u2501\u2501\u2533\u2501\u2501\u2533\u2501\u2501\u2533\u2501\u2501\u2533\u2501\u2501\u2533\u2501\u2501\u2533\u2501\u2501\u2533\u2501\u2501\u2533\u2501\u2501\u2533\u2501\u2501\u2533\u2501\u2501\u2501\u2533\u2501\u2501\u2533\u2501\u2501\u2501\u2533\u2501\u2501\u2533\u2501\u2501\u2501\u2533\u2501\u2501\u2533\u2501\u2501\u2501\u2533\u2501\u2501\u2533\u2501\u2501\u2501\u2533\u2501\u2501\u2533\u2501\u2501\u2501\u2533\u2501\u2501\u2533\u2501\u2501\u2501\u2513\n\u2503  \u2503  \u2503  \u2503  \u2503  \u2503  \u2503  \u2503  \u2503  \u2503  \u2503  \u2503 \u2026 \u2503  \u2503 \u2026 \u2503  \u2503 \u2026 \u2503  \u2503 \u2026 \u2503  \u2503 \u2026 \u2503  \u2503 \u2026 \u2503  \u2503 \u2026 \u2503\n\u2521\u2501\u2501\u2547\u2501\u2501\u2547\u2501\u2501\u2547\u2501\u2501\u2547\u2501\u2501\u2547\u2501\u2501\u2547\u2501\u2501\u2547\u2501\u2501\u2547\u2501\u2501\u2547\u2501\u2501\u2547\u2501\u2501\u2547\u2501\u2501\u2501\u2547\u2501\u2501\u2547\u2501\u2501\u2501\u2547\u2501\u2501\u2547\u2501\u2501\u2501\u2547\u2501\u2501\u2547\u2501\u2501\u2501\u2547\u2501\u2501\u2547\u2501\u2501\u2501\u2547\u2501\u2501\u2547\u2501\u2501\u2501\u2547\u2501\u2501\u2547\u2501\u2501\u2501\u2529\n\u2502  \u2502  \u2502  \u2502  \u2502  \u2502  \u2502  \u2502  \u2502  \u2502  \u2502  \u2502 \u2026 \u2502  \u2502 \u2026 \u2502  \u2502 \u2026 \u2502  \u2502 \u2026 \u2502  \u2502 \u2026 \u2502  \u2502 \u2026 \u2502  \u2502 \u2026 \u2502\n\u2502  \u2502  \u2502  \u2502  \u2502  \u2502  \u2502  \u2502  \u2502  \u2502  \u2502  \u2502 \u2026 \u2502  \u2502 \u2026 \u2502  \u2502 \u2026 \u2502  \u2502 \u2026 \u2502  \u2502 \u2026 \u2502  \u2502 \u2026 \u2502  \u2502 \u2026 \u2502\n\u2502  \u2502  \u2502  \u2502  \u2502  \u2502  \u2502  \u2502  \u2502  \u2502  \u2502  \u2502 \u2026 \u2502  \u2502 \u2026 \u2502  \u2502 \u2026 \u2502  \u2502 \u2026 \u2502  \u2502 \u2026 \u2502  \u2502 \u2026 \u2502  \u2502 \u2026 \u2502\n\u2514\u2500\u2500\u2534\u2500\u2500\u2534\u2500\u2500\u2534\u2500\u2500\u2534\u2500\u2500\u2534\u2500\u2500\u2534\u2500\u2500\u2534\u2500\u2500\u2534\u2500\u2500\u2534\u2500\u2500\u2534\u2500\u2500\u2534\u2500\u2500\u2500\u2534\u2500\u2500\u2534\u2500\u2500\u2500\u2534\u2500\u2500\u2534\u2500\u2500\u2500\u2534\u2500\u2500\u2534\u2500\u2500\u2500\u2534\u2500\u2500\u2534\u2500\u2500\u2500\u2534\u2500\u2500\u2534\u2500\u2500\u2500\u2534\u2500\u2500\u2534\u2500\u2500\u2500\u2518\n\n\ud83d\udca1 Interpretation Tips:\n\u2022 Lower terminal_ShortfallProb means fewer paths breach the terminal return \nthreshold\n\u2022 Higher terminal_AnnReturn with lower monthly_AnnVol indicates better \nrisk-adjusted returns\n\u2022 monthly_TE shows how volatile active returns are relative to the benchmark\n\n\n\ud83d\udd0d Running sensitivity analysis...\n\n\ud83d\udcca Sensitivity Analysis Results:\n==================================================\n\ud83d\udcc8 sigma_E_+5%          | Delta:  +0.0037%\n\ud83d\udcc8 sigma_M_-5%          | Delta:  +0.0036%\n\ud83d\udcc9 sigma_E_-5%          | Delta:  -0.0009%\n\ud83d\udcc8 mu_H_+5%             | Delta:  +0.0008%\n\ud83d\udcc9 mu_H_-5%             | Delta:  -0.0008%\n\ud83d\udcc9 sigma_M_+5%          | Delta:  -0.0007%\n\ud83d\udcc9 sigma_H_-5%          | Delta:  -0.0004%\n\ud83d\udcc8 sigma_H_+5%          | Delta:  +0.0004%\n\ud83d\udcc9 mu_E_+5%             | Delta:  +0.0000%\n\ud83d\udcc9 mu_E_-5%             | Delta:  +0.0000%\n\ud83d\udcc9 mu_M_+5%             | Delta:  +0.0000%\n\ud83d\udcc9 mu_M_-5%             | Delta:  +0.0000%\n\n\u2705 Sensitivity analysis completed. Evaluated 12 scenarios.\n___________________ test_single_run_tradeoff_table[failure] ____________________\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_coverage_round_2375.py:441: in test_single_run_tradeoff_table\n    assert len(calls) == 1 and calls[0][\"seed\"] == 123\nE   assert (0 == 1)\nE    +  where 0 = len([])\n----------------------------- Captured stdout call -----------------------------\n[BACKEND] Using backend: numpy\n\u256d\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 Understanding Your Results \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u256e\n\u2502 Portfolio Analysis Results                                                   \u2502\n\u2502 Metrics Explanation:                                                         \u2502\n\u2502 \u2022 terminal_AnnReturn: annualised return (%)                                  \u2502\n\u2502 \u2022 monthly_AnnVol: annualised volatility (%)                                  \u2502\n\u2502 \u2022 monthly_VaR: Value at Risk (95% confidence)                                \u2502\n\u2502 \u2022 monthly_BreachProb: Share of simulated months below the monthly breach     \u2502\n\u2502 threshold                                       \n... [truncated]"
+      },
+      "restored_sha256": "f3ffec1a90fe5888ca5ba357507e7542f4dc436117acea430348c87ab0b40e26",
+      "restoration": {
+        "command": [
+          "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+          "-m",
+          "pytest",
+          "tests/test_coverage_round_2375.py::test_single_run_tradeoff_table",
+          "-q",
+          "-m",
+          "not slow",
+          "--tb=short",
+          "--disable-warnings"
+        ],
+        "exit_code": 0,
+        "seconds": 2.17,
+        "raw_output_sha256": "d3e84a2ef7514b835073273fa221f62c17f5c2421a2c0b1408d1b57668464179",
+        "output_excerpt": "..                                                                       [100%]\n2 passed, 49 warnings in 1.12s\n"
+      }
+    },
+    {
+      "name": "cli-registry-optional-handling",
+      "path": "pa_core/cli.py",
+      "case": "tests/test_coverage_round_2375.py::test_single_run_registry_is_optional",
+      "expected_failure": "FAILED tests/test_coverage_round_2375.py::test_single_run_registry_is_optional",
+      "mutant_sha256": "4e09d544dae21b00db32daa6a758e46d09b9d901d73b51426b18528841907f83",
+      "patch": "--- pa_core/cli.py\n+++ pa_core/cli.py\n@@ -1177,7 +1177,7 @@\n     idx_series = normalize_index_series(idx_series, get_index_series_unit())\n     index_hash = _hash_index_series(idx_series) if args.bundle else \"\"\n \n-    if args.register:\n+    if False:\n         try:\n             from .scenario_registry import register as register_scenario\n \n",
+      "failure": {
+        "command": [
+          "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+          "-m",
+          "pytest",
+          "tests/test_coverage_round_2375.py::test_single_run_registry_is_optional",
+          "-q",
+          "-m",
+          "not slow",
+          "--tb=short",
+          "--disable-warnings"
+        ],
+        "exit_code": 1,
+        "seconds": 2.246,
+        "raw_output_sha256": "960ddd88a2652f2b6d03216545a9bbeb6873a88b08c4fd04674d27ea3424defb",
+        "output_excerpt": "FF                                                                       [100%]\n=================================== FAILURES ===================================\n_______________ test_single_run_registry_is_optional[registered] _______________\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_coverage_round_2375.py:473: in test_single_run_registry_is_optional\n    assert calls == [123]\nE   assert [] == [123]\nE     \nE     Right contains one more item: 123\nE     \nE     Full diff: (-: missing in left side, +: extra in left side)\nE     + []\nE     - [\nE     -     123,\nE     - ]\n----------------------------- Captured stdout call -----------------------------\n[BACKEND] Using backend: numpy\n\u256d\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 Understanding Your Results \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u256e\n\u2502 Portfolio Analysis Results                                                   \u2502\n\u2502 Metrics Explanation:                                                         \u2502\n\u2502 \u2022 terminal_AnnReturn: annualised return (%)                                  \u2502\n\u2502 \u2022 monthly_AnnVol: annualised volatility (%)                                  \u2502\n\u2502 \u2022 monthly_VaR: Value at Risk (95% confidence)                                \u2502\n\u2502 \u2022 monthly_BreachProb: Share of simulated months below the monthly breach     \u2502\n\u2502 threshold                                                                    \u2502\n\u2502 \u2022 terminal_ShortfallProb: Probability terminal compounded return is below    \u2502\n\u2502 the annual threshold                                                         \u2502\n\u2502 \u2022 monthly_MaxDD: Worst peak-to-trough decline of compounded wealth           \u2502\n\u2502 \u2022 monthly_TimeUnderWater: Fraction of periods with compounded return below   \u2502\n\u2502 zero                                                                         \u2502\n\u2502 \u2022 monthly_TE: annualised active return volatility vs benchmark               \u2502\n\u2502                                                                              \u2502\n\u2570\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u256f\n\u250f\u2501\u2501\u2533\u2501\u2501\u2533\u2501\u2501\u2533\u2501\u2501\u2533\u2501\u2501\u2533\u2501\u2501\u2533\u2501\u2501\u2533\u2501\u2501\u2533\u2501\u2501\u2533\u2501\u2501\u2533\u2501\u2501\u2533\u2501\u2501\u2501\u2533\u2501\u2501\u2533\u2501\u2501\u2501\u2533\u2501\u2501\u2533\u2501\u2501\u2501\u2533\u2501\u2501\u2533\u2501\u2501\u2501\u2533\u2501\u2501\u2533\u2501\u2501\u2501\u2533\u2501\u2501\u2533\u2501\u2501\u2501\u2533\u2501\u2501\u2533\u2501\u2501\u2501\u2513\n\u2503  \u2503  \u2503  \u2503  \u2503  \u2503  \u2503  \u2503  \u2503  \u2503  \u2503  \u2503 \u2026 \u2503  \u2503 \u2026 \u2503  \u2503 \u2026 \u2503  \u2503 \u2026 \u2503  \u2503 \u2026 \u2503  \u2503 \u2026 \u2503  \u2503 \u2026 \u2503\n\u2521\u2501\u2501\u2547\u2501\u2501\u2547\u2501\u2501\u2547\u2501\u2501\u2547\u2501\u2501\u2547\u2501\u2501\u2547\u2501\u2501\u2547\u2501\u2501\u2547\u2501\u2501\u2547\u2501\u2501\u2547\u2501\u2501\u2547\u2501\u2501\u2501\u2547\u2501\u2501\u2547\u2501\u2501\u2501\u2547\u2501\u2501\u2547\u2501\u2501\u2501\u2547\u2501\u2501\u2547\u2501\u2501\u2501\u2547\u2501\u2501\u2547\u2501\u2501\u2501\u2547\u2501\u2501\u2547\u2501\u2501\u2501\u2547\u2501\u2501\u2547\u2501\u2501\u2501\u2529\n\u2502  \u2502  \u2502  \u2502  \u2502  \u2502  \u2502  \u2502  \u2502  \u2502  \u2502  \u2502 \u2026 \u2502  \u2502 \u2026 \u2502  \u2502 \u2026 \u2502  \u2502 \u2026 \u2502  \u2502 \u2026 \u2502  \u2502 \u2026 \u2502  \u2502 \u2026 \u2502\n\u2502  \u2502  \u2502  \u2502  \u2502  \u2502  \u2502  \u2502  \u2502  \u2502  \u2502  \u2502 \u2026 \u2502  \u2502 \u2026 \u2502  \u2502 \u2026 \u2502  \u2502 \u2026 \u2502  \u2502 \u2026 \u2502  \u2502 \u2026 \u2502  \u2502 \u2026 \u2502\n\u2502  \u2502  \u2502  \u2502  \u2502  \u2502  \u2502  \u2502  \u2502  \u2502  \u2502  \u2502 \u2026 \u2502  \u2502 \u2026 \u2502  \u2502 \u2026 \u2502  \u2502 \u2026 \u2502  \u2502 \u2026 \u2502  \u2502 \u2026 \u2502  \u2502 \u2026 \u2502\n\u2514\u2500\u2500\u2534\u2500\u2500\u2534\u2500\u2500\u2534\u2500\u2500\u2534\u2500\u2500\u2534\u2500\u2500\u2534\u2500\u2500\u2534\u2500\u2500\u2534\u2500\u2500\u2534\u2500\u2500\u2534\u2500\u2500\u2534\u2500\u2500\u2500\u2534\u2500\u2500\u2534\u2500\u2500\u2500\u2534\u2500\u2500\u2534\u2500\u2500\u2500\u2534\u2500\u2500\u2534\u2500\u2500\u2500\u2534\u2500\u2500\u2534\u2500\u2500\u2500\u2534\u2500\u2500\u2534\u2500\u2500\u2500\u2534\u2500\u2500\u2534\u2500\u2500\u2500\u2518\n\n\ud83d\udca1 Interpretation Tips:\n\u2022 Lower terminal_ShortfallProb means fewer paths breach the terminal return \nthreshold\n\u2022 Higher terminal_AnnReturn with lower monthly_AnnVol indicates better \nrisk-adjusted returns\n\u2022 monthly_TE shows how volatile active returns are relative to the benchmark\n\n\n\ud83d\udd0d Running sensitivity analysis...\n\n\ud83d\udcca Sensitivity Analysis Results:\n==================================================\n\ud83d\udcc8 sigma_E_+5%          | Delta:  +0.0037%\n\ud83d\udcc8 sigma_M_-5%          | Delta:  +0.0036%\n\ud83d\udcc9 sigma_E_-5%          | Delta:  -0.0009%\n\ud83d\udcc8 mu_H_+5%             | Delta:  +0.0008%\n\ud83d\udcc9 mu_H_-5%             | Delta:  -0.0008%\n\ud83d\udcc9 sigma_M_+5%          | Delta:  -0.0007%\n\ud83d\udcc9 sigma_H_-5%          | Delta:  -0.0004%\n\ud83d\udcc8 sigma_H_+5%          | Delta:  +0.0004%\n\ud83d\udcc9 mu_E_+5%             | Delta:  +0.0000%\n\ud83d\udcc9 mu_E_-5%             | Delta:  +0.0000%\n\ud83d\udcc9 mu_M_+5%             | Delta:  +0.0000%\n\ud83d\udcc9 mu_M_-5%             | Delta:  +0.0000%\n\n\u2705 Sensitivity analysis completed. Evaluated 12 scenarios.\n______________ test_single_run_registry_is_optional[unavailable] _______________\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_coverage_round_2375.py:473: in test_single_run_registry_is_optional\n    assert calls == [123]\nE   assert [] == [123]\nE     \nE     Right contains one more item: 123\nE     \nE     Full diff: (-: missing in left side, +: extra in left side)\nE     + []\nE     - [\nE     -     123,\nE     - ]\n----------------------------- Captured stdout call -----------------------------\n[BACKEND] Using backend: numpy\n\u256d\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 Understanding Your Results \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u256e\n\u2502 Portfolio Analysis Results                                                   \u2502\n\u2502 Metrics Explanation:                                                         \u2502\n\u2502 \u2022 terminal_AnnReturn: annualised return (%)                                  \u2502\n\u2502 \u2022 monthly_AnnVol: annualised volatility (%)    \n... [truncated]"
+      },
+      "restored_sha256": "f3ffec1a90fe5888ca5ba357507e7542f4dc436117acea430348c87ab0b40e26",
+      "restoration": {
+        "command": [
+          "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+          "-m",
+          "pytest",
+          "tests/test_coverage_round_2375.py::test_single_run_registry_is_optional",
+          "-q",
+          "-m",
+          "not slow",
+          "--tb=short",
+          "--disable-warnings"
+        ],
+        "exit_code": 0,
+        "seconds": 2.163,
+        "raw_output_sha256": "cd213a7870bdd327416a97f35cc585a57b2dbebfc8bc40bce8d45975ed12ec8d",
+        "output_excerpt": "..                                                                       [100%]\n2 passed, 49 warnings in 1.10s\n"
+      }
+    },
+    {
+      "name": "cli-suggestion-eof-abort",
+      "path": "pa_core/cli.py",
+      "case": "tests/test_coverage_round_2375.py::test_single_run_suggestion_eof_aborts",
+      "expected_failure": "FAILED tests/test_coverage_round_2375.py::test_single_run_suggestion_eof_aborts",
+      "mutant_sha256": "092aec617dec71a0e58ed04ded9635d4bb3fe056d2b057d430d1748cc25bf14f",
+      "patch": "--- pa_core/cli.py\n+++ pa_core/cli.py\n@@ -1223,8 +1223,6 @@\n             try:\n                 choice = input(\"Select row index to apply and continue (blank to abort): \").strip()\n             except EOFError:\n-                print(\"No selection provided. Aborting run.\")\n-                _emit_run_end()\n                 return\n             if not choice:\n                 print(\"Aborting run.\")\n",
+      "failure": {
+        "command": [
+          "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+          "-m",
+          "pytest",
+          "tests/test_coverage_round_2375.py::test_single_run_suggestion_eof_aborts",
+          "-q",
+          "-m",
+          "not slow",
+          "--tb=short",
+          "--disable-warnings"
+        ],
+        "exit_code": 1,
+        "seconds": 1.957,
+        "raw_output_sha256": "4b9c431ed00de06a740edd5b18ffc777123161e63822806c23c66db817d33837",
+        "output_excerpt": "FF                                                                       [100%]\n=================================== FAILURES ===================================\n_____________ test_single_run_suggestion_eof_aborts[grid-fallback] _____________\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_coverage_round_2375.py:512: in test_single_run_suggestion_eof_aborts\n    assert \"No selection provided. Aborting run.\" in text\nE   AssertionError: assert 'No selection provided. Aborting run.' in '[BACKEND] Using backend: numpy\\nOptimizer unavailable; using grid fallback (grid_fallback:missing).\\n        optimizer_status\\n0  grid_fallback:missing\\n'\n____________ test_single_run_suggestion_eof_aborts[failed-fallback] ____________\n/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_coverage_round_2375.py:512: in test_single_run_suggestion_eof_aborts\n    assert \"No selection provided. Aborting run.\" in text\nE   AssertionError: assert 'No selection provided. Aborting run.' in '[BACKEND] Using backend: numpy\\nOptimizer failed without grid fallback (fallback_failed:invalid).\\n          optimizer_status\\n0  fallback_failed:invalid\\n'\n=========================== short test summary info ============================\nFAILED tests/test_coverage_round_2375.py::test_single_run_suggestion_eof_aborts[grid-fallback] - AssertionError: assert 'No selection provided. Aborting run.' in '[BACKEND] Using backend: numpy\\nOptimizer unavailable; using grid fallback (grid_fallback:missing).\\n        optimizer_status\\n0  grid_fallback:missing\\n'\nFAILED tests/test_coverage_round_2375.py::test_single_run_suggestion_eof_aborts[failed-fallback] - AssertionError: assert 'No selection provided. Aborting run.' in '[BACKEND] Using backend: numpy\\nOptimizer failed without grid fallback (fallback_failed:invalid).\\n          optimizer_status\\n0  fallback_failed:invalid\\n'\n2 failed, 19 warnings in 0.91s\n"
+      },
+      "restored_sha256": "f3ffec1a90fe5888ca5ba357507e7542f4dc436117acea430348c87ab0b40e26",
+      "restoration": {
+        "command": [
+          "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+          "-m",
+          "pytest",
+          "tests/test_coverage_round_2375.py::test_single_run_suggestion_eof_aborts",
+          "-q",
+          "-m",
+          "not slow",
+          "--tb=short",
+          "--disable-warnings"
+        ],
+        "exit_code": 0,
+        "seconds": 1.869,
+        "raw_output_sha256": "ab629df783824dee67814b1304dfae184c8af16089b5fc8cec85b9f247e7f9ad",
+        "output_excerpt": "..                                                                       [100%]\n2 passed, 19 warnings in 0.81s\n"
       }
     }
   ],
-  "finished_at": "2026-11-11T19:43:27.262619+00:00",
+  "finished_at": "2026-11-15T16:15:44.273140+00:00",
   "all_production_restored": true,
-  "transcript_policy": "Excerpts retain failure tracebacks and pytest summaries; captured CLI stdout/stderr/log sections are omitted. Lines longer than 500 characters are truncated explicitly. SHA-256 values identify full raw subprocess output. Traceback excerpts are also bounded to 5,000 characters; omitted binary explanations are marked."
+  "transcript_policy": "Excerpts retain failure tracebacks and pytest summaries; captured CLI stdout/stderr/log sections are omitted. Lines longer than 500 characters are truncated explicitly. SHA-256 values identify full raw subprocess output."
 }

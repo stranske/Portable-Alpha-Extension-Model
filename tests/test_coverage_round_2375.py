@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import subprocess
 import sys
 import types
 from pathlib import Path
@@ -27,7 +28,7 @@ from pa_core.viz import export_backend as viz_export_backend
 from pa_core.viz import utils as viz_utils
 
 
-def test_compare_run_helpers_reject_unusable_artifacts(tmp_path) -> None:
+def test_compare_run_helpers_reject_unusable_artifacts(tmp_path: Path) -> None:
     """Unreadable or structurally invalid artifacts must not look usable."""
     non_mapping_path = tmp_path / "not-a-manifest.json"
     non_mapping_path.write_text(json.dumps(["not", "a", "mapping"]))
@@ -41,7 +42,7 @@ def test_compare_run_helpers_reject_unusable_artifacts(tmp_path) -> None:
     assert load_prior_summary({"cli_args": "not-a-mapping"}) == (None, None)
 
 
-def test_compare_runs_explains_missing_prior_summary(tmp_path) -> None:
+def test_compare_runs_explains_missing_prior_summary(tmp_path: Path) -> None:
     """A valid prior manifest without a workbook is a distinct user error."""
     prior_manifest_path = tmp_path / "prior-manifest.json"
     prior_manifest_path.write_text(json.dumps({"cli_args": {"output": "missing.xlsx"}}))
@@ -102,13 +103,13 @@ def test_metric_catalog_rejects_non_dataframe_and_empty_delta() -> None:
     assert _largest_metric_delta({"current": 0.1}, {"prior": 0.2}) is None
 
 
-def _write_single_run_config(tmp_path: Path) -> tuple[Path, Path, Path]:
+def _write_single_run_config(tmp_path: Path, *, n_months: int = 1) -> tuple[Path, Path, Path]:
     config = tmp_path / "config.yaml"
     config.write_text(
         yaml.safe_dump(
             {
                 "N_SIMULATIONS": 1,
-                "N_MONTHS": 1,
+                "N_MONTHS": n_months,
                 "financing_mode": "broadcast",
                 "analysis_mode": "single_with_sensitivity",
             }
@@ -186,8 +187,12 @@ def test_single_run_packet_failure_reports_the_failure_class(
     assert f"❌ {expected}" in capsys.readouterr().out
 
 
+@pytest.mark.parametrize("error_type", [ValueError, TypeError])
 def test_single_run_gif_conversion_error_is_reported(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+    error_type: type[Exception],
 ) -> None:
     """Invalid return arrays must not proceed to an animation export."""
     monkeypatch.chdir(tmp_path)
@@ -195,20 +200,18 @@ def test_single_run_gif_conversion_error_is_reported(
     config, index, output = _write_single_run_config(tmp_path)
     animation_make = Mock(name="animation.make")
     gif_export = Mock(name="write_figure_image")
+    converter = Mock(name="safe_to_numpy", side_effect=error_type("not numeric"))
     monkeypatch.setattr(
         pa_core.viz, "animation", types.SimpleNamespace(make=animation_make), raising=False
     )
     monkeypatch.setattr(viz_export_backend, "write_figure_image", gif_export)
     # `pa_core.viz` is a fake module here, so the real utils module is patched by object, not by path.
-    monkeypatch.setattr(
-        viz_utils,
-        "safe_to_numpy",
-        lambda _value: (_ for _ in ()).throw(ValueError("not numeric")),
-    )
+    monkeypatch.setattr(viz_utils, "safe_to_numpy", converter)
 
     main(_single_run_argv(config, index, output, "--gif"))
 
     assert "❌ GIF export failed: Data conversion error - not numeric" in capsys.readouterr().out
+    converter.assert_called_once()
     assert animation_make.call_count == 0, "Animation constructed after conversion failure"
     assert gif_export.call_count == 0, "GIF export called after conversion failure"
     assert output.is_file()
@@ -239,17 +242,17 @@ def test_single_run_bundle_contains_the_completed_artifacts(
 
     main(_single_run_argv(config, index, output, "--bundle", str(bundle_dir)))
 
-    metadata_path = bundle_dir / "bundle.json"
+    metadata_path = bundle_dir / RunArtifactBundle._META_FILE
     assert metadata_path.is_file()
     metadata = json.loads(metadata_path.read_text())
     assert metadata["seed"] == 123
     assert metadata["index_hash"]
-    assert metadata["config_path"] == "config.yaml"
-    assert (
-        metadata.get("manifest_path") == "manifest.json"
-    ), "Missing completed manifest registration"
+    assert metadata["config_path"] == RunArtifactBundle._CONFIG_FILE
+    has_manifest = metadata.get("manifest_path") == RunArtifactBundle._MANIFEST_FILE
+    assert has_manifest, "Missing completed manifest registration"
     outputs = metadata["outputs"]
-    assert output.name in outputs, "Missing completed workbook registration"
+    has_workbook = isinstance(outputs, dict) and set(outputs) == {output.name}
+    assert has_workbook, "Missing completed workbook registration"
 
     # The manifest has its own registration, separate from the outputs mapping.
     # Compare independent hashes and source bytes before relying on bundle.verify().
@@ -263,9 +266,8 @@ def test_single_run_bundle_contains_the_completed_artifacts(
         assert artifact.is_file(), f"Missing referenced {name} file: {relative_path}"
         assert source.is_file(), f"Missing CLI-produced {name} file: {source}"
         source_bytes = source.read_bytes()
-        assert (
-            artifact.read_bytes() == source_bytes
-        ), f"Bundle {name} differs from CLI-produced file"
+        same_bytes = artifact.read_bytes() == source_bytes
+        assert same_bytes, f"Bundle {name} differs from CLI-produced file"
         recorded_hash = (
             metadata["hashes"]["outputs"][output.name]
             if name == "workbook"
@@ -286,3 +288,226 @@ def test_single_run_bundle_contains_the_completed_artifacts(
     assert manifest["data_files"][str(output)] == hashlib.sha256(output.read_bytes()).hexdigest()
     assert not pd.read_excel(output, sheet_name="Summary").empty
     assert RunArtifactBundle.load(bundle_dir).verify()
+
+
+def test_single_run_rejects_daily_index_before_simulation(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Daily index data must be rejected before simulation or workbook creation."""
+    monkeypatch.chdir(tmp_path)
+    config, _, output = _write_single_run_config(tmp_path)
+    index = tmp_path / "daily.csv"
+    pd.DataFrame(
+        {"Date": pd.date_range("2026-01-01", periods=10, freq="D"), "Monthly_TR": [0.01] * 10}
+    ).to_csv(index, index=False)
+
+    with pytest.raises(SystemExit, match="Expected monthly data, got daily"):
+        main(_single_run_argv(config, index, output))
+
+    assert not output.exists()
+
+
+@pytest.mark.parametrize(
+    ("error", "expected"),
+    [
+        (subprocess.CalledProcessError(7, ["streamlit"]), "with exit code 7"),
+        (ImportError("streamlit missing"), "Streamlit not available - streamlit missing"),
+        (PermissionError("launch denied"), "System/permission error - launch denied"),
+    ],
+    ids=["exit-code", "dependency", "permission"],
+)
+def test_single_run_dashboard_launch_failure(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+    error: Exception,
+    expected: str,
+) -> None:
+    """Dashboard launcher errors must be classified and reported without aborting outputs."""
+    monkeypatch.chdir(tmp_path)
+    _install_fake_viz(monkeypatch)
+    config, index, output = _write_single_run_config(tmp_path)
+    (tmp_path / "dashboard").mkdir()
+    (tmp_path / "dashboard/app.py").write_text("# launcher fixture\n")
+    calls = []
+    real_run = subprocess.run
+
+    def launch(command: list[str], **kwargs: object) -> object:
+        if command[1:3] != ["-m", "streamlit"]:
+            return real_run(command, **kwargs)
+        calls.append((command, kwargs))
+        raise error
+
+    monkeypatch.setattr(subprocess, "run", launch)
+    main(_single_run_argv(config, index, output, "--dashboard"))
+
+    assert (
+        f"❌ Dashboard launch failed{' ' if expected.startswith('with') else ': '}{expected}"
+        in capsys.readouterr().out
+    )
+    assert calls == [
+        (
+            [sys.executable, "-m", "streamlit", "run", "dashboard/app.py"],
+            {"check": True, "cwd": str(tmp_path)},
+        )
+    ]
+    assert output.is_file()
+
+
+@pytest.mark.parametrize(
+    ("message", "expected"),
+    [("Kaleido missing", "Chrome/Chromium required"), ("encoder failed", "encoder failed")],
+    ids=["renderer", "encoder"],
+)
+def test_single_run_gif_export_failure(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+    message: str,
+    expected: str,
+) -> None:
+    """When return conversion succeeds, GIF export errors are classified and reported."""
+    monkeypatch.chdir(tmp_path)
+    _install_fake_viz(monkeypatch)
+    config, index, output = _write_single_run_config(tmp_path)
+    animation = object()
+    calls = []
+    monkeypatch.setattr(
+        pa_core.viz, "animation", types.SimpleNamespace(make=lambda _arr: animation), raising=False
+    )
+
+    def export(fig: object, path: Path, **kwargs: object) -> None:
+        calls.append((fig, path, kwargs))
+        raise RuntimeError(message)
+
+    monkeypatch.setattr(viz_export_backend, "write_figure_image", export)
+    main(_single_run_argv(config, index, output, "--gif"))
+
+    assert f"❌ GIF export failed: {expected}" in capsys.readouterr().out
+    assert calls == [(animation, Path("plots/paths.gif"), {"format": "gif"})]
+    assert output.is_file()
+
+
+def test_single_run_attribution_fallback_exports_totals(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Detailed-attribution failures fall back to `_np.asarray` annualised totals."""
+    monkeypatch.chdir(tmp_path)
+    _stub_sensitivity(monkeypatch)
+    config, index, output = _write_single_run_config(tmp_path, n_months=3)
+
+    def unavailable(*_args: object) -> None:
+        raise TypeError("detailed attribution unavailable")
+
+    monkeypatch.setattr(
+        "pa_core.reporting.attribution.compute_sleeve_return_attribution", unavailable
+    )
+    main(_single_run_argv(config, index, output))
+
+    attribution = pd.read_excel(output, sheet_name="Attribution")
+    assert set(attribution["Sub"]) == {"Total"}
+    assert set(attribution["Agent"]) == set(pd.read_excel(output, sheet_name="Summary")["Agent"])
+    assert attribution["Agent"].is_unique
+    for row in attribution.itertuples():
+        raw = pd.read_excel(output, sheet_name=row.Agent, index_col=0)
+        assert raw.shape[1] == 3
+        assert raw.to_numpy().sum() != pytest.approx(raw.to_numpy().mean())
+        assert row.Return == pytest.approx(12 * raw.to_numpy().mean())
+
+
+@pytest.mark.parametrize("fails", [False, True], ids=["export", "failure"])
+def test_single_run_tradeoff_table(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+    fails: bool,
+) -> None:
+    """Trade-off sleeve suggestions export a top-N sheet or report computation failure."""
+    monkeypatch.chdir(tmp_path)
+    _stub_sensitivity(monkeypatch)
+    config, index, output = _write_single_run_config(tmp_path)
+    suggestions = pd.DataFrame({"external_pa_capital": [10.0, 20.0], "tracking_error": [0.1, 0.2]})
+    calls = []
+
+    def suggest(_cfg: object, _series: object, **kwargs: object) -> pd.DataFrame:
+        calls.append(kwargs)
+        if fails:
+            raise ValueError("no tradeoff data")
+        return suggestions
+
+    monkeypatch.setattr("pa_core.sleeve_suggestor.suggest_sleeve_sizes", suggest)
+    main(_single_run_argv(config, index, output, "--tradeoff-table", "--tradeoff-top", "1"))
+
+    assert len(calls) == 1 and calls[0]["seed"] == 123
+    if fails:
+        assert "Trade-off table computation failed" in capsys.readouterr().out
+        assert "SleeveTradeoffs" not in pd.ExcelFile(output).sheet_names
+    else:
+        actual = pd.read_excel(output, sheet_name="SleeveTradeoffs", index_col=0)
+        pd.testing.assert_frame_equal(actual, suggestions.head(1), check_dtype=False)
+
+
+@pytest.mark.parametrize("fails", [False, True], ids=["registered", "unavailable"])
+def test_single_run_registry_is_optional(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+    caplog: pytest.LogCaptureFixture,
+    fails: bool,
+) -> None:
+    """Scenario registry registration logs failures without aborting the CLI output."""
+    monkeypatch.chdir(tmp_path)
+    _stub_sensitivity(monkeypatch)
+    config, index, output = _write_single_run_config(tmp_path)
+    calls = []
+
+    def register(_cfg: object, _series: object, seed: int | None) -> str:
+        calls.append(seed)
+        if fails:
+            raise OSError("registry offline")
+        return "scenario-123"
+
+    monkeypatch.setattr("pa_core.scenario_registry.register", register)
+    main(_single_run_argv(config, index, output, "--register"))
+
+    assert calls == [123]
+    if fails:
+        assert "Failed to register scenario: registry offline" in caplog.text
+    else:
+        assert "[REGISTRY] Scenario ID: scenario-123" in capsys.readouterr().out
+    assert output.is_file()
+
+
+@pytest.mark.parametrize(
+    ("status", "expected"),
+    [
+        ("grid_fallback:missing", "Optimizer unavailable; using grid fallback"),
+        ("fallback_failed:invalid", "Optimizer failed without grid fallback"),
+    ],
+    ids=["grid-fallback", "failed-fallback"],
+)
+def test_single_run_suggestion_eof_aborts(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+    status: str,
+    expected: str,
+) -> None:
+    """Interactive sleeve suggestion reports optimizer status and aborts cleanly on EOF."""
+    monkeypatch.chdir(tmp_path)
+    config, index, output = _write_single_run_config(tmp_path)
+    monkeypatch.setattr(
+        "pa_core.sleeve_suggestor.suggest_sleeve_sizes",
+        lambda *_args, **_kwargs: pd.DataFrame({"optimizer_status": [status]}),
+    )
+
+    def no_input(_prompt: str) -> str:
+        raise EOFError
+
+    monkeypatch.setattr("builtins.input", no_input)
+    main(_single_run_argv(config, index, output, "--suggest-sleeves"))
+
+    text = capsys.readouterr().out
+    assert expected in text
+    assert "No selection provided. Aborting run." in text
+    assert not output.exists()
