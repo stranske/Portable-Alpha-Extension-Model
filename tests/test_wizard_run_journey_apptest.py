@@ -7,7 +7,7 @@ from pathlib import Path
 import streamlit as st
 from streamlit.testing.v1 import AppTest
 
-from dashboard.utils import current_results_path
+from dashboard.utils import CURRENT_RESULTS_PATH_KEY
 from pa_core import cli as pa_cli
 from pa_core.wizard_schema import AnalysisMode, get_default_config
 
@@ -82,7 +82,7 @@ def test_index_uploader_survives_rerun_after_run_click(monkeypatch, tmp_path) ->
 
     app = app.run(timeout=60)
     assert not app.exception
-    assert current_results_path(app.session_state) == "Outputs.xlsx"
+    assert app.session_state[CURRENT_RESULTS_PATH_KEY] == "Outputs.xlsx"
     assert page_links == ["📈 View Results →"]
 
 
@@ -90,7 +90,7 @@ def test_wizard_run_request_cleared_when_leaving_step_5() -> None:
     """Backing out of step 5 must drop a stale run request."""
     app = _step_5_app()
     app = _run_simulation_button(app).click().run(timeout=60)
-    assert app.session_state.get("wizard_run_requested") is True
+    assert app.session_state["wizard_run_requested"] is True
 
     back = next(button for button in app.button if button.label == "⬅️ Back: Correlations")
     app = back.click().run(timeout=60)
