@@ -79,6 +79,7 @@ _CONFIG_CHAT_PREVIEW_KEY = "wizard_config_chat_preview"
 _CONFIG_CHAT_PREVIEW_PATCH_KEY = "preview_patch"
 _CONFIG_CHAT_PREVIEW_UNIFIED_DIFF_KEY = "preview_unified_diff"
 _CONFIG_CHAT_PREVIEW_SIDEBYSIDE_DIFF_KEY = "preview_sidebyside_diff"
+_WIZARD_RUN_REQUESTED_KEY = "wizard_run_requested"
 _DEFAULT_EXTERNAL_PA_SHARE = 0.02
 _DEFAULT_ACTIVE_EXT_SHARE = 0.02
 _DEFAULT_MARGIN_BUFFER_SHARE = 0.01
@@ -2196,6 +2197,9 @@ def main() -> None:
     current_step = st.session_state.wizard_step
     config = st.session_state.wizard_config
 
+    if current_step != 5:
+        st.session_state.pop(_WIZARD_RUN_REQUESTED_KEY, None)
+
     with st.sidebar.expander("💬 Config Chat", expanded=False):
         _render_config_chat_sidebar()
 
@@ -2261,11 +2265,12 @@ def main() -> None:
                 st.session_state.wizard_step = 4
                 st.rerun()
 
-        # Handle simulation execution
         if run_simulation:
-            # Store config for diff functionality
+            st.session_state[_WIZARD_RUN_REQUESTED_KEY] = True
             st.session_state.last_wizard_config = config
 
+        # Handle simulation execution (persist run request across reruns)
+        if st.session_state.get(_WIZARD_RUN_REQUESTED_KEY):
             # Need index data for simulation
             st.subheader("📊 Index Data Required")
             idx = st.file_uploader(
@@ -2280,6 +2285,7 @@ def main() -> None:
                     model_config = load_config(yaml_data)
                 except Exception as exc:
                     st.error(friendly_validation_error_message(exc))
+                    st.session_state.pop(_WIZARD_RUN_REQUESTED_KEY, None)
                     st.stop()
                 with _temp_yaml_file(yaml_data) as cfg_path:
                     # Write index data to a secure temp file
@@ -2317,6 +2323,7 @@ def main() -> None:
                         except Exception:
                             pass
 
+                    st.session_state.pop(_WIZARD_RUN_REQUESTED_KEY, None)
                     if sim_ok:
                         remember_current_scenario(
                             st.session_state,
