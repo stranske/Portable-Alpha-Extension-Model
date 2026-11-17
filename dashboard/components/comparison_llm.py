@@ -388,7 +388,7 @@ def render_comparison_llm_panel(
 
     if st.button("Compare Runs", key=f"compare_runs_btn::{run_key}"):
         with st.spinner("Generating run comparison..."):
-            if cached is None or payload is None:
+            if cached is None or payload is None or payload.status != "success":
                 try:
                     prior_manifest, prior_summary, _ = _resolve_prior_inputs(
                         manifest_data,
@@ -412,9 +412,7 @@ def render_comparison_llm_panel(
                     azure_base_url = None
                     azure_api_version = None
                     if provider == "azure_openai":
-                        azure_base_url = (
-                            str(st.session_state.get(base_url_key, "")).strip() or None
-                        )
+                        azure_base_url = str(st.session_state.get(base_url_key, "")).strip() or None
                         azure_api_version = (
                             str(st.session_state.get(api_version_key, "")).strip() or None
                         )

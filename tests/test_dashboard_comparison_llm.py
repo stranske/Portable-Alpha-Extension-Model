@@ -368,13 +368,54 @@ def test_same_path_rerun_invalidates_comparison(monkeypatch, tmp_path) -> None:
     render(button=True)
     assert_active_output(9)
 
-    fake_st.session_state[f"{comparison_module._API_VERSION_KEY}::{run_key}"] = (
-        "2025-04-01-preview"
-    )
+    fake_st.session_state[f"{comparison_module._API_VERSION_KEY}::{run_key}"] = "2025-04-01-preview"
     render(button=False)
     assert_stale_hidden(9)
     render(button=True)
     assert_active_output(10)
+
+    # 8. Fallback payloads allow explicit retry on Compare Runs (e.g. after fixing API key)
+    #    without changing comparison identity, while successful results reuse cache.
+    fake_st.session_state[f"{comparison_module._QUESTIONS_KEY}::{run_key}"] = (
+        "Retry after transient provider failure."
+    )
+    should_fail = True
+
+    def flaky_invoke(prompt: str, **kwargs: Any) -> str:
+        provider_config = kwargs.get("provider_config")
+        calls.append(
+            {
+                "prompt": prompt,
+                "provider": getattr(provider_config, "provider_name", kwargs.get("provider_name")),
+                "model": getattr(provider_config, "model_name", kwargs.get("model_name")),
+            }
+        )
+        if should_fail:
+            raise RuntimeError("transient provider error")
+        return f"Narrative #{len(calls)}"
+
+    monkeypatch.setattr(backend, "_invoke_comparison_llm", flaky_invoke)
+    render(button=True)
+    assert len(calls) == 11
+    fallback_json = json.loads(
+        next(item.data for item in fake_st.downloads if item.mime == "application/json")
+    )
+    assert fallback_json["status"] == "fallback"
+
+    # Passive render keeps fallback output visible.
+    render(button=False)
+    assert len(calls) == 11
+    assert len(fake_st.downloads) == 2
+
+    # Fixing credentials and clicking Compare Runs retries at the same comparison_id.
+    should_fail = False
+    fake_st.session_state[f"{comparison_module._API_KEY_KEY}::{run_key}::azure_openai"] = (
+        "synthetic-recovered-azure-secret"
+    )
+    render(button=True)
+    _, recovered_json = assert_active_output(12)
+    assert recovered_json["status"] == "success"
+    assert recovered_json["comparison_id"] == fallback_json["comparison_id"]
 
 
 def test_comparison_panel_passes_config_snapshot_diff_to_provider_and_exports(
