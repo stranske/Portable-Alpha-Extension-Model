@@ -203,7 +203,7 @@ def test_result_explain_emits_no_secret_record(monkeypatch, tmp_path) -> None:
 def test_compare_runs_emits_fallback_record(monkeypatch, tmp_path) -> None:
     fleet_path = tmp_path / "fleet.ndjson"
     prior_output = tmp_path / "prior.xlsx"
-    pd.DataFrame({"monthly_TE": [0.01], "monthly_CVaR": [-0.03]}).to_excel(
+    pd.DataFrame({"Agent": ["Total"], "monthly_TE": [0.01], "monthly_CVaR": [-0.03]}).to_excel(
         prior_output, sheet_name="Summary", index=False
     )
     prior_manifest = tmp_path / "prior.json"
@@ -216,7 +216,9 @@ def test_compare_runs_emits_fallback_record(monkeypatch, tmp_path) -> None:
     )
 
     text, trace_url, payload = compare_runs(
-        current_summary=pd.DataFrame({"monthly_TE": [0.04], "monthly_CVaR": [-0.02]}),
+        current_summary=pd.DataFrame(
+            {"Agent": ["Total"], "monthly_TE": [0.04], "monthly_CVaR": [-0.02]}
+        ),
         current_manifest={"previous_run": str(prior_manifest), "seed": 2},
         questions="What changed?",
         provider_name="openai",

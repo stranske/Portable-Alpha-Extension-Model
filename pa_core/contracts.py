@@ -308,3 +308,36 @@ def validate_summary_frame(summary_df: pd.DataFrame) -> bool:
         else:
             return False
     return True
+
+
+SUMMARY_TOTAL_AGENT_LABEL = "Total"
+
+
+def select_portfolio_total_metrics(
+    summary_df: pd.DataFrame, columns: Sequence[str]
+) -> dict[str, float]:
+    """Return portfolio metrics read strictly from the ``Agent == "Total"`` row.
+
+    Sleeve rows are never averaged: TE, CVaR, and breach probability are not
+    additive across sleeves, so a mean of sleeve rows changes when the same
+    portfolio is split differently. When the Agent column or Total row is absent,
+    or a requested column has no numeric Total value, that metric is omitted so
+    callers can render it as unavailable.
+    """
+
+    if not isinstance(summary_df, pd.DataFrame) or SUMMARY_AGENT_COLUMN not in summary_df.columns:
+        return {}
+    agent = summary_df[SUMMARY_AGENT_COLUMN].astype(str).str.strip().str.lower()
+    total_rows = summary_df[agent == SUMMARY_TOTAL_AGENT_LABEL.lower()]
+    if total_rows.empty:
+        return {}
+    total_row = total_rows.iloc[0]
+    metrics: dict[str, float] = {}
+    for column in columns:
+        if column not in summary_df.columns:
+            continue
+        value = pd.to_numeric(pd.Series([total_row[column]]), errors="coerce").iloc[0]
+        if pd.isna(value):
+            continue
+        metrics[column] = float(value)
+    return metrics
