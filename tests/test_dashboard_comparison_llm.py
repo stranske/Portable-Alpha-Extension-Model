@@ -490,10 +490,7 @@ def test_same_path_rerun_invalidates_comparison(monkeypatch, tmp_path) -> None:
         fake_st.button_value = button
         fake_st.messages.clear()
         fake_st.downloads.clear()
-        loaded_summary, _ = app.load_data(
-            str(current_output),
-            app.workbook_cache_revision(str(current_output)),
-        )
+        loaded_summary, _ = app.load_results_workbook(str(current_output))
         render_comparison_panel(
             summary=loaded_summary,
             manifest_data=current_manifest,

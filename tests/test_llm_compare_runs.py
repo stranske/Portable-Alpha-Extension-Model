@@ -315,23 +315,6 @@ def test_metric_catalog_uses_total_row():
     assert result_explain._build_metric_catalog(no_agent_column) == {}
 
 
-@pytest.mark.parametrize("non_finite", [float("inf"), float("-inf"), None])
-def test_build_metric_catalog_omits_non_finite_object_dtype_totals(non_finite):
-    df = pd.DataFrame(
-        {
-            "Agent": ["Base", "Total"],
-            "monthly_TE": [0.01, non_finite],
-            "monthly_CVaR": [0.01, -0.02],
-        },
-        dtype=object,
-    )
-
-    catalog = build_metric_catalog(df)
-
-    assert "monthly_TE" not in catalog
-    assert catalog["monthly_CVaR"] == pytest.approx(-0.02)
-
-
 def test_compare_runs_returns_text_trace_and_payload(monkeypatch, tmp_path):
     current_summary = pd.DataFrame(
         {"Agent": ["Base", "Total"], "monthly_TE": [0.05, 0.03], "monthly_CVaR": [-0.08, -0.05]}

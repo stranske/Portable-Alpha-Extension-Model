@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import json
 import logging
-import math
 import os
 import time
 from dataclasses import dataclass
@@ -316,11 +315,7 @@ def build_metric_catalog(summary_df: pd.DataFrame) -> dict[str, float]:
         SUMMARY_CVAR_COLUMN,
         SUMMARY_BREACH_PROB_COLUMN,
     )
-    return {
-        column: value
-        for column, value in select_portfolio_total_metrics(summary_df, metric_columns).items()
-        if math.isfinite(value)
-    }
+    return select_portfolio_total_metrics(summary_df, metric_columns)
 
 
 def _heuristic_compare_text(
