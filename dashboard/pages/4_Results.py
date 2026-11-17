@@ -39,6 +39,7 @@ from pa_core.contracts import (
     SUMMARY_TE_COLUMN,
     SUMMARY_TRACKING_ERROR_LEGACY_COLUMN,
     manifest_path_for_output,
+    select_portfolio_total_metrics,
 )
 from pa_core.llm.compare_runs import load_prior_manifest, load_prior_summary
 
@@ -53,12 +54,17 @@ class _PreviousRunAvailability:
 
 
 def _prior_output_path(prior_manifest: dict | None, prior_manifest_path: Path) -> Path | None:
-    cli_args = prior_manifest.get("cli_args") if isinstance(prior_manifest, dict) else None
-    if not isinstance(cli_args, dict):
+    if not isinstance(prior_manifest, dict):
         return None
-    output = cli_args.get("output")
+    artifact_paths = prior_manifest.get("artifact_paths")
+    output = artifact_paths.get("output") if isinstance(artifact_paths, dict) else None
     if not isinstance(output, str) or not output.strip():
-        return None
+        cli_args = prior_manifest.get("cli_args")
+        if not isinstance(cli_args, dict):
+            return None
+        output = cli_args.get("output")
+        if not isinstance(output, str) or not output.strip():
+            return None
     output_path = Path(output).expanduser()
     if not output_path.is_absolute():
         output_path = prior_manifest_path.expanduser().parent / output_path
@@ -100,12 +106,12 @@ def _check_previous_run_availability(
         )
 
     if prior_manifest is not None and prior_manifest_path is not None:
+        expected_summary = _prior_output_path(prior_manifest, prior_manifest_path)
         try:
             prior_summary, prior_summary_path = load_prior_summary(
                 prior_manifest, manifest_path=prior_manifest_path
             )
         except Exception as exc:
-            expected_summary = _prior_output_path(prior_manifest, prior_manifest_path)
             expected_summary_text = str(expected_summary) if expected_summary else "<unset>"
             return _PreviousRunAvailability(
                 available=False,
@@ -117,10 +123,13 @@ def _check_previous_run_availability(
                 ),
             )
         if prior_summary is None:
-            expected_summary = str(prior_summary_path) if prior_summary_path else "<unset>"
+            resolved_summary_path = prior_summary_path or expected_summary
+            expected_summary_text = (
+                str(resolved_summary_path) if resolved_summary_path else "<unset>"
+            )
             missing_target = (
                 "prior output workbook"
-                if prior_summary_path is not None
+                if resolved_summary_path is not None
                 else "`cli_args.output` path in the prior manifest"
             )
             return _PreviousRunAvailability(
@@ -128,7 +137,8 @@ def _check_previous_run_availability(
                 prior_manifest_path=prior_manifest_path,
                 message=(
                     f"Comparison unavailable: missing {missing_target} referenced by "
-                    f"`manifest_data['previous_run']`; expected output file `{expected_summary}`."
+                    f"`manifest_data['previous_run']`; expected output file "
+                    f"`{expected_summary_text}`."
                 ),
             )
         return _PreviousRunAvailability(
@@ -223,6 +233,13 @@ def _overlay_total_return(summary: pd.DataFrame) -> float | None:
     return None
 
 
+def _format_total_metric(total_metrics: dict[str, float], column: str) -> str:
+    """Format a portfolio Total-row metric, or N/A when no Total value exists."""
+
+    value = total_metrics.get(column)
+    return "N/A" if value is None else f"{value:.2%}"
+
+
 def main() -> None:
     st.title("Results")
     xlsx, theme_path = render_settings_sidebar(_default_results_path())
@@ -253,20 +270,30 @@ def main() -> None:
         te_column = SUMMARY_TE_COLUMN
     elif SUMMARY_TRACKING_ERROR_LEGACY_COLUMN in summary:
         te_column = SUMMARY_TRACKING_ERROR_LEGACY_COLUMN
+    total_metrics = select_portfolio_total_metrics(
+        summary,
+        tuple(
+            col
+            for col in (te_column, SUMMARY_CVAR_COLUMN, SUMMARY_BREACH_PROB_COLUMN)
+            if col is not None
+        ),
+    )
     if te_column is not None:
         col1.metric(
-            "Tracking Error", f"{summary[te_column].mean():.2%}", help=tooltip("monthly_TE")
+            "Tracking Error",
+            _format_total_metric(total_metrics, te_column),
+            help=tooltip("monthly_TE"),
         )
     if SUMMARY_CVAR_COLUMN in summary:
         col2.metric(
             "monthly_CVaR",
-            f"{summary[SUMMARY_CVAR_COLUMN].mean():.2%}",
+            _format_total_metric(total_metrics, SUMMARY_CVAR_COLUMN),
             help=tooltip("monthly_CVaR"),
         )
     if SUMMARY_BREACH_PROB_COLUMN in summary:
         col3.metric(
             "Breach Prob",
-            f"{summary[SUMMARY_BREACH_PROB_COLUMN].mean():.2%}",
+            _format_total_metric(total_metrics, SUMMARY_BREACH_PROB_COLUMN),
             help=tooltip("breach probability"),
         )
     total_return = _overlay_total_return(summary)
@@ -380,12 +407,8 @@ def main() -> None:
             if prev_manifest_path is not None:
                 try:
                     prev_manifest_data = json.loads(prev_manifest_path.read_text())
-                    prev_out = (
-                        prev_manifest_data.get("cli_args", {}).get("output")
-                        if isinstance(prev_manifest_data, dict)
-                        else None
-                    )
-                    if prev_out and Path(prev_out).exists():
+                    prev_out = _prior_output_path(prev_manifest_data, prev_manifest_path)
+                    if prev_out and prev_out.exists():
                         prev_summary_df = pd.read_excel(prev_out, sheet_name=SUMMARY_SHEET_NAME)
                 except Exception:
                     prev_manifest_data = None

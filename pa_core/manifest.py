@@ -36,6 +36,7 @@ class Manifest:
     warnings: Sequence[Mapping[str, Any]] | None = None
     cost: Mapping[str, Any] | None = None
     data_quality: Mapping[str, Any] | None = None
+    artifact_paths: Mapping[str, str] | None = None
 
 
 class ManifestWriter:
@@ -43,6 +44,17 @@ class ManifestWriter:
 
     def __init__(self, path: str | Path = "manifest.json") -> None:
         self.path = Path(path)
+
+    def _manifest_relative_path(self, target: str | Path) -> str:
+        target_path = Path(target).expanduser()
+        manifest_dir = self.path.expanduser().parent
+        try:
+            return str(target_path.relative_to(manifest_dir))
+        except ValueError:
+            try:
+                return str(target_path.resolve().relative_to(manifest_dir.resolve()))
+            except (OSError, ValueError):
+                return str(target_path)
 
     @staticmethod
     def _hash_file(path: str | Path) -> str:
@@ -72,6 +84,7 @@ class ManifestWriter:
         warnings: Sequence[Mapping[str, Any]] | None = None,
         cost: Mapping[str, Any] | None = None,
         data_quality: Mapping[str, Any] | None = None,
+        artifact_paths: Mapping[str, str | Path] | None = None,
     ) -> None:
         """Write manifest to ``self.path``.
 
@@ -105,6 +118,15 @@ class ManifestWriter:
             with _warnings.catch_warnings():
                 _warnings.simplefilter("always", UserWarning)
                 _warnings.warn(SEED_REPRODUCIBILITY_WARNING, UserWarning, stacklevel=2)
+        normalized_artifacts = (
+            {
+                str(key): self._manifest_relative_path(value)
+                for key, value in artifact_paths.items()
+                if value is not None
+            }
+            if artifact_paths is not None
+            else None
+        )
         manifest = Manifest(
             git_commit=commit,
             timestamp=datetime.now(timezone.utc).isoformat(),
@@ -121,5 +143,6 @@ class ManifestWriter:
             warnings=[dict(w) for w in warnings] if warnings is not None else None,
             cost=dict(cost) if cost is not None else None,
             data_quality=dict(data_quality) if data_quality is not None else None,
+            artifact_paths=normalized_artifacts,
         )
         self.path.write_text(json.dumps(asdict(manifest), indent=2))

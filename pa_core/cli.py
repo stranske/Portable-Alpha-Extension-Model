@@ -1290,14 +1290,17 @@ def _main(
             legacy_agent_rng=args.legacy_agent_rng,
         )
         sweep_metadata = {"rng_seed": args.seed, "substream_ids": substream_ids}
+        output_path = Path(args.output)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
         export_sweep_results(results, filename=args.output, metadata=sweep_metadata)
         _record_artifact(args.output)
 
         # Write reproducibility manifest
-        mw = ManifestWriter(Path(args.output).with_name("manifest.json"))
+        manifest_json = output_path.with_name("manifest.json")
+        mw = ManifestWriter(manifest_json)
         # Only include args.output in data_files if it exists
         data_files = [args.index, args.config]
-        if args.output and Path(args.output).exists():
+        if args.output and output_path.exists():
             data_files.append(args.output)
         mw.write(
             config_path=args.config,
@@ -1312,8 +1315,8 @@ def _main(
             previous_run=args.prev_manifest,
             run_timing=run_timer.snapshot(),
             data_quality=idx_series.attrs.get("data_quality"),
+            artifact_paths={"output": str(output_path.relative_to(manifest_json.parent))},
         )
-        manifest_json = Path(args.output).with_name("manifest.json")
         manifest_path = manifest_json
         _record_artifact(manifest_json)
         manifest_data = None
@@ -1799,6 +1802,7 @@ def _main(
 
     metadata = {"rng_seed": run_manifest.get("seed", args.seed), "substream_ids": substream_ids}
     finalize_after_append = bool(args.stress_preset)
+    Path(flags.save_xlsx or "Outputs.xlsx").parent.mkdir(parents=True, exist_ok=True)
     deps.export_to_excel(
         inputs_dict,
         summary,
@@ -1847,9 +1851,10 @@ def _main(
 
     # Write reproducibility manifest for normal run
     try:
-        mw = ManifestWriter(Path(flags.save_xlsx or "Outputs.xlsx").with_name("manifest.json"))
-        data_files = [args.index, args.config]
         out_path = Path(flags.save_xlsx or "Outputs.xlsx")
+        manifest_json = out_path.with_name("manifest.json")
+        mw = ManifestWriter(manifest_json)
+        data_files = [args.index, args.config]
         if out_path.exists():
             data_files.append(str(out_path))
         mw.write(
@@ -1865,8 +1870,9 @@ def _main(
             previous_run=args.prev_manifest,
             run_timing=run_timer.snapshot(),
             data_quality=idx_series.attrs.get("data_quality"),
+            artifact_paths={"output": str(out_path.relative_to(manifest_json.parent))},
         )
-        manifest_path = Path(flags.save_xlsx or "Outputs.xlsx").with_name("manifest.json")
+        manifest_path = manifest_json
     except (OSError, PermissionError, FileNotFoundError) as e:
         logger.warning(f"Failed to write manifest: {e}")
 

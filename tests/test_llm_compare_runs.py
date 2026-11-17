@@ -17,6 +17,7 @@ from pa_core.llm.compare_runs import (
     load_prior_manifest,
     load_prior_summary,
 )
+from pa_core.llm import result_explain
 from pa_core.llm.provider import LLMProviderConfig
 from pa_core.manifest import ManifestWriter
 
@@ -215,8 +216,10 @@ def test_format_config_diff_includes_wizard_add_and_remove_paths():
 
 
 def test_build_metric_catalog_extracts_supported_metrics():
+    # Values come from the Total row only; sleeve rows must not be averaged in.
     df = pd.DataFrame(
         {
+            "Agent": ["Base", " total "],
             "monthly_TE": [0.02, 0.03],
             "TrackingErr": [0.01, 0.02],
             "monthly_CVaR": [-0.04, -0.06],
@@ -227,10 +230,89 @@ def test_build_metric_catalog_extracts_supported_metrics():
 
     catalog = build_metric_catalog(df)
 
-    assert catalog["monthly_TE"] == 0.025
-    assert catalog["TrackingErr"] == 0.015
-    assert catalog["monthly_CVaR"] == -0.05
-    assert catalog["monthly_BreachProb"] == pytest.approx(0.15)
+    assert catalog == {
+        "monthly_TE": 0.03,
+        "TrackingErr": 0.02,
+        "monthly_CVaR": -0.06,
+        "monthly_BreachProb": 0.2,
+    }
+
+
+def test_build_metric_catalog_without_total_row_omits_metrics():
+    sleeves_only = pd.DataFrame(
+        {
+            "Agent": ["Base", "ExternalPA"],
+            "monthly_TE": [0.02, 0.03],
+            "monthly_CVaR": [-0.04, -0.06],
+        }
+    )
+    unlabeled = pd.DataFrame({"monthly_TE": [0.02, 0.03], "monthly_CVaR": [-0.04, -0.06]})
+
+    assert build_metric_catalog(sleeves_only) == {}
+    assert build_metric_catalog(unlabeled) == {}
+
+
+def _split_sleeve_summary(sleeve_rows: list[dict[str, object]]) -> pd.DataFrame:
+    total = {
+        "Agent": "Total",
+        "monthly_TE": 0.04,
+        "monthly_CVaR": -0.09,
+        "monthly_BreachProb": 0.12,
+    }
+    return pd.DataFrame([*sleeve_rows, total])
+
+
+def test_metric_catalog_uses_total_row():
+    # Identical Total paths: one full sleeve vs. the same exposure split into two
+    # half sleeves. Half sleeves carry roughly half the sleeve-level TE/CVaR, so any
+    # sleeve averaging would move the reported portfolio metric.
+    one_sleeve = _split_sleeve_summary(
+        [
+            {
+                "Agent": "ExternalPA",
+                "monthly_TE": 0.04,
+                "monthly_CVaR": -0.09,
+                "monthly_BreachProb": 0.12,
+            }
+        ]
+    )
+    two_half_sleeves = _split_sleeve_summary(
+        [
+            {
+                "Agent": "ExternalPA_A",
+                "monthly_TE": 0.02,
+                "monthly_CVaR": -0.045,
+                "monthly_BreachProb": 0.03,
+            },
+            {
+                "Agent": "ExternalPA_B",
+                "monthly_TE": 0.02,
+                "monthly_CVaR": -0.045,
+                "monthly_BreachProb": 0.03,
+            },
+        ]
+    )
+    expected = {"monthly_TE": 0.04, "monthly_CVaR": -0.09, "monthly_BreachProb": 0.12}
+
+    assert build_metric_catalog(one_sleeve) == expected
+    assert build_metric_catalog(two_half_sleeves) == expected
+
+    explain_one = result_explain._build_metric_catalog(one_sleeve)
+    explain_two = result_explain._build_metric_catalog(two_half_sleeves)
+    for metric_key, column in (
+        ("tracking_error", "monthly_TE"),
+        ("cvar", "monthly_CVaR"),
+        ("breach_probability", "monthly_BreachProb"),
+    ):
+        assert explain_one[metric_key]["value"] == expected[column]
+        assert explain_two[metric_key]["value"] == expected[column]
+
+    missing_total = two_half_sleeves[two_half_sleeves["Agent"] != "Total"]
+    assert build_metric_catalog(missing_total) == {}
+    assert result_explain._build_metric_catalog(missing_total) == {}
+    no_agent_column = missing_total.drop(columns=["Agent"])
+    assert build_metric_catalog(no_agent_column) == {}
+    assert result_explain._build_metric_catalog(no_agent_column) == {}
 
 
 def test_build_metric_catalog_omits_non_finite_object_dtype_means():
@@ -248,11 +330,13 @@ def test_build_metric_catalog_omits_non_finite_object_dtype_means():
 
 
 def test_compare_runs_returns_text_trace_and_payload(monkeypatch, tmp_path):
-    current_summary = pd.DataFrame({"monthly_TE": [0.03], "monthly_CVaR": [-0.05]})
-    prior_output = tmp_path / "prior.xlsx"
-    pd.DataFrame({"monthly_TE": [0.01], "monthly_CVaR": [-0.04]}).to_excel(
-        prior_output, sheet_name="Summary", index=False
+    current_summary = pd.DataFrame(
+        {"Agent": ["Base", "Total"], "monthly_TE": [0.05, 0.03], "monthly_CVaR": [-0.08, -0.05]}
     )
+    prior_output = tmp_path / "prior.xlsx"
+    pd.DataFrame(
+        {"Agent": ["Base", "Total"], "monthly_TE": [0.02, 0.01], "monthly_CVaR": [-0.06, -0.04]}
+    ).to_excel(prior_output, sheet_name="Summary", index=False)
     prior_manifest_path = tmp_path / "prior_manifest.json"
     prior_manifest_path.write_text(
         json.dumps({"cli_args": {"output": str(prior_output)}, "seed": 1})
@@ -282,6 +366,8 @@ def test_compare_runs_returns_text_trace_and_payload(monkeypatch, tmp_path):
     assert payload.status == "fallback"
     assert payload.config_diff
     assert payload.prior_manifest_path == str(prior_manifest_path)
+    assert "monthly_TE: prior=1.0000%, current=3.0000%, delta=+2.0000%" in text
+    assert "monthly_CVaR: prior=-4.0000%, current=-5.0000%, delta=-1.0000%" in text
 
 
 @pytest.mark.parametrize("trace_failure", [None, "enter", "exit"])
@@ -289,9 +375,11 @@ def test_compare_runs_prefers_llm_text_when_available(
     monkeypatch, tmp_path, fake_langsmith_run, trace_failure
 ):
     fake_langsmith_run.fail_on = trace_failure
-    current_summary = pd.DataFrame({"monthly_TE": [0.03], "monthly_CVaR": [-0.05]})
+    current_summary = pd.DataFrame(
+        {"Agent": ["Total"], "monthly_TE": [0.03], "monthly_CVaR": [-0.05]}
+    )
     prior_output = tmp_path / "prior.xlsx"
-    pd.DataFrame({"monthly_TE": [0.01], "monthly_CVaR": [-0.04]}).to_excel(
+    pd.DataFrame({"Agent": ["Total"], "monthly_TE": [0.01], "monthly_CVaR": [-0.04]}).to_excel(
         prior_output, sheet_name="Summary", index=False
     )
     prior_manifest_path = tmp_path / "prior_manifest.json"
@@ -373,9 +461,11 @@ def test_compare_runs_uses_passed_prior_snapshot_instead_of_disk_reload(
 
 
 def test_compare_runs_threads_provider_config_to_llm(monkeypatch, tmp_path) -> None:
-    current_summary = pd.DataFrame({"monthly_TE": [0.03], "monthly_CVaR": [-0.05]})
+    current_summary = pd.DataFrame(
+        {"Agent": ["Total"], "monthly_TE": [0.03], "monthly_CVaR": [-0.05]}
+    )
     prior_output = tmp_path / "prior.xlsx"
-    pd.DataFrame({"monthly_TE": [0.01], "monthly_CVaR": [-0.04]}).to_excel(
+    pd.DataFrame({"Agent": ["Total"], "monthly_TE": [0.01], "monthly_CVaR": [-0.04]}).to_excel(
         prior_output, sheet_name="Summary", index=False
     )
     prior_manifest_path = tmp_path / "prior_manifest.json"
@@ -485,9 +575,11 @@ def test_compare_runs_with_anthropic_provider_name_and_no_prebuilt_config(
     has provider_name=="anthropic", the model_name we requested, and the
     api_key+credentials we provided.
     """
-    current_summary = pd.DataFrame({"monthly_TE": [0.03], "monthly_CVaR": [-0.05]})
+    current_summary = pd.DataFrame(
+        {"Agent": ["Total"], "monthly_TE": [0.03], "monthly_CVaR": [-0.05]}
+    )
     prior_output = tmp_path / "prior.xlsx"
-    pd.DataFrame({"monthly_TE": [0.01], "monthly_CVaR": [-0.04]}).to_excel(
+    pd.DataFrame({"Agent": ["Total"], "monthly_TE": [0.01], "monthly_CVaR": [-0.04]}).to_excel(
         prior_output, sheet_name="Summary", index=False
     )
     prior_manifest_path = tmp_path / "prior_manifest.json"
@@ -590,7 +682,9 @@ def test_comparison_fallback_redacts_credentials_and_chained_errors(
         marker = bearer
     monkeypatch.setattr(module, "load_prior_manifest", lambda _: ({}, None))
     monkeypatch.setattr(
-        module, "load_prior_summary", lambda *a, **k: (pd.DataFrame({"monthly_TE": [0.01]}), None)
+        module,
+        "load_prior_summary",
+        lambda *a, **k: (pd.DataFrame({"Agent": ["Total"], "monthly_TE": [0.01]}), None),
     )
     monkeypatch.setattr(module, "langsmith_tracing_context", lambda **k: nullcontext())
     monkeypatch.setattr(module, "record_fleet_event", lambda *a, **k: None)
@@ -608,7 +702,7 @@ def test_comparison_fallback_redacts_credentials_and_chained_errors(
     monkeypatch.setattr(module, "_invoke_comparison_llm", fail)
     with caplog.at_level("WARNING", logger=module.__name__):
         text, trace, payload = module.compare_runs(
-            current_summary=pd.DataFrame({"monthly_TE": [0.02]}),
+            current_summary=pd.DataFrame({"Agent": ["Total"], "monthly_TE": [0.02]}),
             current_manifest={},
             questions="What changed?",
             **options,
@@ -625,7 +719,7 @@ def test_comparison_fallback_redacts_credentials_and_chained_errors(
 
 def _question_comparison_input(tmp_path, prior_theta=0.2, current_theta=0.8):
     prior_output = tmp_path / "question-prior.xlsx"
-    pd.DataFrame({"monthly_TE": [0.01], "monthly_CVaR": [-0.04]}).to_excel(
+    pd.DataFrame({"Agent": ["Total"], "monthly_TE": [0.01], "monthly_CVaR": [-0.04]}).to_excel(
         prior_output, sheet_name="Summary", index=False
     )
     prior_manifest = tmp_path / "question-prior.json"
@@ -662,7 +756,9 @@ def test_comparison_question_reaches_provider_prompt(monkeypatch, tmp_path, ques
     monkeypatch.setattr(module, "langsmith_tracing_context", lambda **kwargs: nullcontext())
     monkeypatch.setattr(module, "record_fleet_event", lambda *args, **kwargs: None)
     text, _, payload = compare_runs(
-        current_summary=pd.DataFrame({"monthly_TE": [0.03], "monthly_CVaR": [-0.05]}),
+        current_summary=pd.DataFrame(
+            {"Agent": ["Total"], "monthly_TE": [0.03], "monthly_CVaR": [-0.05]}
+        ),
         current_manifest=_question_comparison_input(tmp_path),
         questions=question,
     )
@@ -730,7 +826,7 @@ def test_dashboard_question_changes_actual_provider_prompt(
     monkeypatch.setattr(provider, "create_llm", lambda config: FakeProvider())
     manifest = _question_comparison_input(tmp_path, prior_theta, current_theta)
     expected_diff = f"config.theta_extpa: {prior_theta} -> {current_theta}"
-    summary = pd.DataFrame({"monthly_TE": [0.03], "monthly_CVaR": [-0.05]})
+    summary = pd.DataFrame({"Agent": ["Total"], "monthly_TE": [0.03], "monthly_CVaR": [-0.05]})
     questions = ["Explain tracking error changes", "Explain downside risk changes"]
     payloads = []
     for question in questions:
@@ -797,7 +893,7 @@ def test_empty_question_fallback_uses_same_default(monkeypatch, tmp_path):
     monkeypatch.setattr(module, "langsmith_tracing_context", lambda **kwargs: nullcontext())
     monkeypatch.setattr(module, "record_fleet_event", lambda *args, **kwargs: None)
     text, _, payload = compare_runs(
-        current_summary=pd.DataFrame({"monthly_TE": [0.03]}),
+        current_summary=pd.DataFrame({"Agent": ["Total"], "monthly_TE": [0.03]}),
         current_manifest=_question_comparison_input(tmp_path),
         questions=" ",
     )
@@ -805,3 +901,198 @@ def test_empty_question_fallback_uses_same_default(monkeypatch, tmp_path):
     assert f"Questions: {DEFAULT_COMPARISON_QUESTIONS}" in text
     assert "Config differences:" in text and "Metric deltas:" in text
     assert payload.questions == DEFAULT_COMPARISON_QUESTIONS
+
+
+def test_cli_nested_relative_output_round_trips_to_loader(monkeypatch, tmp_path):
+    from pathlib import Path
+
+    import yaml
+
+    from pa_core.cli import main
+
+    repo_root = Path(__file__).resolve().parents[1]
+    idx_csv = repo_root / "data" / "sp500tr_fred_divyield.csv"
+    cfg_path = tmp_path / "cfg.yaml"
+    cfg_path.write_text(
+        yaml.safe_dump(
+            {
+                "N_SIMULATIONS": 1,
+                "N_MONTHS": 1,
+                "financing_mode": "broadcast",
+                "sweep": {
+                    "method": "grid",
+                    "parameters": {"mu_H": {"values": [0.04]}},
+                },
+            }
+        )
+    )
+    monkeypatch.chdir(tmp_path)
+    main(
+        [
+            "--config",
+            str(cfg_path),
+            "--index",
+            str(idx_csv),
+            "--output",
+            "runs/prior/Outputs.xlsx",
+            "--seed",
+            "123",
+        ]
+    )
+
+    manifest_path = tmp_path / "runs" / "prior" / "manifest.json"
+    assert manifest_path.is_file()
+    manifest = json.loads(manifest_path.read_text())
+    assert manifest["cli_args"]["output"] == "runs/prior/Outputs.xlsx"
+
+    loaded, resolved_path = load_prior_summary(manifest, manifest_path=manifest_path)
+    assert resolved_path == manifest_path.parent / "Outputs.xlsx"
+    assert isinstance(loaded, pd.DataFrame)
+    assert not loaded.empty
+    assert "monthly_TE" in loaded.columns
+    assert manifest["artifact_paths"] == {"output": "Outputs.xlsx"}
+
+
+def test_cli_single_run_nested_relative_output_round_trips_to_loader(monkeypatch, tmp_path):
+    from pathlib import Path
+
+    import yaml
+
+    from pa_core.cli import main
+
+    repo_root = Path(__file__).resolve().parents[1]
+    idx_csv = repo_root / "data" / "sp500tr_fred_divyield.csv"
+    cfg_path = tmp_path / "cfg.yaml"
+    cfg_path.write_text(
+        yaml.safe_dump(
+            {
+                "N_SIMULATIONS": 1,
+                "N_MONTHS": 1,
+                "financing_mode": "broadcast",
+                "analysis_mode": "single_with_sensitivity",
+            }
+        )
+    )
+    monkeypatch.setattr(
+        "pa_core.sim.sensitivity.one_factor_deltas", lambda *_a, **_k: pd.DataFrame()
+    )
+    monkeypatch.setattr("pa_core.cli.print_enhanced_summary", lambda *_a, **_k: None)
+    monkeypatch.chdir(tmp_path)
+    main(
+        [
+            "--config",
+            str(cfg_path),
+            "--index",
+            str(idx_csv),
+            "--output",
+            "runs/prior/Outputs.xlsx",
+            "--seed",
+            "123",
+            "--sensitivity",
+        ]
+    )
+
+    manifest_path = tmp_path / "runs" / "prior" / "manifest.json"
+    assert manifest_path.is_file()
+    manifest = json.loads(manifest_path.read_text())
+    assert manifest["cli_args"]["output"] == "runs/prior/Outputs.xlsx"
+    assert manifest["artifact_paths"] == {"output": "Outputs.xlsx"}
+
+    loaded, resolved_path = load_prior_summary(manifest, manifest_path=manifest_path)
+    assert resolved_path == manifest_path.parent / "Outputs.xlsx"
+    assert isinstance(loaded, pd.DataFrame)
+    assert not loaded.empty
+    assert "monthly_TE" in loaded.columns
+
+
+def test_different_cwd_dashboard_load_resolves_nested_relative_output(monkeypatch, tmp_path):
+    import runpy
+    from pathlib import Path
+
+    repo_root = Path(__file__).resolve().parents[1]
+    results_page = repo_root / "dashboard" / "pages" / "4_Results.py"
+    module_dict = runpy.run_path(str(results_page), run_name="dashboard.pages.page_4_Results")
+    prior_output_path_fn = module_dict["_prior_output_path"]
+    check_availability = module_dict["_check_previous_run_availability"]
+
+    cli_cwd = tmp_path / "cli_workspace"
+    run_dir = cli_cwd / "runs" / "prior"
+    run_dir.mkdir(parents=True)
+    prior_output = run_dir / "Outputs.xlsx"
+    pd.DataFrame({"monthly_TE": [0.02], "monthly_CVaR": [-0.03]}).to_excel(
+        prior_output, sheet_name="Summary", index=False
+    )
+    cfg_path = cli_cwd / "cfg.yaml"
+    cfg_path.write_text("N_SIMULATIONS: 1\n")
+    manifest_path = run_dir / "manifest.json"
+    monkeypatch.chdir(cli_cwd)
+    ManifestWriter(Path("runs/prior/manifest.json")).write(
+        config_path=cfg_path,
+        data_files=[],
+        seed=7,
+        cli_args={"output": "runs/prior/Outputs.xlsx"},
+        artifact_paths={"output": "runs/prior/Outputs.xlsx"},
+    )
+    prior_manifest = json.loads(manifest_path.read_text())
+    assert prior_manifest["cli_args"]["output"] == "runs/prior/Outputs.xlsx"
+    assert prior_manifest["artifact_paths"] == {"output": "Outputs.xlsx"}
+
+    dashboard_cwd = tmp_path / "dashboard_workspace"
+    dashboard_cwd.mkdir()
+    monkeypatch.chdir(dashboard_cwd)
+
+    assert prior_output_path_fn(prior_manifest, manifest_path) == prior_output
+    loaded, resolved = load_prior_summary(prior_manifest, manifest_path=manifest_path)
+    assert resolved == prior_output
+    assert isinstance(loaded, pd.DataFrame)
+    assert loaded["monthly_TE"].iloc[0] == pytest.approx(0.02)
+
+    availability = check_availability({"previous_run": str(manifest_path)})
+    assert availability.available is True
+    assert availability.prior_manifest_path == manifest_path
+    assert availability.message is None
+
+
+def test_prior_output_resolution_supports_absolute_and_legacy_basename_manifests(
+    monkeypatch, tmp_path
+):
+    import runpy
+    from pathlib import Path
+
+    repo_root = Path(__file__).resolve().parents[1]
+    results_page = repo_root / "dashboard" / "pages" / "4_Results.py"
+    module_dict = runpy.run_path(str(results_page), run_name="dashboard.pages.page_4_Results")
+    prior_output_path_fn = module_dict["_prior_output_path"]
+
+    run_dir = tmp_path / "runs" / "prior"
+    run_dir.mkdir(parents=True)
+    prior_output = run_dir / "Outputs.xlsx"
+    pd.DataFrame({"monthly_TE": [0.025], "monthly_CVaR": [-0.035]}).to_excel(
+        prior_output, sheet_name="Summary", index=False
+    )
+    manifest_path = run_dir / "manifest.json"
+
+    other_cwd = tmp_path / "other_cwd"
+    other_cwd.mkdir()
+    monkeypatch.chdir(other_cwd)
+
+    # 1. Absolute path in cli_args / artifact_paths
+    abs_manifest = {
+        "cli_args": {"output": str(prior_output.resolve())},
+        "artifact_paths": {"output": str(prior_output.resolve())},
+    }
+    assert prior_output_path_fn(abs_manifest, manifest_path) == prior_output.resolve()
+    loaded_abs, path_abs = load_prior_summary(abs_manifest, manifest_path=manifest_path)
+    assert path_abs == prior_output.resolve()
+    assert isinstance(loaded_abs, pd.DataFrame)
+    assert loaded_abs["monthly_TE"].iloc[0] == pytest.approx(0.025)
+
+    # 2. Legacy manifest with only basename cli_args.output and no artifact_paths
+    legacy_basename_manifest = {"cli_args": {"output": "Outputs.xlsx"}}
+    assert prior_output_path_fn(legacy_basename_manifest, manifest_path) == prior_output
+    loaded_legacy, path_legacy = load_prior_summary(
+        legacy_basename_manifest, manifest_path=manifest_path
+    )
+    assert path_legacy == prior_output
+    assert isinstance(loaded_legacy, pd.DataFrame)
+    assert loaded_legacy["monthly_TE"].iloc[0] == pytest.approx(0.025)
