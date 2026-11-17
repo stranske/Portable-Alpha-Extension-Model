@@ -118,12 +118,15 @@ def load_prior_summary(
 
     if not isinstance(prior_manifest, Mapping):
         return None, None
-    cli_args = prior_manifest.get("cli_args")
-    if not isinstance(cli_args, Mapping):
-        return None, None
-    output = cli_args.get("output")
+    artifact_paths = prior_manifest.get("artifact_paths")
+    output = artifact_paths.get("output") if isinstance(artifact_paths, Mapping) else None
     if not isinstance(output, str) or not output.strip():
-        return None, None
+        cli_args = prior_manifest.get("cli_args")
+        if not isinstance(cli_args, Mapping):
+            return None, None
+        output = cli_args.get("output")
+        if not isinstance(output, str) or not output.strip():
+            return None, None
 
     output_path = Path(output).expanduser()
     if not output_path.is_absolute() and manifest_path is not None:

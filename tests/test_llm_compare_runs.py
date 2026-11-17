@@ -741,3 +741,198 @@ def test_empty_question_fallback_uses_same_default(monkeypatch, tmp_path):
     assert f"Questions: {DEFAULT_COMPARISON_QUESTIONS}" in text
     assert "Config differences:" in text and "Metric deltas:" in text
     assert payload.questions == DEFAULT_COMPARISON_QUESTIONS
+
+
+def test_cli_nested_relative_output_round_trips_to_loader(monkeypatch, tmp_path):
+    from pathlib import Path
+
+    import yaml
+
+    from pa_core.cli import main
+
+    repo_root = Path(__file__).resolve().parents[1]
+    idx_csv = repo_root / "data" / "sp500tr_fred_divyield.csv"
+    cfg_path = tmp_path / "cfg.yaml"
+    cfg_path.write_text(
+        yaml.safe_dump(
+            {
+                "N_SIMULATIONS": 1,
+                "N_MONTHS": 1,
+                "financing_mode": "broadcast",
+                "sweep": {
+                    "method": "grid",
+                    "parameters": {"mu_H": {"values": [0.04]}},
+                },
+            }
+        )
+    )
+    monkeypatch.chdir(tmp_path)
+    main(
+        [
+            "--config",
+            str(cfg_path),
+            "--index",
+            str(idx_csv),
+            "--output",
+            "runs/prior/Outputs.xlsx",
+            "--seed",
+            "123",
+        ]
+    )
+
+    manifest_path = tmp_path / "runs" / "prior" / "manifest.json"
+    assert manifest_path.is_file()
+    manifest = json.loads(manifest_path.read_text())
+    assert manifest["cli_args"]["output"] == "runs/prior/Outputs.xlsx"
+
+    loaded, resolved_path = load_prior_summary(manifest, manifest_path=manifest_path)
+    assert resolved_path == manifest_path.parent / "Outputs.xlsx"
+    assert isinstance(loaded, pd.DataFrame)
+    assert not loaded.empty
+    assert "monthly_TE" in loaded.columns
+    assert manifest["artifact_paths"] == {"output": "Outputs.xlsx"}
+
+
+def test_cli_single_run_nested_relative_output_round_trips_to_loader(monkeypatch, tmp_path):
+    from pathlib import Path
+
+    import yaml
+
+    from pa_core.cli import main
+
+    repo_root = Path(__file__).resolve().parents[1]
+    idx_csv = repo_root / "data" / "sp500tr_fred_divyield.csv"
+    cfg_path = tmp_path / "cfg.yaml"
+    cfg_path.write_text(
+        yaml.safe_dump(
+            {
+                "N_SIMULATIONS": 1,
+                "N_MONTHS": 1,
+                "financing_mode": "broadcast",
+                "analysis_mode": "single_with_sensitivity",
+            }
+        )
+    )
+    monkeypatch.setattr(
+        "pa_core.sim.sensitivity.one_factor_deltas", lambda *_a, **_k: pd.DataFrame()
+    )
+    monkeypatch.setattr("pa_core.cli.print_enhanced_summary", lambda *_a, **_k: None)
+    monkeypatch.chdir(tmp_path)
+    main(
+        [
+            "--config",
+            str(cfg_path),
+            "--index",
+            str(idx_csv),
+            "--output",
+            "runs/prior/Outputs.xlsx",
+            "--seed",
+            "123",
+            "--sensitivity",
+        ]
+    )
+
+    manifest_path = tmp_path / "runs" / "prior" / "manifest.json"
+    assert manifest_path.is_file()
+    manifest = json.loads(manifest_path.read_text())
+    assert manifest["cli_args"]["output"] == "runs/prior/Outputs.xlsx"
+    assert manifest["artifact_paths"] == {"output": "Outputs.xlsx"}
+
+    loaded, resolved_path = load_prior_summary(manifest, manifest_path=manifest_path)
+    assert resolved_path == manifest_path.parent / "Outputs.xlsx"
+    assert isinstance(loaded, pd.DataFrame)
+    assert not loaded.empty
+    assert "monthly_TE" in loaded.columns
+
+
+def test_different_cwd_dashboard_load_resolves_nested_relative_output(monkeypatch, tmp_path):
+    import runpy
+    from pathlib import Path
+
+    repo_root = Path(__file__).resolve().parents[1]
+    results_page = repo_root / "dashboard" / "pages" / "4_Results.py"
+    module_dict = runpy.run_path(str(results_page), run_name="dashboard.pages.page_4_Results")
+    prior_output_path_fn = module_dict["_prior_output_path"]
+    check_availability = module_dict["_check_previous_run_availability"]
+
+    cli_cwd = tmp_path / "cli_workspace"
+    run_dir = cli_cwd / "runs" / "prior"
+    run_dir.mkdir(parents=True)
+    prior_output = run_dir / "Outputs.xlsx"
+    pd.DataFrame({"monthly_TE": [0.02], "monthly_CVaR": [-0.03]}).to_excel(
+        prior_output, sheet_name="Summary", index=False
+    )
+    cfg_path = cli_cwd / "cfg.yaml"
+    cfg_path.write_text("N_SIMULATIONS: 1\n")
+    manifest_path = run_dir / "manifest.json"
+    monkeypatch.chdir(cli_cwd)
+    ManifestWriter(Path("runs/prior/manifest.json")).write(
+        config_path=cfg_path,
+        data_files=[],
+        seed=7,
+        cli_args={"output": "runs/prior/Outputs.xlsx"},
+        artifact_paths={"output": "runs/prior/Outputs.xlsx"},
+    )
+    prior_manifest = json.loads(manifest_path.read_text())
+    assert prior_manifest["cli_args"]["output"] == "runs/prior/Outputs.xlsx"
+    assert prior_manifest["artifact_paths"] == {"output": "Outputs.xlsx"}
+
+    dashboard_cwd = tmp_path / "dashboard_workspace"
+    dashboard_cwd.mkdir()
+    monkeypatch.chdir(dashboard_cwd)
+
+    assert prior_output_path_fn(prior_manifest, manifest_path) == prior_output
+    loaded, resolved = load_prior_summary(prior_manifest, manifest_path=manifest_path)
+    assert resolved == prior_output
+    assert isinstance(loaded, pd.DataFrame)
+    assert loaded["monthly_TE"].iloc[0] == pytest.approx(0.02)
+
+    availability = check_availability({"previous_run": str(manifest_path)})
+    assert availability.available is True
+    assert availability.prior_manifest_path == manifest_path
+    assert availability.message is None
+
+
+def test_prior_output_resolution_supports_absolute_and_legacy_basename_manifests(
+    monkeypatch, tmp_path
+):
+    import runpy
+    from pathlib import Path
+
+    repo_root = Path(__file__).resolve().parents[1]
+    results_page = repo_root / "dashboard" / "pages" / "4_Results.py"
+    module_dict = runpy.run_path(str(results_page), run_name="dashboard.pages.page_4_Results")
+    prior_output_path_fn = module_dict["_prior_output_path"]
+
+    run_dir = tmp_path / "runs" / "prior"
+    run_dir.mkdir(parents=True)
+    prior_output = run_dir / "Outputs.xlsx"
+    pd.DataFrame({"monthly_TE": [0.025], "monthly_CVaR": [-0.035]}).to_excel(
+        prior_output, sheet_name="Summary", index=False
+    )
+    manifest_path = run_dir / "manifest.json"
+
+    other_cwd = tmp_path / "other_cwd"
+    other_cwd.mkdir()
+    monkeypatch.chdir(other_cwd)
+
+    # 1. Absolute path in cli_args / artifact_paths
+    abs_manifest = {
+        "cli_args": {"output": str(prior_output.resolve())},
+        "artifact_paths": {"output": str(prior_output.resolve())},
+    }
+    assert prior_output_path_fn(abs_manifest, manifest_path) == prior_output.resolve()
+    loaded_abs, path_abs = load_prior_summary(abs_manifest, manifest_path=manifest_path)
+    assert path_abs == prior_output.resolve()
+    assert isinstance(loaded_abs, pd.DataFrame)
+    assert loaded_abs["monthly_TE"].iloc[0] == pytest.approx(0.025)
+
+    # 2. Legacy manifest with only basename cli_args.output and no artifact_paths
+    legacy_basename_manifest = {"cli_args": {"output": "Outputs.xlsx"}}
+    assert prior_output_path_fn(legacy_basename_manifest, manifest_path) == prior_output
+    loaded_legacy, path_legacy = load_prior_summary(
+        legacy_basename_manifest, manifest_path=manifest_path
+    )
+    assert path_legacy == prior_output
+    assert isinstance(loaded_legacy, pd.DataFrame)
+    assert loaded_legacy["monthly_TE"].iloc[0] == pytest.approx(0.025)
