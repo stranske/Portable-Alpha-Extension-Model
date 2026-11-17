@@ -54,6 +54,8 @@ MANIFEST_OPTIONAL_FIELDS: Sequence[str] = (
     "substream_ids",
     "warnings",
     "cost",
+    "data_quality",
+    "artifact_paths",
 )
 
 # Unified run-record envelope (run.json) — ties manifest.json, run_end.json and
@@ -190,6 +192,8 @@ class ManifestPayload(TypedDict, total=False):
     run_timing: Mapping[str, Any] | None
     warnings: list[Mapping[str, Any]]
     cost: Mapping[str, Any] | None
+    data_quality: Mapping[str, Any] | None
+    artifact_paths: Mapping[str, str] | None
 
 
 @dataclass(frozen=True)
