@@ -105,6 +105,29 @@ def load_prior_manifest(
     return loaded, prev_manifest_path
 
 
+def _prior_output_path(
+    prior_manifest: Mapping[str, Any] | None,
+    *,
+    manifest_path: Path | None = None,
+) -> Path | None:
+    if not isinstance(prior_manifest, Mapping):
+        return None
+    artifact_paths = prior_manifest.get("artifact_paths")
+    output = artifact_paths.get("output") if isinstance(artifact_paths, Mapping) else None
+    if not isinstance(output, str) or not output.strip():
+        cli_args = prior_manifest.get("cli_args")
+        if not isinstance(cli_args, Mapping):
+            return None
+        output = cli_args.get("output")
+    if not isinstance(output, str) or not output.strip():
+        return None
+
+    output_path = Path(output).expanduser()
+    if not output_path.is_absolute() and manifest_path is not None:
+        output_path = manifest_path.expanduser().parent / output_path
+    return output_path
+
+
 def load_prior_summary(
     prior_manifest: Mapping[str, Any] | None,
     *,
@@ -117,21 +140,9 @@ def load_prior_summary(
     dashboard process may be launched from a different working directory.
     """
 
-    if not isinstance(prior_manifest, Mapping):
+    output_path = _prior_output_path(prior_manifest, manifest_path=manifest_path)
+    if output_path is None:
         return None, None
-    artifact_paths = prior_manifest.get("artifact_paths")
-    output = artifact_paths.get("output") if isinstance(artifact_paths, Mapping) else None
-    if not isinstance(output, str) or not output.strip():
-        cli_args = prior_manifest.get("cli_args")
-        if not isinstance(cli_args, Mapping):
-            return None, None
-        output = cli_args.get("output")
-        if not isinstance(output, str) or not output.strip():
-            return None, None
-
-    output_path = Path(output).expanduser()
-    if not output_path.is_absolute() and manifest_path is not None:
-        output_path = manifest_path.expanduser().parent / output_path
     if not output_path.exists() or not output_path.is_file():
         return None, output_path
 
@@ -386,22 +397,38 @@ def compare_runs(
     api_key: str | None = None,
     provider_config: LLMProviderConfig | None = None,
     provider_credentials: Mapping[str, str] | None = None,
+    prior_summary: pd.DataFrame | None = None,
+    prior_manifest: Mapping[str, Any] | None = None,
 ) -> tuple[str, str | None, CompareRunsPayload]:
     """Generate run comparison output and optional trace URL for Results panel."""
 
     questions = questions.strip() or DEFAULT_COMPARISON_QUESTIONS
-    prior_manifest, prior_manifest_path = load_prior_manifest(current_manifest)
-    if prior_manifest is None:
+    resolved_prior_manifest: dict[str, Any] | None
+    prior_manifest_path: Path | None = None
+    if isinstance(prior_manifest, Mapping):
+        resolved_prior_manifest = dict(prior_manifest)
+        if isinstance(current_manifest, Mapping):
+            prev_ref = current_manifest.get("previous_run")
+            if isinstance(prev_ref, str) and prev_ref.strip():
+                prior_manifest_path = Path(prev_ref).expanduser()
+    else:
+        resolved_prior_manifest, prior_manifest_path = load_prior_manifest(current_manifest)
+    if resolved_prior_manifest is None:
         raise ValueError("No readable prior manifest found from manifest_data['previous_run'].")
 
-    prior_summary, prior_summary_path = load_prior_summary(
-        prior_manifest, manifest_path=prior_manifest_path
-    )
+    if prior_summary is None:
+        prior_summary, prior_summary_path = load_prior_summary(
+            resolved_prior_manifest, manifest_path=prior_manifest_path
+        )
+    else:
+        prior_summary_path = _prior_output_path(
+            resolved_prior_manifest, manifest_path=prior_manifest_path
+        )
     if prior_summary is None:
         expected = str(prior_summary_path) if prior_summary_path else "<unset>"
         raise ValueError(f"No readable prior summary found at expected path: {expected}")
 
-    config_diff = format_config_diff(current_manifest, prior_manifest)
+    config_diff = format_config_diff(current_manifest, resolved_prior_manifest)
     metrics_a = build_metric_catalog(current_summary)
     metrics_b = build_metric_catalog(prior_summary)
 

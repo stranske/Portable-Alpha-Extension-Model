@@ -197,7 +197,7 @@ def test_main_renders_data_and_export_controls(tmp_path) -> None:
             "st": fake_st,
             "render_settings_sidebar": lambda _default: (str(workbook), "theme.toml"),
             "apply_theme": lambda _theme: None,
-            "load_data": lambda _xlsx: (summary, None),
+            "load_results_workbook": lambda *_args, **_kwargs: (summary, None),
             "manifest_path_for_output": lambda _xlsx: tmp_path / "missing-manifest.json",
             "_render_explain_results": lambda **_kwargs: None,
             "_render_comparison_panel": lambda **_kwargs: None,
