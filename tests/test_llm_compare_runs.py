@@ -681,7 +681,12 @@ def test_dashboard_question_changes_actual_provider_prompt(
             manifest_data=manifest,
             run_key="questions",
         )
-        payloads.append(fake.session_state["comparison_payload::questions"])
+        identity = panel._comparison_identity(
+            summary_df=summary,
+            manifest_data=manifest,
+            run_key="questions",
+        )
+        payloads.append(fake.session_state[f"comparison_payload::{identity}"])
 
     assert len(captured) == 2
     assert [payload.status for payload in payloads] == ["success", "success"]

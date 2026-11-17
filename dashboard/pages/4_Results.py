@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import inspect
 import json
 import sys
 import time
@@ -22,7 +23,10 @@ from dashboard.app import (
 )
 from dashboard.browser_exports import render_async_export_button, render_png_download
 from dashboard.components.comparison_llm import render_comparison_llm_panel
-from dashboard.components.explain_results import render_explain_results_panel
+from dashboard.components.explain_results import (
+    _payload_fingerprint,
+    render_explain_results_panel,
+)
 from dashboard.glossary import tooltip
 from dashboard.utils import RESULTS_EMPTY_STATE_MESSAGE, current_results_path
 from pa_core.contracts import (
@@ -43,6 +47,8 @@ class _PreviousRunAvailability:
     available: bool
     prior_manifest_path: Path | None
     message: str | None
+    prior_manifest: dict | None = None
+    prior_summary: pd.DataFrame | None = None
 
 
 def _prior_output_path(prior_manifest: dict | None, prior_manifest_path: Path) -> Path | None:
@@ -128,6 +134,8 @@ def _check_previous_run_availability(
             available=True,
             prior_manifest_path=prior_manifest_path,
             message=None,
+            prior_manifest=prior_manifest,
+            prior_summary=prior_summary,
         )
 
     if prior_manifest_path is None:
@@ -174,7 +182,28 @@ def _render_comparison_panel(
     availability = _check_previous_run_availability(manifest_data)
     if availability.available and availability.prior_manifest_path is not None:
         run_key = f"{Path(xlsx).resolve()}::{availability.prior_manifest_path.resolve()}"
-        render_panel(summary_df=summary, manifest_data=manifest_data, run_key=run_key)
+        current_fingerprint = _payload_fingerprint(summary, manifest_data)
+        prior_fingerprint = (
+            _payload_fingerprint(availability.prior_summary, availability.prior_manifest)
+            if availability.prior_summary is not None
+            else ""
+        )
+        panel_kwargs: dict[str, object] = {
+            "summary_df": summary,
+            "manifest_data": manifest_data,
+            "run_key": run_key,
+        }
+        params = inspect.signature(render_panel).parameters
+        accepts_var_kw = any(
+            param.kind == inspect.Parameter.VAR_KEYWORD for param in params.values()
+        )
+        if accepts_var_kw or "prior_summary_df" in params:
+            panel_kwargs["prior_summary_df"] = availability.prior_summary
+        if accepts_var_kw or "prior_manifest_data" in params:
+            panel_kwargs["prior_manifest_data"] = availability.prior_manifest
+        if accepts_var_kw or "input_fingerprint" in params:
+            panel_kwargs["input_fingerprint"] = f"{current_fingerprint}::{prior_fingerprint}"
+        render_panel(**panel_kwargs)
     elif availability.message:
         st.info(availability.message)
     return availability
