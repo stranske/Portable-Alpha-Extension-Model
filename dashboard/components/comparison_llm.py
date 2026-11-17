@@ -413,9 +413,7 @@ def render_comparison_llm_panel(
             input_fingerprint=input_fingerprint,
         )
     prior_load_error = (
-        str(st.session_state.get(prior_error_key, "")).strip()
-        if comparison_id is None
-        else ""
+        str(st.session_state.get(prior_error_key, "")).strip() if comparison_id is None else ""
     )
     cached = cache.get(comparison_id) if comparison_id is not None else None
     payload: CompareRunsPayload | None = (
