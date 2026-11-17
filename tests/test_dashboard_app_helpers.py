@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import pandas as pd
+import pytest
 
 from dashboard import app
+from pa_core.contracts import SUMMARY_SHEET_NAME
 
 
 def test_load_paths_sidecar_csv_fallback(tmp_path, monkeypatch):
@@ -68,6 +70,20 @@ def test_load_paths_sidecar_excel_fallback(tmp_path, monkeypatch):
     result = app._load_paths_sidecar(str(xlsx))
 
     assert result is df
+
+
+def test_load_data_workbook_revision_invalidates_same_path_replacement(tmp_path) -> None:
+    xlsx = tmp_path / "Outputs.xlsx"
+    pd.DataFrame({"monthly_TE": [0.01]}).to_excel(xlsx, sheet_name=SUMMARY_SHEET_NAME, index=False)
+    revision_a = app.workbook_cache_revision(str(xlsx))
+    summary_a, _ = app.load_data(str(xlsx), revision_a)
+    assert float(summary_a["monthly_TE"].iloc[0]) == pytest.approx(0.01)
+
+    pd.DataFrame({"monthly_TE": [0.88]}).to_excel(xlsx, sheet_name=SUMMARY_SHEET_NAME, index=False)
+    revision_b = app.workbook_cache_revision(str(xlsx))
+    assert revision_b != revision_a
+    summary_b, _ = app.load_data(str(xlsx), revision_b)
+    assert float(summary_b["monthly_TE"].iloc[0]) == pytest.approx(0.88)
 
 
 def test_get_plot_fn_returns_callable():

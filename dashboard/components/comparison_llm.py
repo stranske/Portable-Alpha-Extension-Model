@@ -45,6 +45,7 @@ _PREVIOUS_LABEL = "Previous run (auto-detected)"
 _DEFAULT_TEXT = "Click Compare Runs to generate an explanation."
 _MISSING_MESSAGE = "LLM comparison is unavailable because the previous run manifest or summary could not be loaded."
 _CACHE_KEY = "comparison_llm_cache"
+_PRIOR_LOAD_ERROR_KEY = "comparison_llm_prior_load_error"
 
 
 @dataclass(frozen=True)
@@ -215,14 +216,19 @@ def _comparison_identity(
     endpoint: str | None = None,
     api_version: str | None = None,
 ) -> str | None:
+    prior_error_key = f"{_PRIOR_LOAD_ERROR_KEY}::{run_key}"
     try:
         prior_manifest, prior_summary, _ = _resolve_prior_inputs(
             manifest_data,
             prior_summary_df=prior_summary_df,
             prior_manifest_data=prior_manifest_data,
         )
-    except Exception:
+    except Exception as exc:
+        st.session_state[prior_error_key] = (
+            f"Prior run inputs unavailable ({type(exc).__name__})."
+        )
         return None
+    st.session_state.pop(prior_error_key, None)
     if prior_manifest is None or prior_summary is None:
         return None
 
@@ -371,6 +377,7 @@ def render_comparison_llm_panel(
             )
 
     cache = _cache_bucket()
+    prior_error_key = f"{_PRIOR_LOAD_ERROR_KEY}::{run_key}"
     comparison_id = _comparison_identity(
         summary_df=summary_df,
         manifest_data=manifest_data,
@@ -378,6 +385,11 @@ def render_comparison_llm_panel(
         prior_summary_df=prior_summary_df,
         prior_manifest_data=prior_manifest_data,
         input_fingerprint=input_fingerprint,
+    )
+    prior_load_error = (
+        str(st.session_state.get(prior_error_key, "")).strip()
+        if comparison_id is None
+        else ""
     )
     cached = cache.get(comparison_id) if comparison_id is not None else None
     payload: CompareRunsPayload | None = (
@@ -434,6 +446,8 @@ def render_comparison_llm_panel(
                         model_name=model,
                         api_key=resolved_key,
                         provider_config=provider_config,
+                        prior_summary=prior_summary,
+                        prior_manifest=prior_manifest,
                     )
                     if comparison_id is None:
                         comparison_id = _comparison_identity(
@@ -467,6 +481,8 @@ def render_comparison_llm_panel(
                     return
 
     if cached is None or payload is None:
+        if prior_load_error:
+            st.error(prior_load_error)
         st.info(_DEFAULT_TEXT)
         return
 

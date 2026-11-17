@@ -313,6 +313,45 @@ def test_compare_runs_prefers_llm_text_when_available(
     assert payload.prior_manifest_path == str(prior_manifest_path)
 
 
+def test_compare_runs_uses_passed_prior_snapshot_instead_of_disk_reload(
+    monkeypatch, tmp_path
+) -> None:
+    from contextlib import nullcontext
+
+    current_summary = pd.DataFrame({"monthly_TE": [0.03], "monthly_CVaR": [-0.05]})
+    prior_output = tmp_path / "prior.xlsx"
+    pd.DataFrame({"monthly_TE": [0.01], "monthly_CVaR": [-0.04]}).to_excel(
+        prior_output, sheet_name="Summary", index=False
+    )
+    prior_manifest_path = tmp_path / "prior_manifest.json"
+    prior_manifest = {"cli_args": {"output": str(prior_output)}, "seed": 1}
+    prior_manifest_path.write_text(json.dumps(prior_manifest))
+
+    monkeypatch.setattr(
+        "pa_core.llm.compare_runs.langsmith_tracing_context", lambda **kwargs: nullcontext()
+    )
+    monkeypatch.setattr(
+        "pa_core.llm.compare_runs._invoke_comparison_llm",
+        lambda *a, **k: (_ for _ in ()).throw(RuntimeError("offline fallback")),
+    )
+
+    swapped_prior = pd.DataFrame({"monthly_TE": [0.88], "monthly_CVaR": [-0.11]})
+    prior_output.unlink(missing_ok=True)
+    pd.DataFrame({"monthly_TE": [0.01], "monthly_CVaR": [-0.04]}).to_excel(
+        prior_output, sheet_name="Summary", index=False
+    )
+
+    _, _, payload = compare_runs(
+        current_summary=current_summary,
+        current_manifest={"previous_run": str(prior_manifest_path), "seed": 2},
+        questions="What changed?",
+        prior_summary=swapped_prior,
+        prior_manifest=prior_manifest,
+    )
+
+    assert payload.metric_catalog_b["monthly_TE"] == pytest.approx(0.88)
+
+
 def test_compare_runs_threads_provider_config_to_llm(monkeypatch, tmp_path) -> None:
     current_summary = pd.DataFrame({"monthly_TE": [0.03], "monthly_CVaR": [-0.05]})
     prior_output = tmp_path / "prior.xlsx"

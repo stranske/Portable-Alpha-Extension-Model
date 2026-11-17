@@ -20,6 +20,7 @@ from dashboard.app import (
     apply_theme,
     load_data,
     render_settings_sidebar,
+    workbook_cache_revision,
 )
 from dashboard.browser_exports import render_async_export_button, render_png_download
 from dashboard.components.comparison_llm import render_comparison_llm_panel
@@ -229,7 +230,7 @@ def main() -> None:
     if not Path(xlsx).exists():
         st.info(RESULTS_EMPTY_STATE_MESSAGE)
         st.stop()
-    summary, paths = load_data(xlsx)
+    summary, paths = load_data(xlsx, workbook_cache_revision(xlsx))
 
     # Load manifest if available for display and export embedding
     manifest_data = None

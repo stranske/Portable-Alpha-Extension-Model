@@ -137,8 +137,20 @@ def _load_paths_sidecar(xlsx: str) -> pd.DataFrame | None:
         return None
 
 
+def workbook_cache_revision(xlsx: str) -> str:
+    """Return a cache-busting token when a workbook is replaced at the same path."""
+    path = Path(xlsx)
+    try:
+        stat = path.stat()
+        return f"{stat.st_mtime_ns}:{stat.st_size}"
+    except OSError:
+        return "missing"
+
+
 @_cache_data(ttl=600)
-def load_data(xlsx: str) -> tuple[pd.DataFrame, pd.DataFrame | None]:
+def load_data(
+    xlsx: str, workbook_revision: str | None = None
+) -> tuple[pd.DataFrame, pd.DataFrame | None]:
     summary = pd.read_excel(xlsx, sheet_name=SUMMARY_SHEET_NAME)
     # Try parquet -> csv -> Excel('AllReturns') for path-based charts
     paths = _load_paths_sidecar(xlsx)
