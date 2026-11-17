@@ -34,6 +34,7 @@ from pa_core.contracts import (
     SUMMARY_TE_COLUMN,
     SUMMARY_TRACKING_ERROR_LEGACY_COLUMN,
     manifest_path_for_output,
+    select_portfolio_total_metrics,
 )
 from pa_core.llm.compare_runs import load_prior_manifest, load_prior_summary
 
@@ -202,6 +203,13 @@ def _overlay_total_return(summary: pd.DataFrame) -> float | None:
     return None
 
 
+def _format_total_metric(total_metrics: dict[str, float], column: str) -> str:
+    """Format a portfolio Total-row metric, or N/A when no Total value exists."""
+
+    value = total_metrics.get(column)
+    return "N/A" if value is None else f"{value:.2%}"
+
+
 def main() -> None:
     st.title("Results")
     xlsx, theme_path = render_settings_sidebar(_default_results_path())
@@ -232,20 +240,30 @@ def main() -> None:
         te_column = SUMMARY_TE_COLUMN
     elif SUMMARY_TRACKING_ERROR_LEGACY_COLUMN in summary:
         te_column = SUMMARY_TRACKING_ERROR_LEGACY_COLUMN
+    total_metrics = select_portfolio_total_metrics(
+        summary,
+        tuple(
+            col
+            for col in (te_column, SUMMARY_CVAR_COLUMN, SUMMARY_BREACH_PROB_COLUMN)
+            if col is not None
+        ),
+    )
     if te_column is not None:
         col1.metric(
-            "Tracking Error", f"{summary[te_column].mean():.2%}", help=tooltip("monthly_TE")
+            "Tracking Error",
+            _format_total_metric(total_metrics, te_column),
+            help=tooltip("monthly_TE"),
         )
     if SUMMARY_CVAR_COLUMN in summary:
         col2.metric(
             "monthly_CVaR",
-            f"{summary[SUMMARY_CVAR_COLUMN].mean():.2%}",
+            _format_total_metric(total_metrics, SUMMARY_CVAR_COLUMN),
             help=tooltip("monthly_CVaR"),
         )
     if SUMMARY_BREACH_PROB_COLUMN in summary:
         col3.metric(
             "Breach Prob",
-            f"{summary[SUMMARY_BREACH_PROB_COLUMN].mean():.2%}",
+            _format_total_metric(total_metrics, SUMMARY_BREACH_PROB_COLUMN),
             help=tooltip("breach probability"),
         )
     total_return = _overlay_total_return(summary)

@@ -1309,8 +1309,81 @@ def test_results_main_omits_tracking_error_when_neither_column_is_present(tmp_pa
     )
     module["main"]()
     metrics = [pair for col in fake_st.column_containers[0] for pair in col.metrics]
-    assert ("monthly_CVaR", "-2.00%") in metrics
+    # No Agent/Total row: the portfolio CVaR card is unavailable, not a sleeve mean.
+    assert ("monthly_CVaR", "N/A") in metrics
     assert all(label != "Tracking Error" for label, _value in metrics)
+
+
+def _results_key_metrics(tmp_path: Path, summary: pd.DataFrame) -> list[tuple[str, str]]:
+    module = _load_results_module()
+    fake_st = _ResultsStreamlit()
+    workbook = tmp_path / "results.xlsx"
+    workbook.write_bytes(b"workbook")
+    _patch_results_globals(
+        module,
+        fake_st=fake_st,
+        workbook=workbook,
+        summary=summary.assign(Config="Base"),
+        paths=pd.DataFrame([[0.01]], columns=["Base"]),
+        render_explain=_CallRecorder("explain"),
+        render_comparison=_CallRecorder("comparison"),
+        render_png=_CallRecorder("png"),
+        render_async=_CallRecorder("async"),
+    )
+    module["main"]()
+    return [pair for col in fake_st.column_containers[0] for pair in col.metrics]
+
+
+def test_results_key_metrics_read_total_row_invariant_to_sleeve_split(tmp_path) -> None:
+    total = {
+        "Agent": "Total",
+        "monthly_TE": 0.04,
+        "monthly_CVaR": -0.09,
+        "monthly_BreachProb": 0.12,
+    }
+    one_sleeve = pd.DataFrame(
+        [
+            {
+                "Agent": "ExternalPA",
+                "monthly_TE": 0.04,
+                "monthly_CVaR": -0.09,
+                "monthly_BreachProb": 0.12,
+            },
+            total,
+        ]
+    )
+    two_half_sleeves = pd.DataFrame(
+        [
+            {
+                "Agent": "ExternalPA_A",
+                "monthly_TE": 0.02,
+                "monthly_CVaR": -0.045,
+                "monthly_BreachProb": 0.03,
+            },
+            {
+                "Agent": "ExternalPA_B",
+                "monthly_TE": 0.02,
+                "monthly_CVaR": -0.045,
+                "monthly_BreachProb": 0.03,
+            },
+            total,
+        ]
+    )
+    expected = [
+        ("Tracking Error", "4.00%"),
+        ("monthly_CVaR", "-9.00%"),
+        ("Breach Prob", "12.00%"),
+    ]
+
+    assert _results_key_metrics(tmp_path, one_sleeve) == expected
+    assert _results_key_metrics(tmp_path, two_half_sleeves) == expected
+
+    missing_total = two_half_sleeves[two_half_sleeves["Agent"] != "Total"]
+    assert _results_key_metrics(tmp_path, missing_total) == [
+        ("Tracking Error", "N/A"),
+        ("monthly_CVaR", "N/A"),
+        ("Breach Prob", "N/A"),
+    ]
 
 
 def test_results_main_skips_non_headline_charts_when_paths_are_missing(tmp_path) -> None:

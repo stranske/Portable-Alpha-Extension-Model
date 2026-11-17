@@ -19,6 +19,7 @@ from pa_core.contracts import (
     SUMMARY_SHEET_NAME,
     SUMMARY_TE_COLUMN,
     SUMMARY_TRACKING_ERROR_LEGACY_COLUMN,
+    select_portfolio_total_metrics,
 )
 from pa_core.llm.langsmith_fleet import (
     FleetContext,
@@ -297,17 +298,13 @@ def build_metric_catalog(summary_df: pd.DataFrame) -> dict[str, float]:
     if not isinstance(summary_df, pd.DataFrame):
         raise TypeError("summary_df must be a pandas DataFrame")
 
-    metrics: dict[str, float] = {}
     metric_columns = (
         SUMMARY_TE_COLUMN,
         SUMMARY_TRACKING_ERROR_LEGACY_COLUMN,
         SUMMARY_CVAR_COLUMN,
         SUMMARY_BREACH_PROB_COLUMN,
     )
-    for column in metric_columns:
-        if column in summary_df.columns and pd.api.types.is_numeric_dtype(summary_df[column]):
-            metrics[column] = float(summary_df[column].mean())
-    return metrics
+    return select_portfolio_total_metrics(summary_df, metric_columns)
 
 
 def _heuristic_compare_text(

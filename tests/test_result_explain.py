@@ -140,8 +140,10 @@ def test_explain_results_details_null_nan_empty_fixture_handles_unusable_values(
     )
     metric_catalog = payload["metric_catalog"]
 
-    assert metric_catalog["tracking_error"]["value"] == pytest.approx(0.02)
-    assert metric_catalog["cvar"]["value"] == pytest.approx(-0.03)
+    # The Total row has no usable TE/CVaR, so those portfolio metrics are omitted
+    # rather than backfilled from sleeve or unlabeled rows.
+    assert "tracking_error" not in metric_catalog
+    assert "cvar" not in metric_catalog
     assert "breach_probability" not in metric_catalog
 
 
@@ -437,6 +439,7 @@ def test_metric_catalog_omits_unusable_metric_values_without_error() -> None:
 def test_metric_catalog_supports_human_readable_metric_column_names() -> None:
     df = pd.DataFrame(
         {
+            "Agent": ["Base", "Total"],
             "Tracking Error": [0.02, 0.04],
             "CVaR": [-0.03, -0.05],
             "Breach Probability": [0.10, 0.30],
@@ -447,11 +450,11 @@ def test_metric_catalog_supports_human_readable_metric_column_names() -> None:
     metric_catalog = payload["metric_catalog"]
 
     assert metric_catalog["tracking_error"]["label"] == "Tracking Error"
-    assert metric_catalog["tracking_error"]["value"] == pytest.approx(0.03)
+    assert metric_catalog["tracking_error"]["value"] == pytest.approx(0.04)
     assert metric_catalog["cvar"]["label"] == "CVaR"
-    assert metric_catalog["cvar"]["value"] == pytest.approx(-0.04)
+    assert metric_catalog["cvar"]["value"] == pytest.approx(-0.05)
     assert metric_catalog["breach_probability"]["label"] == "Breach Probability"
-    assert metric_catalog["breach_probability"]["value"] == pytest.approx(0.20)
+    assert metric_catalog["breach_probability"]["value"] == pytest.approx(0.30)
 
 
 def test_api_keys_are_redacted_from_error_messages(monkeypatch) -> None:

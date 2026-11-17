@@ -12,6 +12,7 @@ from uuid import uuid4
 
 import pandas as pd
 
+from pa_core.contracts import select_portfolio_total_metrics
 from pa_core.llm.langsmith_fleet import (
     FleetContext,
     config_fingerprint,
@@ -106,19 +107,8 @@ def _find_metric_column(details_df: pd.DataFrame, aliases: Sequence[str]) -> str
 
 
 def _coerce_metric_value(details_df: pd.DataFrame, column: str) -> float | None:
-    if column not in details_df.columns:
-        return None
-    numeric = pd.to_numeric(details_df[column], errors="coerce")
-    valid = numeric.dropna()
-    if valid.empty:
-        return None
-
-    if "Agent" in details_df.columns:
-        agent = details_df["Agent"].astype(str).str.strip().str.lower()
-        total_match = valid[agent == "total"]
-        if not total_match.empty:
-            return float(total_match.iloc[0])
-    return float(valid.mean())
+    # Portfolio metrics come only from the Total row; sleeve rows are never averaged.
+    return select_portfolio_total_metrics(details_df, (column,)).get(column)
 
 
 def _build_metric_catalog(details_df: pd.DataFrame) -> dict[str, dict[str, Any]]:
