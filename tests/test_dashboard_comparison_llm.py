@@ -131,9 +131,7 @@ def test_prior_load_failure_shows_sanitized_error_and_recovers(monkeypatch) -> N
     assert fake_st.session_state[prior_error_key].startswith("Prior run inputs unavailable")
     assert marker not in fake_st.session_state[prior_error_key]
     assert any(
-        kind == "error"
-        and marker not in text
-        and text.startswith("Prior run inputs unavailable")
+        kind == "error" and marker not in text and text.startswith("Prior run inputs unavailable")
         for kind, text in fake_st.messages
     )
     assert fake_st.downloads == []
@@ -151,9 +149,7 @@ def test_prior_load_failure_shows_sanitized_error_and_recovers(monkeypatch) -> N
 
     assert prior_error_key not in fake_st.session_state
     assert not any(kind == "error" for kind, _ in fake_st.messages)
-    assert any(
-        kind == "info" and "Click Compare Runs" in text for kind, text in fake_st.messages
-    )
+    assert any(kind == "info" and "Click Compare Runs" in text for kind, text in fake_st.messages)
 
 
 def test_comparison_panel_resolves_prior_inputs_once_per_render(monkeypatch, tmp_path) -> None:
@@ -196,7 +192,9 @@ def test_comparison_panel_resolves_prior_inputs_once_per_render(monkeypatch, tmp
             comparison_module.CompareRunsPayload(
                 config_diff="- seed: 1 -> 2",
                 metric_catalog_a={"monthly_TE": 0.02},
-                metric_catalog_b={"monthly_TE": float(kwargs["prior_summary"]["monthly_TE"].iloc[0])},
+                metric_catalog_b={
+                    "monthly_TE": float(kwargs["prior_summary"]["monthly_TE"].iloc[0])
+                },
                 prompt="prompt",
                 questions="questions",
                 prior_manifest_path=str(prior_manifest_path),
@@ -530,9 +528,9 @@ def test_same_path_rerun_invalidates_comparison(monkeypatch, tmp_path) -> None:
     _, first_json = assert_active_output(1)
 
     # 2. Second render: same-path current summary replacement must hide old narrative/downloads.
-    pd.DataFrame(
-        {"Agent": ["Total"], "monthly_TE": [0.04], "monthly_CVaR": [-0.05]}
-    ).to_excel(current_output, sheet_name="Summary", index=False)
+    pd.DataFrame({"Agent": ["Total"], "monthly_TE": [0.04], "monthly_CVaR": [-0.05]}).to_excel(
+        current_output, sheet_name="Summary", index=False
+    )
     render(button=False)
     assert_stale_hidden(1)
 
