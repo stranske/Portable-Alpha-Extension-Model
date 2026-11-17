@@ -198,8 +198,12 @@ def test_same_path_rerun_invalidates_comparison(monkeypatch, tmp_path) -> None:
     prior_output = tmp_path / "PriorOutputs.xlsx"
     prior_manifest_path = tmp_path / "prior_manifest.json"
 
-    current_summary = pd.DataFrame({"monthly_TE": [0.02], "monthly_CVaR": [-0.03]})
-    prior_summary = pd.DataFrame({"monthly_TE": [0.01], "monthly_CVaR": [-0.02]})
+    current_summary = pd.DataFrame(
+        {"Agent": ["Total"], "monthly_TE": [0.02], "monthly_CVaR": [-0.03]}
+    )
+    prior_summary = pd.DataFrame(
+        {"Agent": ["Total"], "monthly_TE": [0.01], "monthly_CVaR": [-0.02]}
+    )
     current_summary.to_excel(current_output, sheet_name="Summary", index=False)
     prior_summary.to_excel(prior_output, sheet_name="Summary", index=False)
 
@@ -265,7 +269,9 @@ def test_same_path_rerun_invalidates_comparison(monkeypatch, tmp_path) -> None:
     _, first_json = assert_active_output(1)
 
     # 2. Second render: same-path current summary replacement must hide old narrative/downloads.
-    current_summary = pd.DataFrame({"monthly_TE": [0.04], "monthly_CVaR": [-0.05]})
+    current_summary = pd.DataFrame(
+        {"Agent": ["Total"], "monthly_TE": [0.04], "monthly_CVaR": [-0.05]}
+    )
     current_summary.to_excel(current_output, sheet_name="Summary", index=False)
     render(button=False)
     assert_stale_hidden(1)
@@ -285,7 +291,9 @@ def test_same_path_rerun_invalidates_comparison(monkeypatch, tmp_path) -> None:
     assert reused_active_json["comparison_id"] == second_json["comparison_id"]
 
     # 3. Same-path prior summary replacement invalidates stale narrative and downloads.
-    prior_summary = pd.DataFrame({"monthly_TE": [0.015], "monthly_CVaR": [-0.025]})
+    prior_summary = pd.DataFrame(
+        {"Agent": ["Total"], "monthly_TE": [0.015], "monthly_CVaR": [-0.025]}
+    )
     prior_summary.to_excel(prior_output, sheet_name="Summary", index=False)
     render(button=False)
     assert_stale_hidden(2)
