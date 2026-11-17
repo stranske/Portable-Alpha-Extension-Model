@@ -315,18 +315,21 @@ def test_metric_catalog_uses_total_row():
     assert result_explain._build_metric_catalog(no_agent_column) == {}
 
 
-def test_build_metric_catalog_omits_non_finite_object_dtype_means():
+@pytest.mark.parametrize("non_finite", [float("inf"), float("-inf"), None])
+def test_build_metric_catalog_omits_non_finite_object_dtype_totals(non_finite):
     df = pd.DataFrame(
         {
-            "monthly_TE": [float("inf"), float("-inf"), None],
-            "monthly_CVaR": [0.01, -0.02, 0.0],
-        }
+            "Agent": ["Base", "Total"],
+            "monthly_TE": [0.01, non_finite],
+            "monthly_CVaR": [0.01, -0.02],
+        },
+        dtype=object,
     )
 
     catalog = build_metric_catalog(df)
 
     assert "monthly_TE" not in catalog
-    assert catalog["monthly_CVaR"] == pytest.approx(-0.01 / 3)
+    assert catalog["monthly_CVaR"] == pytest.approx(-0.02)
 
 
 def test_compare_runs_returns_text_trace_and_payload(monkeypatch, tmp_path):
@@ -420,9 +423,11 @@ def test_compare_runs_uses_passed_prior_snapshot_instead_of_disk_reload(
 ) -> None:
     from contextlib import nullcontext
 
-    current_summary = pd.DataFrame({"monthly_TE": [0.03], "monthly_CVaR": [-0.05]})
+    current_summary = pd.DataFrame(
+        {"Agent": ["Total"], "monthly_TE": [0.03], "monthly_CVaR": [-0.05]}
+    )
     prior_output = tmp_path / "prior.xlsx"
-    pd.DataFrame({"monthly_TE": [0.01], "monthly_CVaR": [-0.04]}).to_excel(
+    pd.DataFrame({"Agent": ["Total"], "monthly_TE": [0.01], "monthly_CVaR": [-0.04]}).to_excel(
         prior_output, sheet_name="Summary", index=False
     )
     prior_manifest_path = tmp_path / "prior_manifest.json"
@@ -443,9 +448,11 @@ def test_compare_runs_uses_passed_prior_snapshot_instead_of_disk_reload(
         ),
     )
 
-    swapped_prior = pd.DataFrame({"monthly_TE": [0.88], "monthly_CVaR": [-0.11]})
+    swapped_prior = pd.DataFrame(
+        {"Agent": ["Total"], "monthly_TE": [0.88], "monthly_CVaR": [-0.11]}
+    )
     prior_output.unlink(missing_ok=True)
-    pd.DataFrame({"monthly_TE": [0.01], "monthly_CVaR": [-0.04]}).to_excel(
+    pd.DataFrame({"Agent": ["Total"], "monthly_TE": [0.01], "monthly_CVaR": [-0.04]}).to_excel(
         prior_output, sheet_name="Summary", index=False
     )
 
