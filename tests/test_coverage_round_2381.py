@@ -167,7 +167,7 @@ def _patch_results_globals(
             "PLOTS": {"Headline": "headline", "Paths": "paths"},
             "render_settings_sidebar": lambda _: (str(workbook), "theme.yaml"),
             "apply_theme": lambda _: None,
-            "load_data": lambda *_args, **_kwargs: (summary, paths),
+            "load_results_workbook": lambda *_args, **_kwargs: (summary, paths),
             "_get_plot_fn": lambda _: lambda frame: frame,
             "_render_explain_results": render_explain,
             "_render_comparison_panel": render_comparison,
