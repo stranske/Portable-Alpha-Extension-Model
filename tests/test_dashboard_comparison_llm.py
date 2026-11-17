@@ -155,6 +155,43 @@ def test_prior_load_failure_shows_sanitized_error_and_recovers(monkeypatch) -> N
     )
 
 
+def test_prior_load_failure_on_compare_button_shows_sanitized_error(monkeypatch) -> None:
+    run_key = "prior-load-failure-button"
+    marker = "synthetic-prior-load-secret-on-compare"
+
+    def resolve_prior(*args, **kwargs):
+        raise RuntimeError(f"prior read failed for {marker}")
+
+    fake_st = FakeStreamlit(button_value=True)
+    compare_calls = {"n": 0}
+
+    def compare_runs(**kwargs):
+        compare_calls["n"] += 1
+        raise AssertionError("compare_runs should not run when prior load fails")
+
+    monkeypatch.setattr(comparison_module, "st", fake_st)
+    monkeypatch.setattr(comparison_module, "_resolve_prior_inputs", resolve_prior)
+    monkeypatch.setattr(comparison_module, "compare_runs", compare_runs)
+
+    summary_df = pd.DataFrame({"monthly_TE": [0.02]})
+    manifest_data = {"seed": 1, "previous_run": "prior.json"}
+    comparison_module.render_comparison_llm_panel(
+        summary_df=summary_df,
+        manifest_data=manifest_data,
+        run_key=run_key,
+    )
+
+    prior_error_key = f"{comparison_module._PRIOR_LOAD_ERROR_KEY}::{run_key}"
+    assert compare_calls["n"] == 0
+    assert fake_st.session_state[prior_error_key].startswith("Prior run inputs unavailable")
+    assert marker not in fake_st.session_state[prior_error_key]
+    error_messages = [text for kind, text in fake_st.messages if kind == "error"]
+    assert error_messages
+    assert all(marker not in text for text in error_messages)
+    assert any(text.startswith("Prior run inputs unavailable") for text in error_messages)
+    assert fake_st.downloads == []
+
+
 def test_render_comparison_llm_panel_shows_default_message(monkeypatch) -> None:
     fake_st = FakeStreamlit(button_value=False)
     monkeypatch.setattr(comparison_module, "st", fake_st)

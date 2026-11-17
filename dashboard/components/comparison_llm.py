@@ -104,6 +104,10 @@ def _run_fingerprint(
     ).hexdigest()
 
 
+def _prior_load_error_message(exc: BaseException) -> str:
+    return f"Prior run inputs unavailable ({type(exc).__name__})."
+
+
 def _resolve_prior_inputs(
     manifest_data: Mapping[str, Any] | None,
     *,
@@ -224,9 +228,7 @@ def _comparison_identity(
             prior_manifest_data=prior_manifest_data,
         )
     except Exception as exc:
-        st.session_state[prior_error_key] = (
-            f"Prior run inputs unavailable ({type(exc).__name__})."
-        )
+        st.session_state[prior_error_key] = _prior_load_error_message(exc)
         return None
     st.session_state.pop(prior_error_key, None)
     if prior_manifest is None or prior_summary is None:
@@ -402,11 +404,17 @@ def render_comparison_llm_panel(
         with st.spinner("Generating run comparison..."):
             if cached is None or payload is None or payload.status != "success":
                 try:
-                    prior_manifest, prior_summary, _ = _resolve_prior_inputs(
-                        manifest_data,
-                        prior_summary_df=prior_summary_df,
-                        prior_manifest_data=prior_manifest_data,
-                    )
+                    try:
+                        prior_manifest, prior_summary, _ = _resolve_prior_inputs(
+                            manifest_data,
+                            prior_summary_df=prior_summary_df,
+                            prior_manifest_data=prior_manifest_data,
+                        )
+                    except Exception as exc:
+                        message = _prior_load_error_message(exc)
+                        st.session_state[prior_error_key] = message
+                        st.error(message)
+                        return
                     if prior_manifest is None or prior_summary is None:
                         st.info(_MISSING_MESSAGE)
                         return
