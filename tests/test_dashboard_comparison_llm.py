@@ -82,6 +82,79 @@ class FakeStreamlit:
         self.downloads.append(_DownloadCall(label=label, data=data, file_name=file_name, mime=mime))
 
 
+def test_prior_load_failure_shows_sanitized_error_and_recovers(monkeypatch) -> None:
+    run_key = "prior-load-failure"
+    marker = "synthetic-prior-load-secret"
+    prior_manifest = {"seed": 1, "cli_args": {"output": "prior.xlsx"}}
+    prior_summary = pd.DataFrame({"monthly_TE": [0.01]})
+    toggle = {"fail": True}
+
+    def resolve_prior(*args, **kwargs):
+        if toggle["fail"]:
+            raise RuntimeError(f"prior read failed for {marker}")
+        return prior_manifest, prior_summary, None
+
+    fake_st = FakeStreamlit(button_value=False)
+    fake_st.session_state["comparison_llm_cache"] = {
+        "stale-comparison-id": comparison_module.ComparisonLLMResult(
+            text="stale narrative",
+            trace_url=None,
+            created_at="2020-01-01T00:00:00+00:00",
+            comparison_id="stale-comparison-id",
+        )
+    }
+    fake_st.session_state["comparison_payload::stale-comparison-id"] = (
+        comparison_module.CompareRunsPayload(
+            config_diff="stale",
+            metric_catalog_a={},
+            metric_catalog_b={},
+            prompt="stale",
+            questions="stale",
+            prior_manifest_path=None,
+            prior_summary_path=None,
+            status="success",
+        )
+    )
+    monkeypatch.setattr(comparison_module, "st", fake_st)
+    monkeypatch.setattr(comparison_module, "_resolve_prior_inputs", resolve_prior)
+
+    summary_df = pd.DataFrame({"monthly_TE": [0.02]})
+    manifest_data = {"seed": 1, "previous_run": "prior.json"}
+    comparison_module.render_comparison_llm_panel(
+        summary_df=summary_df,
+        manifest_data=manifest_data,
+        run_key=run_key,
+    )
+
+    prior_error_key = f"{comparison_module._PRIOR_LOAD_ERROR_KEY}::{run_key}"
+    assert fake_st.session_state[prior_error_key].startswith("Prior run inputs unavailable")
+    assert marker not in fake_st.session_state[prior_error_key]
+    assert any(
+        kind == "error"
+        and marker not in text
+        and text.startswith("Prior run inputs unavailable")
+        for kind, text in fake_st.messages
+    )
+    assert fake_st.downloads == []
+    assert not any(
+        kind == "markdown" and "stale narrative" in text for kind, text in fake_st.messages
+    )
+
+    toggle["fail"] = False
+    fake_st.messages.clear()
+    comparison_module.render_comparison_llm_panel(
+        summary_df=summary_df,
+        manifest_data=manifest_data,
+        run_key=run_key,
+    )
+
+    assert prior_error_key not in fake_st.session_state
+    assert not any(kind == "error" for kind, _ in fake_st.messages)
+    assert any(
+        kind == "info" and "Click Compare Runs" in text for kind, text in fake_st.messages
+    )
+
+
 def test_render_comparison_llm_panel_shows_default_message(monkeypatch) -> None:
     fake_st = FakeStreamlit(button_value=False)
     monkeypatch.setattr(comparison_module, "st", fake_st)

@@ -233,6 +233,20 @@ def test_build_metric_catalog_extracts_supported_metrics():
     assert catalog["monthly_BreachProb"] == pytest.approx(0.15)
 
 
+def test_build_metric_catalog_omits_non_finite_object_dtype_means():
+    df = pd.DataFrame(
+        {
+            "monthly_TE": [float("inf"), float("-inf"), None],
+            "monthly_CVaR": [0.01, -0.02, 0.0],
+        }
+    )
+
+    catalog = build_metric_catalog(df)
+
+    assert "monthly_TE" not in catalog
+    assert catalog["monthly_CVaR"] == pytest.approx(-0.01 / 3)
+
+
 def test_compare_runs_returns_text_trace_and_payload(monkeypatch, tmp_path):
     current_summary = pd.DataFrame({"monthly_TE": [0.03], "monthly_CVaR": [-0.05]})
     prior_output = tmp_path / "prior.xlsx"

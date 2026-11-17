@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
+import math
 import os
 import time
 from dataclasses import dataclass
@@ -319,7 +320,9 @@ def build_metric_catalog(summary_df: pd.DataFrame) -> dict[str, float]:
         if not pd.api.types.is_numeric_dtype(series):
             series = pd.to_numeric(series, errors="coerce")
         if pd.api.types.is_numeric_dtype(series) and series.notna().any():
-            metrics[column] = float(series.mean())
+            mean = float(series.mean())
+            if math.isfinite(mean):
+                metrics[column] = mean
     return metrics
 
 
