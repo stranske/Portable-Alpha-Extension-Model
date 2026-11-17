@@ -86,3 +86,31 @@ def test_explain_results_details_metric_catalog_handles_missing_and_null_columns
     assert "tracking_error" not in catalog
     assert "cvar" not in catalog
     assert catalog["breach_probability"]["value"] == pytest.approx(0.05)
+
+
+@pytest.mark.parametrize(
+    "summary_df",
+    [
+        pd.DataFrame(
+            {
+                "monthly_TE": [0.02, 0.04],
+                "monthly_CVaR": [-0.05, -0.07],
+                "monthly_BreachProb": [0.10, 0.20],
+            }
+        ),
+        pd.DataFrame(
+            {
+                "Agent": ["Base", "ExternalPA"],
+                "monthly_TE": [0.02, 0.04],
+                "monthly_CVaR": [-0.05, -0.07],
+                "monthly_BreachProb": [0.10, 0.20],
+            }
+        ),
+    ],
+    ids=["no_agent_column", "no_total_row"],
+)
+def test_explain_results_details_metric_catalog_omits_metrics_without_total_row(summary_df):
+    # Without a Total row there is no portfolio metric; sleeve rows must not be averaged.
+    _, _, payload = explain_results_details(summary_df, manifest=None)
+
+    assert payload["metric_catalog"] == {}
