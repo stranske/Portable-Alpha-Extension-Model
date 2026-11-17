@@ -98,6 +98,46 @@ def test_load_data_workbook_revision_invalidates_same_path_replacement(tmp_path)
     assert float(summary_same_stat["monthly_TE"].iloc[0]) == pytest.approx(0.42)
 
 
+def test_workbook_replacement_during_summary_read_keeps_revision_and_data_aligned(
+    tmp_path, monkeypatch
+) -> None:
+    xlsx = tmp_path / "Outputs.xlsx"
+    replacement = tmp_path / "Replacement.xlsx"
+    pd.DataFrame({"monthly_TE": [0.01]}).to_excel(xlsx, sheet_name=SUMMARY_SHEET_NAME, index=False)
+    pd.DataFrame({"monthly_TE": [0.88]}).to_excel(
+        replacement, sheet_name=SUMMARY_SHEET_NAME, index=False
+    )
+    original_bytes = xlsx.read_bytes()
+    original_stat = xlsx.stat()
+    original_revision = app.workbook_cache_revision(str(xlsx))
+    read_excel = pd.read_excel
+    summary_reads = 0
+
+    def read_with_replacement(*args, **kwargs):
+        nonlocal summary_reads
+        frame = read_excel(*args, **kwargs)
+        if kwargs.get("sheet_name") == SUMMARY_SHEET_NAME:
+            summary_reads += 1
+            if summary_reads == 1:
+                replacement.replace(xlsx)
+        return frame
+
+    monkeypatch.setattr(pd, "read_excel", read_with_replacement)
+    summary, _ = app.load_results_workbook(str(xlsx))
+
+    assert float(summary["monthly_TE"].iloc[0]) == pytest.approx(0.01)
+    assert summary_reads == 1
+    assert app.workbook_cache_revision(str(xlsx)) != original_revision
+    replaced_summary, _ = app.load_results_workbook(str(xlsx))
+    assert float(replaced_summary["monthly_TE"].iloc[0]) == pytest.approx(0.88)
+
+    xlsx.write_bytes(original_bytes)
+    os.utime(xlsx, ns=(original_stat.st_atime_ns, original_stat.st_mtime_ns))
+    assert app.workbook_cache_revision(str(xlsx)) == original_revision
+    restored_summary, _ = app.load_results_workbook(str(xlsx))
+    pd.testing.assert_frame_equal(restored_summary, summary)
+
+
 def test_get_plot_fn_returns_callable():
     plot_fn = app._get_plot_fn("pa_core.viz.risk_return.make")
 

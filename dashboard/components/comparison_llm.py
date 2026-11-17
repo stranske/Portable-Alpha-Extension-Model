@@ -221,15 +221,18 @@ def _comparison_identity(
     api_version: str | None = None,
 ) -> str | None:
     prior_error_key = f"{_PRIOR_LOAD_ERROR_KEY}::{run_key}"
-    try:
-        prior_manifest, prior_summary, _ = _resolve_prior_inputs(
-            manifest_data,
-            prior_summary_df=prior_summary_df,
-            prior_manifest_data=prior_manifest_data,
-        )
-    except Exception as exc:
-        st.session_state[prior_error_key] = _prior_load_error_message(exc)
-        return None
+    prior_manifest = prior_manifest_data
+    prior_summary = prior_summary_df
+    if prior_manifest is None or prior_summary is None:
+        try:
+            prior_manifest, prior_summary, _ = _resolve_prior_inputs(
+                manifest_data,
+                prior_summary_df=prior_summary_df,
+                prior_manifest_data=prior_manifest_data,
+            )
+        except Exception as exc:
+            st.session_state[prior_error_key] = _prior_load_error_message(exc)
+            return None
     st.session_state.pop(prior_error_key, None)
     if prior_manifest is None or prior_summary is None:
         return None
@@ -382,6 +385,7 @@ def render_comparison_llm_panel(
     prior_error_key = f"{_PRIOR_LOAD_ERROR_KEY}::{run_key}"
     prior_manifest_resolved: dict[str, Any] | None = None
     prior_summary_resolved: pd.DataFrame | None = None
+    prior_load_failed = False
     try:
         prior_manifest_resolved, prior_summary_resolved, _ = _resolve_prior_inputs(
             manifest_data,
@@ -389,18 +393,25 @@ def render_comparison_llm_panel(
             prior_manifest_data=prior_manifest_data,
         )
     except Exception as exc:
+        prior_load_failed = True
         st.session_state[prior_error_key] = _prior_load_error_message(exc)
     else:
         st.session_state.pop(prior_error_key, None)
 
-    comparison_id = _comparison_identity(
-        summary_df=summary_df,
-        manifest_data=manifest_data,
-        run_key=run_key,
-        prior_summary_df=prior_summary_resolved,
-        prior_manifest_data=prior_manifest_resolved,
-        input_fingerprint=input_fingerprint,
-    )
+    comparison_id = None
+    if (
+        not prior_load_failed
+        and prior_manifest_resolved is not None
+        and prior_summary_resolved is not None
+    ):
+        comparison_id = _comparison_identity(
+            summary_df=summary_df,
+            manifest_data=manifest_data,
+            run_key=run_key,
+            prior_summary_df=prior_summary_resolved,
+            prior_manifest_data=prior_manifest_resolved,
+            input_fingerprint=input_fingerprint,
+        )
     prior_load_error = (
         str(st.session_state.get(prior_error_key, "")).strip()
         if comparison_id is None

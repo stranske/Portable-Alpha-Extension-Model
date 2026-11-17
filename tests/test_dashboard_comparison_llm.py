@@ -277,6 +277,71 @@ def test_prior_load_failure_on_compare_button_shows_sanitized_error(monkeypatch)
     assert fake_st.downloads == []
 
 
+@pytest.mark.parametrize("button_value", [False, True])
+def test_prior_load_fail_once_preserves_error_until_next_render(monkeypatch, button_value) -> None:
+    marker = "synthetic-prior-load-secret"
+    summary = pd.DataFrame({"monthly_TE": [0.02]})
+    prior_summary = pd.DataFrame({"monthly_TE": [0.01]})
+    fake_st = FakeStreamlit(button_value=button_value)
+    load_calls = 0
+    generated = []
+
+    def load_prior_summary(*args, **kwargs):
+        nonlocal load_calls
+        load_calls += 1
+        if load_calls == 1:
+            raise RuntimeError(marker)
+        return prior_summary, None
+
+    def compare_runs(**kwargs):
+        generated.append(kwargs["prior_summary"])
+        return (
+            "Recovered comparison",
+            None,
+            comparison_module.CompareRunsPayload(
+                config_diff="",
+                metric_catalog_a={},
+                metric_catalog_b={},
+                prompt="prompt",
+                questions="questions",
+                prior_manifest_path=None,
+                prior_summary_path=None,
+            ),
+        )
+
+    monkeypatch.setattr(comparison_module, "st", fake_st)
+    monkeypatch.setattr(comparison_module, "load_prior_summary", load_prior_summary)
+    monkeypatch.setattr(comparison_module, "compare_runs", compare_runs)
+    monkeypatch.setattr(comparison_module, "resolve_llm_provider_config", lambda **kwargs: None)
+
+    def render():
+        comparison_module.render_comparison_llm_panel(
+            summary_df=summary,
+            manifest_data={"seed": 2},
+            run_key="fail-once",
+            prior_manifest_data={"seed": 1},
+        )
+
+    render()
+
+    errors = [message for kind, message in fake_st.messages if kind == "error"]
+    assert len(errors) == 1
+    assert errors[0].startswith("Prior run inputs unavailable")
+    assert marker not in errors[0]
+    assert ("info", comparison_module._MISSING_MESSAGE) not in fake_st.messages
+    assert not generated
+    assert load_calls == 1
+
+    fake_st.messages.clear()
+    fake_st.button_value = True
+    render()
+
+    assert ("markdown", "Recovered comparison") in fake_st.messages
+    assert not any(kind == "error" for kind, _ in fake_st.messages)
+    assert len(generated) == 1 and generated[0] is prior_summary
+    assert load_calls == 2
+
+
 def test_render_comparison_llm_panel_shows_default_message(monkeypatch) -> None:
     fake_st = FakeStreamlit(button_value=False)
     monkeypatch.setattr(comparison_module, "st", fake_st)

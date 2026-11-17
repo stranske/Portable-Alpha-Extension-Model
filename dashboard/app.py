@@ -139,40 +139,51 @@ def _load_paths_sidecar(xlsx: str) -> pd.DataFrame | None:
         return None
 
 
-def _summary_content_token(xlsx: str) -> str:
+def _summary_content_token(summary: pd.DataFrame) -> str:
     """Hash Summary-sheet values so same-path replacements bust the cache."""
-    summary = pd.read_excel(xlsx, sheet_name=SUMMARY_SHEET_NAME)
     payload = summary.to_dict(orient="split")
     return hashlib.sha256(
         json.dumps(payload, sort_keys=True, ensure_ascii=True, default=str).encode("utf-8")
     ).hexdigest()[:16]
 
 
+def _read_summary_snapshot(xlsx: str) -> tuple[pd.DataFrame, str]:
+    path = Path(xlsx)
+    stat = path.stat()
+    summary = pd.read_excel(xlsx, sheet_name=SUMMARY_SHEET_NAME)
+    content = _summary_content_token(summary)
+    return summary, f"{stat.st_mtime_ns}:{stat.st_size}:{content}"
+
+
 def workbook_cache_revision(xlsx: str) -> str:
     """Return a cache key for the workbook snapshot (path stat + Summary content)."""
-    path = Path(xlsx)
     try:
-        stat = path.stat()
-        content = _summary_content_token(str(path))
-        return f"{stat.st_mtime_ns}:{stat.st_size}:{content}"
+        _, revision = _read_summary_snapshot(xlsx)
+        return revision
     except OSError:
         return "missing"
 
 
 @_cache_data(ttl=600)
+def _load_workbook_snapshot(
+    xlsx: str, revision: str, _summary: pd.DataFrame, workbook_revision: str | None
+) -> tuple[pd.DataFrame, pd.DataFrame | None]:
+    # The revision already hashes this Summary, so Streamlit can skip hashing _summary.
+    # Try parquet -> csv -> Excel('AllReturns') for path-based charts
+    paths = _load_paths_sidecar(xlsx)
+    return _summary, paths
+
+
 def load_data(
     xlsx: str, workbook_revision: str | None = None
 ) -> tuple[pd.DataFrame, pd.DataFrame | None]:
-    summary = pd.read_excel(xlsx, sheet_name=SUMMARY_SHEET_NAME)
-    # Try parquet -> csv -> Excel('AllReturns') for path-based charts
-    paths = _load_paths_sidecar(xlsx)
-    return summary, paths
+    summary, revision = _read_summary_snapshot(xlsx)
+    return _load_workbook_snapshot(xlsx, revision, summary, workbook_revision)
 
 
 def load_results_workbook(xlsx: str) -> tuple[pd.DataFrame, pd.DataFrame | None]:
     """Load Results workbook data using a revision token tied to Summary content."""
-    revision = workbook_cache_revision(xlsx)
-    return load_data(xlsx, revision)
+    return load_data(xlsx)
 
 
 def save_history(df: pd.DataFrame, base: str | Path = "Outputs.parquet") -> None:
