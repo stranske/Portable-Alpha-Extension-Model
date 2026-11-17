@@ -334,6 +334,12 @@ def test_compare_runs_uses_passed_prior_snapshot_instead_of_disk_reload(
         "pa_core.llm.compare_runs._invoke_comparison_llm",
         lambda *a, **k: (_ for _ in ()).throw(RuntimeError("offline fallback")),
     )
+    monkeypatch.setattr(
+        "pa_core.llm.compare_runs.load_prior_summary",
+        lambda *a, **k: (_ for _ in ()).throw(
+            AssertionError("compare_runs must not reload prior summary when snapshot is passed")
+        ),
+    )
 
     swapped_prior = pd.DataFrame({"monthly_TE": [0.88], "monthly_CVaR": [-0.11]})
     prior_output.unlink(missing_ok=True)

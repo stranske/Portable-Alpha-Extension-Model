@@ -104,6 +104,26 @@ def load_prior_manifest(
     return loaded, prev_manifest_path
 
 
+def _prior_output_path(
+    prior_manifest: Mapping[str, Any] | None,
+    *,
+    manifest_path: Path | None = None,
+) -> Path | None:
+    if not isinstance(prior_manifest, Mapping):
+        return None
+    cli_args = prior_manifest.get("cli_args")
+    if not isinstance(cli_args, Mapping):
+        return None
+    output = cli_args.get("output")
+    if not isinstance(output, str) or not output.strip():
+        return None
+
+    output_path = Path(output).expanduser()
+    if not output_path.is_absolute() and manifest_path is not None:
+        output_path = manifest_path.expanduser().parent / output_path
+    return output_path
+
+
 def load_prior_summary(
     prior_manifest: Mapping[str, Any] | None,
     *,
@@ -116,18 +136,9 @@ def load_prior_summary(
     dashboard process may be launched from a different working directory.
     """
 
-    if not isinstance(prior_manifest, Mapping):
+    output_path = _prior_output_path(prior_manifest, manifest_path=manifest_path)
+    if output_path is None:
         return None, None
-    cli_args = prior_manifest.get("cli_args")
-    if not isinstance(cli_args, Mapping):
-        return None, None
-    output = cli_args.get("output")
-    if not isinstance(output, str) or not output.strip():
-        return None, None
-
-    output_path = Path(output).expanduser()
-    if not output_path.is_absolute() and manifest_path is not None:
-        output_path = manifest_path.expanduser().parent / output_path
     if not output_path.exists() or not output_path.is_file():
         return None, output_path
 
@@ -302,8 +313,13 @@ def build_metric_catalog(summary_df: pd.DataFrame) -> dict[str, float]:
         SUMMARY_BREACH_PROB_COLUMN,
     )
     for column in metric_columns:
-        if column in summary_df.columns and pd.api.types.is_numeric_dtype(summary_df[column]):
-            metrics[column] = float(summary_df[column].mean())
+        if column not in summary_df.columns:
+            continue
+        series = summary_df[column]
+        if not pd.api.types.is_numeric_dtype(series):
+            series = pd.to_numeric(series, errors="coerce")
+        if pd.api.types.is_numeric_dtype(series) and series.notna().any():
+            metrics[column] = float(series.mean())
     return metrics
 
 
@@ -410,7 +426,7 @@ def compare_runs(
             resolved_prior_manifest, manifest_path=prior_manifest_path
         )
     else:
-        _, prior_summary_path = load_prior_summary(
+        prior_summary_path = _prior_output_path(
             resolved_prior_manifest, manifest_path=prior_manifest_path
         )
     if prior_summary is None:
