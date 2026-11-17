@@ -392,6 +392,7 @@ def compare_runs(
     """Generate run comparison output and optional trace URL for Results panel."""
 
     questions = questions.strip() or DEFAULT_COMPARISON_QUESTIONS
+    resolved_prior_manifest: dict[str, Any] | None
     prior_manifest_path: Path | None = None
     if isinstance(prior_manifest, Mapping):
         resolved_prior_manifest = dict(prior_manifest)
