@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 
 import numpy as np
+import pandas as pd
 
 from pa_core.contracts import (
     MANIFEST_CONTRACT,
@@ -27,6 +28,7 @@ from pa_core.contracts import (
     SUMMARY_TERMINAL_CVAR_SE_COLUMN,
     manifest_path_for_output,
     manifest_path_from_run_end,
+    select_portfolio_total_metrics,
     validate_manifest_payload,
     validate_run_directory,
     validate_summary_frame,
@@ -124,3 +126,30 @@ def test_summary_table_populates_cvar_precision_contract_columns() -> None:
     assert diagnostic_columns == [col for col in SUMMARY_REQUIRED_COLUMNS if "CVaR" in col]
     assert summary[diagnostic_columns].notna().all().all()
     assert np.isfinite(summary[diagnostic_columns].to_numpy(dtype=float)).all()
+
+
+def test_select_portfolio_total_metrics_reads_only_the_total_row() -> None:
+    summary = pd.DataFrame(
+        {
+            "Agent": ["Base", "  TOTAL  ", "ExternalPA"],
+            "monthly_TE": [0.01, 0.04, 0.09],
+            "monthly_CVaR": [-0.02, "n/a", -0.07],
+            "monthly_BreachProb": [0.5, 0.12, 0.9],
+        }
+    )
+
+    metrics = select_portfolio_total_metrics(
+        summary, ("monthly_TE", "monthly_CVaR", "monthly_BreachProb", "TrackingErr")
+    )
+
+    # Label match is stripped/case-insensitive; a non-numeric Total value and a
+    # column missing from the frame are omitted rather than filled from sleeves.
+    assert metrics == {"monthly_TE": 0.04, "monthly_BreachProb": 0.12}
+
+
+def test_select_portfolio_total_metrics_without_total_returns_empty() -> None:
+    sleeves = pd.DataFrame({"Agent": ["Base", "ExternalPA"], "monthly_TE": [0.01, 0.09]})
+
+    assert select_portfolio_total_metrics(sleeves, ("monthly_TE",)) == {}
+    assert select_portfolio_total_metrics(sleeves.drop(columns=["Agent"]), ("monthly_TE",)) == {}
+    assert select_portfolio_total_metrics(None, ("monthly_TE",)) == {}  # type: ignore[arg-type]
