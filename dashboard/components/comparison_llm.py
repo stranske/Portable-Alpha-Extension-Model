@@ -380,12 +380,25 @@ def render_comparison_llm_panel(
 
     cache = _cache_bucket()
     prior_error_key = f"{_PRIOR_LOAD_ERROR_KEY}::{run_key}"
+    prior_manifest_resolved: dict[str, Any] | None = None
+    prior_summary_resolved: pd.DataFrame | None = None
+    try:
+        prior_manifest_resolved, prior_summary_resolved, _ = _resolve_prior_inputs(
+            manifest_data,
+            prior_summary_df=prior_summary_df,
+            prior_manifest_data=prior_manifest_data,
+        )
+    except Exception as exc:
+        st.session_state[prior_error_key] = _prior_load_error_message(exc)
+    else:
+        st.session_state.pop(prior_error_key, None)
+
     comparison_id = _comparison_identity(
         summary_df=summary_df,
         manifest_data=manifest_data,
         run_key=run_key,
-        prior_summary_df=prior_summary_df,
-        prior_manifest_data=prior_manifest_data,
+        prior_summary_df=prior_summary_resolved,
+        prior_manifest_data=prior_manifest_resolved,
         input_fingerprint=input_fingerprint,
     )
     prior_load_error = (
@@ -404,20 +417,14 @@ def render_comparison_llm_panel(
         with st.spinner("Generating run comparison..."):
             if cached is None or payload is None or payload.status != "success":
                 try:
-                    try:
-                        prior_manifest, prior_summary, _ = _resolve_prior_inputs(
-                            manifest_data,
-                            prior_summary_df=prior_summary_df,
-                            prior_manifest_data=prior_manifest_data,
-                        )
-                    except Exception as exc:
-                        message = _prior_load_error_message(exc)
-                        st.session_state[prior_error_key] = message
-                        st.error(message)
+                    if prior_error_key in st.session_state:
+                        st.error(str(st.session_state[prior_error_key]))
                         return
-                    if prior_manifest is None or prior_summary is None:
+                    if prior_manifest_resolved is None or prior_summary_resolved is None:
                         st.info(_MISSING_MESSAGE)
                         return
+                    prior_manifest = prior_manifest_resolved
+                    prior_summary = prior_summary_resolved
                     questions_key = f"{_QUESTIONS_KEY}::{run_key}"
                     provider_key = f"{_PROVIDER_KEY}::{run_key}"
                     base_url_key = f"{_BASE_URL_KEY}::{run_key}"
@@ -462,8 +469,8 @@ def render_comparison_llm_panel(
                             summary_df=summary_df,
                             manifest_data=manifest_data,
                             run_key=run_key,
-                            prior_summary_df=prior_summary,
-                            prior_manifest_data=prior_manifest,
+                            prior_summary_df=prior_summary_resolved,
+                            prior_manifest_data=prior_manifest_resolved,
                             input_fingerprint=input_fingerprint,
                         )
                     assert comparison_id is not None

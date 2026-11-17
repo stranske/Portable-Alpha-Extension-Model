@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import os
+from unittest.mock import patch
+
 import pandas as pd
 import pytest
 
@@ -84,6 +87,15 @@ def test_load_data_workbook_revision_invalidates_same_path_replacement(tmp_path)
     assert revision_b != revision_a
     summary_b, _ = app.load_data(str(xlsx), revision_b)
     assert float(summary_b["monthly_TE"].iloc[0]) == pytest.approx(0.88)
+
+    frozen_stat = xlsx.stat()
+    pd.DataFrame({"monthly_TE": [0.42]}).to_excel(xlsx, sheet_name=SUMMARY_SHEET_NAME, index=False)
+    os.utime(xlsx, ns=(frozen_stat.st_atime_ns, frozen_stat.st_mtime_ns))
+    with patch("dashboard.app.Path.stat", return_value=frozen_stat):
+        revision_same_stat = app.workbook_cache_revision(str(xlsx))
+    assert revision_same_stat != revision_b
+    summary_same_stat, _ = app.load_data(str(xlsx), revision_same_stat)
+    assert float(summary_same_stat["monthly_TE"].iloc[0]) == pytest.approx(0.42)
 
 
 def test_get_plot_fn_returns_callable():

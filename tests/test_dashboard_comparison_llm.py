@@ -10,6 +10,7 @@ import pandas as pd
 import pytest
 
 import dashboard.components.comparison_llm as comparison_module
+from dashboard import app
 
 
 class _FakeContext:
@@ -153,6 +154,90 @@ def test_prior_load_failure_shows_sanitized_error_and_recovers(monkeypatch) -> N
     assert any(
         kind == "info" and "Click Compare Runs" in text for kind, text in fake_st.messages
     )
+
+
+def test_comparison_panel_resolves_prior_inputs_once_per_render(monkeypatch, tmp_path) -> None:
+    from contextlib import nullcontext
+
+    import pa_core.llm.compare_runs as backend
+
+    prior_output = tmp_path / "prior.xlsx"
+    prior_manifest_path = tmp_path / "prior.json"
+    pd.DataFrame({"monthly_TE": [0.01]}).to_excel(prior_output, sheet_name="Summary", index=False)
+    prior_manifest_path.write_text(
+        json.dumps(
+            {
+                "seed": 7,
+                "config": {"theta_extpa": 0.2},
+                "cli_args": {"output": str(prior_output)},
+            }
+        )
+    )
+
+    load_calls: list[int] = []
+
+    def flaky_prior_summary(*_args, **_kwargs):
+        load_calls.append(1)
+        te = 0.01 if len(load_calls) == 1 else 0.99
+        return pd.DataFrame({"monthly_TE": [te]}), prior_output
+
+    fake_st = FakeStreamlit(button_value=True)
+    monkeypatch.setattr(comparison_module, "st", fake_st)
+    monkeypatch.setattr(comparison_module, "load_prior_summary", flaky_prior_summary)
+    monkeypatch.setattr(backend, "langsmith_tracing_context", lambda **kwargs: nullcontext())
+    monkeypatch.setattr(backend, "record_fleet_event", lambda *args, **kwargs: None)
+    captured: dict[str, Any] = {}
+
+    def fake_compare_runs(**kwargs):
+        captured.update(kwargs)
+        return (
+            "Generated comparison",
+            None,
+            comparison_module.CompareRunsPayload(
+                config_diff="- seed: 1 -> 2",
+                metric_catalog_a={"monthly_TE": 0.02},
+                metric_catalog_b={"monthly_TE": float(kwargs["prior_summary"]["monthly_TE"].iloc[0])},
+                prompt="prompt",
+                questions="questions",
+                prior_manifest_path=str(prior_manifest_path),
+                prior_summary_path=str(prior_output),
+            ),
+        )
+
+    monkeypatch.setattr(comparison_module, "compare_runs", fake_compare_runs)
+    monkeypatch.setattr(comparison_module, "default_api_key", lambda provider: "test-key")
+    monkeypatch.setattr(comparison_module, "resolve_api_key_input", lambda raw: raw)
+    monkeypatch.setattr(
+        comparison_module,
+        "resolve_llm_provider_config",
+        lambda **kwargs: type(
+            "Cfg",
+            (),
+            {"provider_name": "openai", "model_name": "gpt-4o-mini"},
+        )(),
+    )
+    monkeypatch.setattr(backend, "_invoke_comparison_llm", lambda prompt, **kwargs: "ok")
+
+    summary_df = pd.DataFrame({"monthly_TE": [0.02]})
+    manifest_data = {"seed": 9, "previous_run": str(prior_manifest_path)}
+    comparison_module.render_comparison_llm_panel(
+        summary_df=summary_df,
+        manifest_data=manifest_data,
+        run_key="prior-snapshot-once",
+    )
+
+    assert len(load_calls) == 1
+    assert float(captured["prior_summary"]["monthly_TE"].iloc[0]) == pytest.approx(0.01)
+    identity = comparison_module._comparison_identity(
+        summary_df=summary_df,
+        manifest_data=manifest_data,
+        run_key="prior-snapshot-once",
+        prior_summary_df=captured["prior_summary"],
+        prior_manifest_data=captured["prior_manifest"],
+    )
+    assert identity is not None
+    cached = fake_st.session_state["comparison_llm_cache"][identity]
+    assert cached.comparison_id == identity
 
 
 def test_prior_load_failure_on_compare_button_shows_sanitized_error(monkeypatch) -> None:
@@ -340,8 +425,12 @@ def test_same_path_rerun_invalidates_comparison(monkeypatch, tmp_path) -> None:
         fake_st.button_value = button
         fake_st.messages.clear()
         fake_st.downloads.clear()
+        loaded_summary, _ = app.load_data(
+            str(current_output),
+            app.workbook_cache_revision(str(current_output)),
+        )
         render_comparison_panel(
-            summary=current_summary,
+            summary=loaded_summary,
             manifest_data=current_manifest,
             xlsx=str(current_output),
             render_panel=comparison_module.render_comparison_llm_panel,
@@ -379,10 +468,9 @@ def test_same_path_rerun_invalidates_comparison(monkeypatch, tmp_path) -> None:
     _, first_json = assert_active_output(1)
 
     # 2. Second render: same-path current summary replacement must hide old narrative/downloads.
-    current_summary = pd.DataFrame(
+    pd.DataFrame(
         {"Agent": ["Total"], "monthly_TE": [0.04], "monthly_CVaR": [-0.05]}
-    )
-    current_summary.to_excel(current_output, sheet_name="Summary", index=False)
+    ).to_excel(current_output, sheet_name="Summary", index=False)
     render(button=False)
     assert_stale_hidden(1)
 

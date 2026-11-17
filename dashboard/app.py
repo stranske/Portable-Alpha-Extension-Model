@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import hashlib
 import importlib
 import importlib.util
+import json
 from pathlib import Path
 from types import ModuleType
 
@@ -137,12 +139,22 @@ def _load_paths_sidecar(xlsx: str) -> pd.DataFrame | None:
         return None
 
 
+def _summary_content_token(xlsx: str) -> str:
+    """Hash Summary-sheet values so same-path replacements bust the cache."""
+    summary = pd.read_excel(xlsx, sheet_name=SUMMARY_SHEET_NAME)
+    payload = summary.to_dict(orient="split")
+    return hashlib.sha256(
+        json.dumps(payload, sort_keys=True, ensure_ascii=True, default=str).encode("utf-8")
+    ).hexdigest()[:16]
+
+
 def workbook_cache_revision(xlsx: str) -> str:
-    """Return a cache-busting token when a workbook is replaced at the same path."""
+    """Return a cache key for the workbook snapshot (path stat + Summary content)."""
     path = Path(xlsx)
     try:
         stat = path.stat()
-        return f"{stat.st_mtime_ns}:{stat.st_size}"
+        content = _summary_content_token(str(path))
+        return f"{stat.st_mtime_ns}:{stat.st_size}:{content}"
     except OSError:
         return "missing"
 
@@ -155,6 +167,12 @@ def load_data(
     # Try parquet -> csv -> Excel('AllReturns') for path-based charts
     paths = _load_paths_sidecar(xlsx)
     return summary, paths
+
+
+def load_results_workbook(xlsx: str) -> tuple[pd.DataFrame, pd.DataFrame | None]:
+    """Load Results workbook data using a revision token tied to Summary content."""
+    revision = workbook_cache_revision(xlsx)
+    return load_data(xlsx, revision)
 
 
 def save_history(df: pd.DataFrame, base: str | Path = "Outputs.parquet") -> None:
