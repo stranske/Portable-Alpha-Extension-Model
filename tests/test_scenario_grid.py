@@ -9,7 +9,7 @@ from typing import Any
 import pandas as pd
 import yaml
 
-from pa_core.config import ModelConfig
+from pa_core.config import ModelConfig, load_config
 
 
 class _RerunSignal(Exception):
@@ -368,7 +368,10 @@ def _scenario_download(fake_st: _FakeStreamlit) -> ModelConfig:
     labels = [label for label, _ in fake_st.downloads]
     assert "Download Scenario YAML" in labels
     data = dict(fake_st.downloads)["Download Scenario YAML"]
-    return ModelConfig.model_validate(yaml.safe_load(data))
+    raw = yaml.safe_load(data)
+    loaded = load_config(raw)
+    assert loaded == ModelConfig.model_validate(raw)
+    return loaded
 
 
 def test_funded_grid_totals_and_config_roundtrip(monkeypatch) -> None:
@@ -381,6 +384,7 @@ def test_funded_grid_totals_and_config_roundtrip(monkeypatch) -> None:
         buttons={"Run sweep": True},
         sweep_spy=sweep_results,
     )
+    assert not fake_st.errors
 
     # Funded ExternalPA/ActiveExt sleeves are present in every grid cell.
     assert len(sweep_results) == 4
@@ -398,6 +402,7 @@ def test_funded_grid_totals_and_config_roundtrip(monkeypatch) -> None:
         return values
 
     assert len({round(v, 12) for v in _metric("Base", "terminal_AnnReturn")}) == 1
+    assert len({round(v, 12) for v in _metric("Base", "monthly_AnnVol")}) == 1
     assert len({round(v, 12) for v in _metric("Total", "terminal_AnnReturn")}) == 4
 
     grid = heatmap.frames[-1]
@@ -405,6 +410,14 @@ def test_funded_grid_totals_and_config_roundtrip(monkeypatch) -> None:
     assert grid["Sharpe"].nunique() == 4
     assert grid["terminal_AnnReturn"].nunique() == 4
     assert sorted(grid["active_share"].unique()) == [0.5, 1.0]
+    assert sorted(grid["y_axis"].unique()) == [0.25, 0.5]
+    # Both axes independently vary portfolio Total return.
+    for share, grp in grid.groupby("active_share"):
+        assert grp["terminal_AnnReturn"].nunique() == 2, f"theta did not vary active_share={share}"
+    for theta_val, grp in grid.groupby("y_axis"):
+        assert (
+            grp["terminal_AnnReturn"].nunique() == 2
+        ), f"active_share did not vary theta={theta_val}"
 
     # Promote each cell through both supported paths with the same cached basis.
     for y_mode in ("External alpha fraction (theta)", "External PA $ (mm)"):
@@ -435,6 +448,8 @@ def test_funded_grid_totals_and_config_roundtrip(monkeypatch) -> None:
                 selection={"selection": {"points": [{"x": share, "y": y_value}]}},
             )
             click_payload = click_state["promoted_alpha_shares"]
+            assert click_state["scenario_grid_selection"] == click_payload
+            assert click_state["scenario_grid_promotion_token"] == 1
 
             # Selectbox path: promote, rerun, then read back the export.
             box_state = dict(mode_session)
@@ -446,6 +461,8 @@ def test_funded_grid_totals_and_config_roundtrip(monkeypatch) -> None:
                 allow_rerun=True,
             )
             box_payload = box_state["promoted_alpha_shares"]
+            assert box_state["scenario_grid_selection"] == box_payload
+            assert box_state["scenario_grid_promotion_token"] == 1
             box_st, _ = _run_grid_page(
                 monkeypatch, box_state, buttons={}, selectbox_values=select_values
             )
@@ -461,7 +478,85 @@ def test_funded_grid_totals_and_config_roundtrip(monkeypatch) -> None:
                 assert exported.analysis_mode == "alpha_shares"
                 assert exported.active_share == share
                 assert abs(exported.theta_extpa - theta) < 1e-9
-                assert exported.external_pa_capital > 0
-                assert exported.active_ext_capital > 0
-                names = {agent.name for agent in exported.agents}
-                assert {"ExternalPA", "ActiveExt"} <= names
+                assert exported.external_pa_capital == 250.0
+                assert exported.active_ext_capital == 250.0
+                agents_by_name = {agent.name: agent for agent in exported.agents}
+                assert {"ExternalPA", "ActiveExt"} <= agents_by_name.keys()
+                assert agents_by_name["ExternalPA"].capital == 250.0
+                assert abs(agents_by_name["ExternalPA"].extra["theta_extpa"] - theta) < 1e-9
+                assert agents_by_name["ActiveExt"].capital == 250.0
+                assert agents_by_name["ActiveExt"].extra["active_share"] == share
+
+
+def test_promotion_paths_share_cached_capital_basis_and_handle_nonpositive_cache(
+    monkeypatch,
+) -> None:
+    """Click and selectbox paths both use cached total_fund and guard <= 0 / None."""
+    module, _ = _load_module(monkeypatch)
+    assert module["_theta_from_axis_value"](250.0, "external_pa_dollars_mm", 500.0) == 0.5
+    assert module["_theta_from_axis_value"](0.4, "external_pa_dollars_mm", 0.0) == 0.4
+    assert module["_theta_from_axis_value"](0.4, "theta_extpa", 0.0) == 0.4
+
+    # Populate a real cached dollar-axis grid, then override cached total_fund
+    # to differ from base_cfg.total_fund_capital (1000.0) to prove BOTH paths
+    # invert using the cached capital basis rather than base_cfg.
+    y_mode = "External PA $ (mm)"
+    base_session: dict = {}
+    _run_grid_page(
+        monkeypatch,
+        base_session,
+        buttons={"Run sweep": True},
+        selectbox_values={"Y axis": y_mode},
+    )
+    entries = base_session["scenario_grid_cache"]["entries"]
+    cache_key = next(iter(entries))
+    custom_df = pd.DataFrame(
+        {
+            "active_share": [0.5, 1.0],
+            "y_axis": [250.0, 250.0],
+            "Sharpe": [0.8, 0.9],
+        }
+    )
+
+    for cached_capital, y_value, expected_theta in (
+        (500.0, 250.0, 0.5),
+        (0.0, 0.4, 0.4),
+        (None, 0.4, 0.4),
+    ):
+        frame = custom_df.assign(y_axis=y_value)
+        cached_entry = {
+            "key": cache_key,
+            "grid_df": frame,
+            "y_col": "external_pa_dollars_mm",
+            "total_fund": cached_capital,
+        }
+        seeded_state = {
+            "scenario_grid_cache": {
+                "entries": {cache_key: cached_entry},
+                "order": [cache_key],
+            }
+        }
+        select_values = {"Y axis": y_mode, _X_LABEL: 0.5, _Y_LABEL: y_value}
+
+        click_state = dict(seeded_state)
+        click_st, _ = _run_grid_page(
+            monkeypatch,
+            click_state,
+            buttons={},
+            selectbox_values=select_values,
+            selection={"selection": {"points": [{"x": 0.5, "y": y_value}]}},
+        )
+        assert not click_st.errors
+
+        box_state = dict(seeded_state)
+        box_st, _ = _run_grid_page(
+            monkeypatch,
+            box_state,
+            buttons={"Promote to session": True},
+            selectbox_values=select_values,
+            allow_rerun=True,
+        )
+        assert not box_st.errors
+
+        assert click_state["promoted_alpha_shares"] == box_state["promoted_alpha_shares"]
+        assert abs(click_state["promoted_alpha_shares"]["theta_extpa"] - expected_theta) < 1e-9
