@@ -254,6 +254,7 @@ def test_unknown_patch_field_rejection_requires_structured_details() -> None:
             lambda _prompt: "{}",
             "openai",
             None,
+            False,
         )
         run_fn.__globals__["run_config_patch_chain"] = lambda **_kwargs: (_ for _ in ()).throw(
             ValueError("unknown wizard field: fake_field")
@@ -277,6 +278,7 @@ def test_unknown_patch_field_rejection_is_flagged_from_structured_validation_err
             lambda _prompt: "{}",
             "openai",
             None,
+            False,
         )
         run_fn.__globals__["run_config_patch_chain"] = lambda **_kwargs: (_ for _ in ()).throw(
             ConfigPatchValidationError(
