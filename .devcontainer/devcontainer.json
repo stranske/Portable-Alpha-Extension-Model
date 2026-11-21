@@ -49,6 +49,6 @@
     "JUPYTER_ENABLE_LAB": "yes"
   },
   "remoteUser": "vscode",
-  "updateContentCommand": "pip install --upgrade pip && pip install -r requirements-dev.txt",
+  "updateContentCommand": "python -m pip install --upgrade pip && python -m pip install -r requirements-dev.txt -e '.[dev]'",
   "shutdownAction": "stopContainer"
 }

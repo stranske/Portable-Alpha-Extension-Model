@@ -14,19 +14,9 @@ source .venv/bin/activate
 echo "⬆️ Upgrading pip..."
 python -m pip install --upgrade pip
 
-# Install dependencies
+# Install the editable package and dependencies
 echo "📚 Installing dependencies..."
-pip install -r requirements.txt
-pip install -r requirements-dev.txt
-
-# Install package in development mode
-echo "🔧 Installing package in development mode..."
-pip install -e .
-
-# Make scripts executable
-chmod +x dev.sh
-chmod +x setup.sh
-chmod +x setup_deps.sh
+python -m pip install -r requirements.txt -r requirements-dev.txt -e '.[dev]'
 
 # Install pre-commit hooks (optional)
 if command -v pre-commit &> /dev/null; then

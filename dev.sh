@@ -94,7 +94,7 @@ run_ci() {
 # Quick development setup
 dev_setup() {
     print_status "Setting up development environment..."
-    check_venv
+    ./setup.sh
     activate_venv
     print_success "Development environment ready!"
     print_status "You can now run:"

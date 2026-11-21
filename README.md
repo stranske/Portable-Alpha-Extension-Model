@@ -18,7 +18,7 @@ This path keeps the app and uploaded files inside the user's own Codespace. Do n
 
 The pure client-side WASM/stlite path is intentionally not claimed here: the base dependency surface includes `kaleido` for Plotly static export and `python-pptx` for board packs, both of which are not viable in Pyodide/stlite. The supported terminal-free path is therefore Codespace auto-start or an internal/on-prem host with equivalent data controls.
 
-The demo installs only the base package. LLM panels are disabled by default and show the install/key prompt instead of making provider calls. Enabling LLM features requires `.[llm]`, a provider key, and an org-authorized no-train endpoint.
+LLM panels are disabled by default and show the install/key prompt. Enabling them requires `.[llm]`, a provider key, and an org-authorized no-train endpoint.
 
 Boot smoke gate used by PRs:
 
@@ -297,11 +297,16 @@ parameter uncertainty, regime misspecification, or fee/capacity uncertainty.
 
 ### Testing
 
-Install the package and development dependencies first:
+Use Python 3.13 or newer and Git. The `dev` extra installs the test tools and the
+shared `app-baseline-kit` package used by the baseline suite. `./dev.sh setup`,
+`./setup.sh`, and `make setup` create `.venv` and install this extra. If your
+environment is already active, run `make install-dev` or install the extra directly.
 
 ```bash
-pip install -r requirements-dev.txt
-pip install -e .
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install -e '.[dev]'
+python -m pytest --collect-only -q tests/baseline/
 ```
 
 ```bash
