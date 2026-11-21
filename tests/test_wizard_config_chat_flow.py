@@ -12,6 +12,9 @@ from pa_core.wizard_schema import AnalysisMode, get_default_config
 
 _CONFIG_CHAT_INSTRUCTION = "increase simulations to 5000"
 _CONFIG_CHAT_INSTALL_NOTICE = "LLM features unavailable. Install .[llm] to enable Config Chat."
+# Pre-fix readback at e1ec34c8: configured credentials + missing optional deps still
+# applied heuristics but omitted missing_extra labeling and the install notice.
+_LEGACY_MISSING_EXTRA_READBACK = {"risk_flags": [], "install_notice": None}
 
 
 def _mute_streamlit_ui(module: dict, monkeypatch) -> None:
@@ -161,13 +164,23 @@ def test_config_chat_missing_extra_explains_offline_fallback(monkeypatch) -> Non
             model_name="gpt-4o-mini",
         )
 
-        preview = module["_preview_config_chat_instruction"](_CONFIG_CHAT_INSTRUCTION)
+        preview_fn = module["_preview_config_chat_instruction"]
+        preview = preview_fn(_CONFIG_CHAT_INSTRUCTION)
 
         assert preview["patch"]["set"]["n_simulations"] == 5000
         assert preview["summary"] == "Applied heuristic instruction parsing."
         assert preview["risk_flags"] == ["missing_extra"]
         assert preview["install_notice"] == _CONFIG_CHAT_INSTALL_NOTICE
         assert "llm_fallback_heuristic" not in preview["risk_flags"]
+        # Same fixture/input failed the pre-fix contract (silent offline heuristic).
+        assert preview["risk_flags"] != _LEGACY_MISSING_EXTRA_READBACK["risk_flags"]
+        assert preview.get("install_notice") != _LEGACY_MISSING_EXTRA_READBACK["install_notice"]
+
+        wrapped = module["_preview_config_chat_change"](_CONFIG_CHAT_INSTRUCTION)
+        assert wrapped["install_notice"] == preview["install_notice"]
+        assert st.session_state[module["_CONFIG_CHAT_PREVIEW_KEY"]]["install_notice"] == (
+            _CONFIG_CHAT_INSTALL_NOTICE
+        )
 
         st.session_state.clear()
         st.session_state["wizard_config"] = config

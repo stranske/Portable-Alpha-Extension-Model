@@ -128,6 +128,30 @@ def test_render_config_chat_apply_and_apply_validate_call_handler(monkeypatch) -
     ]
 
 
+def test_render_config_chat_preview_surfaces_install_notice(monkeypatch) -> None:
+    install_notice = "LLM features unavailable. Install .[llm] to enable Config Chat."
+    fake_st = FakeStreamlit(
+        button_values={"wizard_config_chat_preview": True},
+        session_state={"wizard_config_chat_instruction": "increase simulations to 5000"},
+    )
+    monkeypatch.setattr(config_chat_module, "st", fake_st)
+
+    config_chat_module.render_config_chat_panel(
+        on_preview=lambda instruction: {
+            "summary": "Applied heuristic instruction parsing.",
+            "risk_flags": ["missing_extra"],
+            "install_notice": install_notice,
+            "unified_diff": "--- before\n+++ after\n",
+            "before_text": "n_simulations: 1000\n",
+            "after_text": "n_simulations: 5000\n",
+        }
+    )
+
+    assert any(
+        kind == "info" and install_notice in message for kind, message in fake_st.messages
+    ), fake_st.messages
+
+
 def test_render_config_chat_revert_calls_handler(monkeypatch) -> None:
     called = {"value": False}
     fake_st = FakeStreamlit(button_values={"wizard_config_chat_revert": True})
