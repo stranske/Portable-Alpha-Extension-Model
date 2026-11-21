@@ -7,6 +7,13 @@ from types import ModuleType
 from typing import Any
 
 import pandas as pd
+import yaml
+
+from pa_core.config import ModelConfig
+
+
+class _RerunSignal(Exception):
+    """Raised by the fake ``st.rerun`` when a test allows reruns."""
 
 
 class _FakeStreamlit(ModuleType):
@@ -18,6 +25,9 @@ class _FakeStreamlit(ModuleType):
         checkbox_value: bool = False,
         button_values: dict[str, bool] | None = None,
         selection: Any = None,
+        number_values: dict[str, float] | None = None,
+        selectbox_values: dict[str, Any] | None = None,
+        allow_rerun: bool = False,
     ) -> None:
         super().__init__(name)
         self.session_state: dict = {}
@@ -28,6 +38,10 @@ class _FakeStreamlit(ModuleType):
         self.checkbox_value = checkbox_value
         self.button_values = button_values or {}
         self.selection = selection
+        self.number_values = number_values or {}
+        self.selectbox_values = selectbox_values or {}
+        self.allow_rerun = allow_rerun
+        self.downloads: list[tuple[str, str]] = []
         self.sidebar = self
 
     def __enter__(self):
@@ -63,10 +77,12 @@ class _FakeStreamlit(ModuleType):
     def checkbox(self, _label: str, **_kwargs: Any) -> bool:
         return self.checkbox_value
 
-    def number_input(self, _label: str, **kwargs: Any) -> Any:
-        return kwargs["value"]
+    def number_input(self, label: str, **kwargs: Any) -> Any:
+        return self.number_values.get(label, kwargs["value"])
 
-    def selectbox(self, _label: str, options: list[Any], **kwargs: Any) -> Any:
+    def selectbox(self, label: str, options: list[Any], **kwargs: Any) -> Any:
+        if label in self.selectbox_values:
+            return self.selectbox_values[label]
         return options[kwargs.get("index", 0)]
 
     def button(self, label: str, **_kwargs: Any) -> bool:
@@ -87,10 +103,12 @@ class _FakeStreamlit(ModuleType):
     def warning(self, *_args: Any, **_kwargs: Any) -> None:
         pass
 
-    def download_button(self, *_args: Any, **_kwargs: Any) -> None:
-        pass
+    def download_button(self, label: str, data: str = "", *_args: Any, **_kwargs: Any) -> None:
+        self.downloads.append((label, data))
 
     def rerun(self) -> None:
+        if self.allow_rerun:
+            raise _RerunSignal()
         raise AssertionError("rerun should not be called by this test")
 
 
@@ -251,11 +269,11 @@ def test_main_runs_cached_sweep_and_promotes_clicked_selection(monkeypatch) -> N
         "sweep_results_to_dataframe",
         lambda _results: pd.DataFrame(
             {
-                "Agent": ["Base", "Base", "Other"],
-                "active_share": [0.4, 0.6, 0.4],
-                "theta_extpa": [0.2, 0.3, 0.2],
-                "terminal_AnnReturn": [0.08, 0.12, 0.01],
-                "monthly_AnnVol": [0.04, 0.06, 0.01],
+                "Agent": ["Base", "Total", "Total", "Other"],
+                "active_share": [0.4, 0.4, 0.6, 0.4],
+                "theta_extpa": [0.2, 0.2, 0.3, 0.2],
+                "terminal_AnnReturn": [0.5, 0.08, 0.12, 0.01],
+                "monthly_AnnVol": [0.5, 0.04, 0.06, 0.01],
             }
         ),
     )
@@ -277,3 +295,173 @@ def test_main_runs_cached_sweep_and_promotes_clicked_selection(monkeypatch) -> N
     assert fake_st.session_state["scenario_grid_promotion_token"] == 1
     assert figure.scatter_calls[0]["name"] == "Frontier"
     assert figure.hovertemplate is not None
+
+
+_X_LABEL = "Active share"
+_Y_LABEL = "External PA value"
+_GRID_NUMBERS = {
+    "ExtPA alpha min [%]": 25.0,
+    "ExtPA alpha max [%]": 50.0,
+    "ExtPA alpha step [%]": 25.0,
+    "Active share min [%]": 50.0,
+    "Active share max [%]": 100.0,
+    "Active share step [%]": 50.0,
+}
+
+
+class _HeatmapRecorder:
+    def __init__(self) -> None:
+        self.frames: list[pd.DataFrame] = []
+        self.figure = _FakeFigure()
+
+    def make(self, df: pd.DataFrame, **_kwargs: Any) -> _FakeFigure:
+        self.frames.append(df.copy())
+        return self.figure
+
+
+def _run_grid_page(
+    monkeypatch,
+    session_state: dict,
+    *,
+    buttons: dict[str, bool],
+    number_values: dict[str, float] | None = None,
+    selectbox_values: dict[str, Any] | None = None,
+    selection: Any = None,
+    allow_rerun: bool = False,
+    sweep_spy: list | None = None,
+) -> tuple[_FakeStreamlit, _HeatmapRecorder]:
+    """Run the real page (real sweep, bundled index) against a fake Streamlit."""
+    fake_st = _FakeStreamlit(
+        "streamlit",
+        checkbox_value=True,
+        button_values=buttons,
+        selection=selection,
+        number_values={**_GRID_NUMBERS, **(number_values or {})},
+        selectbox_values=selectbox_values,
+        allow_rerun=allow_rerun,
+    )
+    fake_st.session_state = session_state
+    module, _ = _load_module(monkeypatch)
+    heatmap = _HeatmapRecorder()
+    _patch_global(module, "st", fake_st)
+    _patch_global(module, "render_settings_sidebar", lambda: (None, "theme.yaml"))
+    _patch_global(module, "apply_theme", lambda _path: None)
+    _patch_global(module, "grid_heatmap", heatmap)
+    _patch_global(module, "render_png_download", lambda *_a, **_k: None)
+    if sweep_spy is not None:
+        real_sweep = module["run_parameter_sweep_cached"]
+
+        def _spy(*args: Any, **kwargs: Any) -> Any:
+            results = real_sweep(*args, **kwargs)
+            sweep_spy.extend(results)
+            return results
+
+        _patch_global(module, "run_parameter_sweep_cached", _spy)
+    try:
+        module["main"]()
+    except _RerunSignal:
+        pass
+    return fake_st, heatmap
+
+
+def _scenario_download(fake_st: _FakeStreamlit) -> ModelConfig:
+    labels = [label for label, _ in fake_st.downloads]
+    assert "Download Scenario YAML" in labels
+    data = dict(fake_st.downloads)["Download Scenario YAML"]
+    return ModelConfig.model_validate(yaml.safe_load(data))
+
+
+def test_funded_grid_totals_and_config_roundtrip(monkeypatch) -> None:
+    """Four-cell bundled-index grid: funded sleeves, varying Total, valid export."""
+    session: dict = {}
+    sweep_results: list = []
+    fake_st, heatmap = _run_grid_page(
+        monkeypatch,
+        session,
+        buttons={"Run sweep": True},
+        sweep_spy=sweep_results,
+    )
+
+    # Funded ExternalPA/ActiveExt sleeves are present in every grid cell.
+    assert len(sweep_results) == 4
+    for result in sweep_results:
+        agents = set(result["summary"]["Agent"])
+        assert {"ExternalPA", "ActiveExt", "Total"} <= agents
+
+    # Compatibility control: the Base benchmark stays invariant across cells while
+    # the aggregated portfolio Total varies with both grid axes.
+    def _metric(agent: str, column: str) -> list[float]:
+        values = []
+        for result in sweep_results:
+            frame = result["summary"]
+            values.append(float(frame.loc[frame["Agent"] == agent, column].iloc[0]))
+        return values
+
+    assert len({round(v, 12) for v in _metric("Base", "terminal_AnnReturn")}) == 1
+    assert len({round(v, 12) for v in _metric("Total", "terminal_AnnReturn")}) == 4
+
+    grid = heatmap.frames[-1]
+    assert len(grid) == 4
+    assert grid["Sharpe"].nunique() == 4
+    assert grid["terminal_AnnReturn"].nunique() == 4
+    assert sorted(grid["active_share"].unique()) == [0.5, 1.0]
+
+    # Promote each cell through both supported paths with the same cached basis.
+    for y_mode in ("External alpha fraction (theta)", "External PA $ (mm)"):
+        mode_session: dict = {}
+        _, mode_heatmap = _run_grid_page(
+            monkeypatch,
+            mode_session,
+            buttons={"Run sweep": True},
+            selectbox_values={"Y axis": y_mode},
+        )
+        mode_grid = mode_heatmap.frames[-1]
+        entry = next(iter(mode_session["scenario_grid_cache"]["entries"].values()))
+        total_fund = float(entry["total_fund"])
+        assert total_fund > 0
+        for _, cell in mode_grid.iterrows():
+            share = float(cell["active_share"])
+            y_value = float(cell["y_axis"])
+            theta = y_value if "theta" in y_mode else y_value / total_fund
+            select_values = {"Y axis": y_mode, _X_LABEL: share, _Y_LABEL: y_value}
+
+            # Click path.
+            click_state = dict(mode_session)
+            click_st, _ = _run_grid_page(
+                monkeypatch,
+                click_state,
+                buttons={},
+                selectbox_values=select_values,
+                selection={"selection": {"points": [{"x": share, "y": y_value}]}},
+            )
+            click_payload = click_state["promoted_alpha_shares"]
+
+            # Selectbox path: promote, rerun, then read back the export.
+            box_state = dict(mode_session)
+            _run_grid_page(
+                monkeypatch,
+                box_state,
+                buttons={"Promote to session": True},
+                selectbox_values=select_values,
+                allow_rerun=True,
+            )
+            box_payload = box_state["promoted_alpha_shares"]
+            box_st, _ = _run_grid_page(
+                monkeypatch, box_state, buttons={}, selectbox_values=select_values
+            )
+
+            assert click_payload == box_payload
+            assert click_payload["active_share"] == share
+            assert abs(click_payload["theta_extpa"] - theta) < 1e-9
+            assert theta in (0.25, 0.5)
+
+            # Exported YAML reloads via ModelConfig with financing mode + selection.
+            for exported in (_scenario_download(click_st), _scenario_download(box_st)):
+                assert exported.financing_mode == "per_path"
+                assert exported.analysis_mode == "alpha_shares"
+                assert exported.active_share == share
+                assert abs(exported.theta_extpa - theta) < 1e-9
+                assert exported.external_pa_capital > 0
+                assert exported.active_ext_capital > 0
+                names = {agent.name for agent in exported.agents}
+                assert {"ExternalPA", "ActiveExt"} <= names
