@@ -112,11 +112,9 @@ requires = ["setuptools>=82.0.1"]
 build-backend = "setuptools.build_meta"
 
 # Do not emit app-baseline-kit into requirements.lock. It is consumed from the
-# Workflows monorepo via an unpinned `@main` git URL (see the dev optional
-# dependencies), so freezing a commit SHA in the lock conflicts with that URL
-# the moment Workflows main advances ("conflicting URLs for package
-# app-baseline-kit" -> uv install aborts). Leaving it unpinned lets the editable
-# project install resolve it from main, with no lock to keep refreshed.
+# Workflows monorepo through the dev extra. Freezing a commit SHA in
+# requirements.lock would conflict with the unpinned URL when Workflows main
+# advances. The developer install resolves it with `python -m pip install -e '.[dev]'`.
 [tool.uv.pip]
 no-emit-package = ["app-baseline-kit"]
 
@@ -168,12 +166,8 @@ dev = [
     "pytest==9.2.0",
     "pytest-cov==7.1.0",
     "pytest-xdist==3.8.0",
-    # Shared app behavior baseline harness (pulls pytest-regressions). Tracked
-    # as an unpinned `@main` git direct reference so it picks up upstream
-    # baseline_kit improvements (e.g. the py.typed marker) instead of staying
-    # frozen at one commit. Excluded from requirements.lock via [tool.uv.pip]
-    # no-emit-package below so a frozen SHA in the lock cannot conflict with the
-    # unpinned URL.
+    # Keep the shared harness here so the developer install can collect tests/baseline/.
+    # The Git reference follows the upstream default branch.
     "app-baseline-kit @ git+https://github.com/stranske/Workflows.git#subdirectory=packages/app-baseline-kit",
     "coverage==7.17.3",
     "hypothesis>=6.115.1",

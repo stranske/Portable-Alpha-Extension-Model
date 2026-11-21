@@ -3,14 +3,44 @@ simulation metric in the economically expected direction (variant vs baseline)."
 
 from __future__ import annotations
 
+import shlex
+import shutil
+import subprocess
+import tomllib
+
 import pytest
 from baseline_kit import evaluate_direction, load_catalog
+from packaging.requirements import Requirement
+from packaging.utils import canonicalize_name
 
 from . import adapter
-from .conftest import CATALOG_PATH
+from .conftest import CATALOG_PATH, REPO_ROOT
 
 _SCENARIOS = load_catalog(CATALOG_PATH)["scenarios"]
 _IDS = [s["id"] for s in _SCENARIOS]
+
+
+@pytest.mark.skipif(shutil.which("make") is None, reason="requires Make")
+def test_install_dev_selects_baseline_kit_extra():
+    """The developer setup must request an extra that provides the baseline harness."""
+    recipe = subprocess.run(
+        ["make", "--dry-run", "install-dev"],
+        cwd=REPO_ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout
+    args = shlex.split(recipe)
+    editable = args[args.index("-e") + 1]
+
+    project = tomllib.loads((REPO_ROOT / "pyproject.toml").read_text(encoding="utf-8"))["project"]
+    extras = Requirement(editable.replace(".", project["name"], 1)).extras
+    dependencies = {
+        canonicalize_name(Requirement(requirement).name)
+        for extra in extras
+        for requirement in project["optional-dependencies"][extra]
+    }
+    assert "app-baseline-kit" in dependencies, f"make install-dev uses {editable!r}"
 
 
 def _variant_patch(scen) -> dict:

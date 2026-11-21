@@ -7,11 +7,12 @@ trip-planner). It drives the real Monte Carlo simulation
 
 ## Requires
 
-`baseline_kit` must be importable. It lives in `stranske/Workflows` under
-`packages/app-baseline-kit`:
+From the repository root, install the developer extra to get `baseline_kit`
+and the test dependencies.
 
 ```bash
-pip install "app-baseline-kit @ git+https://github.com/stranske/Workflows.git#subdirectory=packages/app-baseline-kit"
+python -m pip install -e '.[dev]'
+python -m pytest --collect-only -q tests/baseline/
 ```
 
 ## Layout

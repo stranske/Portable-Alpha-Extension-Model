@@ -28,17 +28,13 @@ help:
 
 # Environment setup
 setup:
-	python3 -m venv .venv
-	. .venv/bin/activate && pip install --upgrade pip
-	. .venv/bin/activate && pip install -r requirements.txt
-	. .venv/bin/activate && pip install -e .
+	./setup.sh
 
 install:
 	pip install -e .
 
 install-dev:
-	pip install -r requirements-dev.txt
-	pip install -e .
+	python -m pip install -r requirements-dev.txt -e '.[dev]'
 
 # Testing and quality checks
 test:
