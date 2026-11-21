@@ -16,6 +16,7 @@ from pydantic import ValidationError
 from dashboard.app import apply_theme, render_settings_sidebar
 from dashboard.browser_exports import render_png_download
 from dashboard.utils import (
+    SAMPLE_FINANCING_MODE,
     build_alpha_shares_payload,
     build_sample_model_config,
     bump_session_token,
@@ -31,7 +32,9 @@ from pa_core.contracts import (
     SUMMARY_CVAR_COLUMN,
     SUMMARY_SHORTFALL_PROB_COLUMN,
     SUMMARY_TE_COLUMN,
+    SUMMARY_TOTAL_AGENT_LABEL,
 )
+from pa_core.config import ModelConfig
 from pa_core.sweep import run_parameter_sweep_cached, sweep_results_to_dataframe
 from pa_core.viz import grid_heatmap
 
@@ -127,6 +130,50 @@ def _extract_plotly_click(selection) -> tuple[float, float] | None:
         return None
 
 
+def _resolve_cached_total_fund(cached: dict) -> float:
+    """Return a positive cached total-fund capital basis, defaulting to 1.0."""
+    raw = cached.get("total_fund")
+    try:
+        capital = float(raw) if raw is not None else 1.0
+    except (TypeError, ValueError):
+        capital = 1.0
+    return capital if capital > 0 else 1.0
+
+
+def _theta_from_axis_value(value: float, y_col: str, total_fund: float) -> float:
+    """Convert a Y-axis value to ``theta_extpa`` using the cached total fund capital.
+
+    Both promotion paths (heatmap click and selectbox) go through this helper so
+    they always divide by the same cached capital.
+    """
+    if y_col != "external_pa_dollars_mm":
+        return float(value)
+    capital = float(total_fund) if total_fund and float(total_fund) > 0 else 1.0
+    return float(value) / capital
+
+
+def _build_scenario_config_dict(cfg: object, active_share: float, theta_extpa: float) -> dict:
+    """Return a ModelConfig-shaped dict for the promoted grid cell.
+
+    The funded ExternalPA/ActiveExt capital and the financing mode used by the
+    sweep are exported with the selected scenario so the YAML reloads into the
+    same funded portfolio.
+    """
+    return {
+        "Number of simulations": int(getattr(cfg, "N_SIMULATIONS", 1000)),
+        "Number of months": int(getattr(cfg, "N_MONTHS", 12)),
+        "analysis_mode": "alpha_shares",
+        "financing_mode": getattr(cfg, "financing_mode", SAMPLE_FINANCING_MODE),
+        "total_fund_capital": float(getattr(cfg, "total_fund_capital", 1000.0)),
+        "external_pa_capital": float(getattr(cfg, "external_pa_capital", 0.0)),
+        "active_ext_capital": float(getattr(cfg, "active_ext_capital", 0.0)),
+        "internal_pa_capital": float(getattr(cfg, "internal_pa_capital", 0.0)),
+        "theta_extpa": float(theta_extpa),
+        "active_share": float(active_share),
+        "risk_metrics": ["Return", "Risk", "terminal_ShortfallProb"],
+    }
+
+
 def main() -> None:
     st.title("Scenario Grid & Frontier (beta)")
     _, theme_path = render_settings_sidebar()
@@ -200,6 +247,25 @@ def main() -> None:
         act_step = st.sidebar.number_input("Active share step [%]", value=5.0, step=1.0)
 
         st.sidebar.markdown("---")
+        st.sidebar.subheader("Funded sleeves (% of total fund)")
+        ext_cap_pct = st.sidebar.number_input(
+            "External PA sleeve capital [%]",
+            value=25.0,
+            min_value=0.0,
+            max_value=100.0,
+            step=5.0,
+            help="Capital funded into the ExternalPA sleeve for every grid cell.",
+        )
+        act_cap_pct = st.sidebar.number_input(
+            "Active Extension sleeve capital [%]",
+            value=25.0,
+            min_value=0.0,
+            max_value=100.0,
+            step=5.0,
+            help="Capital funded into the ActiveExt sleeve for every grid cell.",
+        )
+
+        st.sidebar.markdown("---")
         st.sidebar.subheader("Axis options")
         y_axis_mode = st.sidebar.selectbox(
             "Y axis",
@@ -239,14 +305,24 @@ def main() -> None:
                     st.error(f"Bundled sample data could not be loaded: {exc}")
                     return
 
+            grid_kwargs = {
+                "analysis_mode": "alpha_shares",
+                "external_pa_alpha_min_pct": float(ext_min),
+                "external_pa_alpha_max_pct": float(ext_max),
+                "external_pa_alpha_step_pct": float(ext_step),
+                "active_share_min_pct": float(act_min),
+                "active_share_max_pct": float(act_max),
+                "active_share_step_pct": float(act_step),
+            }
+            # Fund the ExternalPA and ActiveExt sleeves so the theta / active-share
+            # axes act on real capital instead of an unfunded (Base-only) portfolio.
+            fund_total = float(
+                getattr(build_sample_model_config(**grid_kwargs), "total_fund_capital")
+            )
             cfg = build_sample_model_config(
-                analysis_mode="alpha_shares",
-                external_pa_alpha_min_pct=float(ext_min),
-                external_pa_alpha_max_pct=float(ext_max),
-                external_pa_alpha_step_pct=float(ext_step),
-                active_share_min_pct=float(act_min),
-                active_share_max_pct=float(act_max),
-                active_share_step_pct=float(act_step),
+                **grid_kwargs,
+                external_pa_capital=fund_total * float(ext_cap_pct) / 100.0,
+                active_ext_capital=fund_total * float(act_cap_pct) / 100.0,
             )
             base_cfg = cfg
 
@@ -265,12 +341,17 @@ def main() -> None:
                 results = run_parameter_sweep_cached(cfg, index_series, int(seed), progress=_update)
                 prog.empty()
                 df_res = sweep_results_to_dataframe(results)
-                # Focus on Base agent and compute Sharpe
-                base_rows = df_res[df_res[SUMMARY_AGENT_COLUMN] == "Base"].copy()
-                if base_rows.empty:
-                    st.warning("No base agent rows found in results.")
+                # Aggregate portfolio ``Total`` rows (sum of funded sleeves). The Base
+                # row is the invariant benchmark and cannot respond to the grid axes.
+                total_mask = (
+                    df_res[SUMMARY_AGENT_COLUMN].astype(str).str.strip().str.lower()
+                    == SUMMARY_TOTAL_AGENT_LABEL.lower()
+                )
+                total_rows = df_res[total_mask].copy()
+                if total_rows.empty:
+                    st.warning("No portfolio Total rows found in results.")
                     return
-                base_rows["Sharpe"] = base_rows.apply(
+                total_rows["Sharpe"] = total_rows.apply(
                     lambda r: (
                         (r[SUMMARY_ANN_RETURN_COLUMN] / r[SUMMARY_ANN_VOL_COLUMN])
                         if r[SUMMARY_ANN_VOL_COLUMN]
@@ -279,38 +360,38 @@ def main() -> None:
                     axis=1,
                 )
                 # Compute external PA dollars (mm) if total fund capital present
-                if "external_pa_capital" in base_rows.columns:
-                    base_rows["external_pa_dollars_mm"] = base_rows["external_pa_capital"].astype(
+                if "external_pa_capital" in total_rows.columns:
+                    total_rows["external_pa_dollars_mm"] = total_rows["external_pa_capital"].astype(
                         float
                     )
                 elif hasattr(base_cfg, "total_fund_capital"):
                     # Derive from theta and total fund capital when available
                     try:
-                        if "theta_extpa" in base_rows.columns:
-                            theta_series = base_rows["theta_extpa"].astype(float)
+                        if "theta_extpa" in total_rows.columns:
+                            theta_series = total_rows["theta_extpa"].astype(float)
                         else:
-                            theta_series = pd.Series(0.0, index=base_rows.index, dtype=float)
-                        base_rows["external_pa_dollars_mm"] = theta_series * float(
+                            theta_series = pd.Series(0.0, index=total_rows.index, dtype=float)
+                        total_rows["external_pa_dollars_mm"] = theta_series * float(
                             getattr(base_cfg, "total_fund_capital")
                         )
                     except Exception:
-                        base_rows["external_pa_dollars_mm"] = float("nan")
+                        total_rows["external_pa_dollars_mm"] = float("nan")
 
                 # Decide y-axis based on selection
                 if (
                     y_axis_mode.startswith("External PA $")
-                    and "external_pa_dollars_mm" in base_rows.columns
+                    and "external_pa_dollars_mm" in total_rows.columns
                 ):
                     y_col = "external_pa_dollars_mm"
                 else:
                     y_col = "theta_extpa"
 
                 # Use native parameter names for axes and attach metrics
-                grid_df = base_rows[["active_share", y_col, "Sharpe"]].copy()
-                extra_cols = [c for c in _EXTRA_METRICS if c in base_rows.columns]
+                grid_df = total_rows[["active_share", y_col, "Sharpe"]].copy()
+                extra_cols = [c for c in _EXTRA_METRICS if c in total_rows.columns]
                 # Append extra columns into grid for custom hover
                 if extra_cols:
-                    grid_df = pd.concat([grid_df, base_rows[extra_cols]], axis=1)
+                    grid_df = pd.concat([grid_df, total_rows[extra_cols]], axis=1)
                 grid_df = grid_df.rename(columns={y_col: "y_axis"})
                 total_fund = float(getattr(base_cfg, "total_fund_capital", 1.0))
                 _set_grid_cache(cache_key, grid_df, y_col, total_fund)
@@ -318,7 +399,7 @@ def main() -> None:
 
             grid_df = cached["grid_df"]
             y_col = cached["y_col"]
-            total_fund = float(cached.get("total_fund", 1.0))
+            total_fund = _resolve_cached_total_fund(cached)
             extra_cols = [c for c in _EXTRA_METRICS if c in grid_df.columns]
 
             # Help static checker understand this is a DataFrame
@@ -385,11 +466,7 @@ def main() -> None:
             clicked = _extract_plotly_click(selection)
             if clicked is not None:
                 sel_x, sel_y = clicked
-                if total_fund == 0:
-                    total_fund = 1.0
-                theta_val = (
-                    float(sel_y) / total_fund if y_col == "external_pa_dollars_mm" else float(sel_y)
-                )
+                theta_val = _theta_from_axis_value(sel_y, y_col, total_fund)
                 selection_payload = build_alpha_shares_payload(float(sel_x), float(theta_val))
                 if selection_payload is not None:
                     st.session_state["scenario_grid_selection"] = selection_payload
@@ -424,9 +501,7 @@ def main() -> None:
                 if sel_x is None or sel_y is None:
                     st.warning("Please select both axes values before promoting.")
                     return
-                promoted_theta = (
-                    float(sel_y) if y_col != "external_pa_dollars_mm" else float(sel_y) / total_fund
-                )
+                promoted_theta = _theta_from_axis_value(sel_y, y_col, total_fund)
                 promoted_selection = build_alpha_shares_payload(float(sel_x), promoted_theta)
                 if promoted_selection is None:
                     st.warning("Selection could not be normalized. Try again.")
@@ -450,21 +525,20 @@ def main() -> None:
                     active_share_val = None
                     theta_val = None
                 if active_share_val is not None and theta_val is not None:
-                    cfg_yaml = {
-                        "Number of simulations": 1000,
-                        "Number of months": 12,
-                        "analysis_mode": "alpha_shares",
-                        "theta_extpa": theta_val,
-                        "active_share": active_share_val,
-                        "risk_metrics": ["Return", "Risk", "terminal_ShortfallProb"],
-                    }
-                    yaml_str = yaml.safe_dump(cfg_yaml, sort_keys=False)
-                    st.download_button(
-                        "Download Scenario YAML",
-                        yaml_str,
-                        file_name="scenario_alpha_shares.yml",
-                        mime="application/x-yaml",
-                    )
+                    cfg_yaml = _build_scenario_config_dict(base_cfg, active_share_val, theta_val)
+                    try:
+                        # Only offer YAML that reloads through ModelConfig.
+                        ModelConfig.model_validate(cfg_yaml)
+                    except (ValidationError, ValueError) as exc:
+                        st.error(friendly_validation_error_message(exc))
+                    else:
+                        yaml_str = yaml.safe_dump(cfg_yaml, sort_keys=False)
+                        st.download_button(
+                            "Download Scenario YAML",
+                            yaml_str,
+                            file_name="scenario_alpha_shares.yml",
+                            mime="application/x-yaml",
+                        )
 
             # Optional: export heatmap to PNG if kaleido is available
             try:
