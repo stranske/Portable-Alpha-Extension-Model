@@ -119,6 +119,19 @@ def _assert_configured_provider_control(preview: dict[str, Any]) -> None:
     assert preview["summary"] == control["summary"]
 
 
+def _assert_missing_extra_vs_configured_provider_contrast(
+    missing_extra_preview: dict[str, Any],
+    configured_preview: dict[str, Any],
+) -> None:
+    """Same verification input: label missing extras without breaking healthy provider previews."""
+    assert missing_extra_preview["risk_flags"] != configured_preview["risk_flags"]
+    assert "missing_extra" in missing_extra_preview["risk_flags"]
+    assert "missing_extra" not in configured_preview["risk_flags"]
+    assert missing_extra_preview.get("install_notice") == _CONFIG_CHAT_INSTALL_NOTICE
+    assert configured_preview.get("install_notice") is None
+    assert not _matches_legacy_missing_extra_readback(missing_extra_preview)
+
+
 def _mute_streamlit_ui(module: dict, monkeypatch) -> None:
     for name in ("success", "warning", "error", "caption", "markdown", "code", "info"):
         monkeypatch.setattr(module["st"], name, lambda *args, **kwargs: None)
@@ -326,10 +339,38 @@ def test_config_chat_missing_extra_explains_offline_fallback(monkeypatch) -> Non
             _CONFIG_CHAT_MISSING_EXTRA_VERIFICATION["instruction"]
         )
         _assert_configured_provider_control(configured)
+        _assert_missing_extra_vs_configured_provider_contrast(preview, configured)
 
         assert (
             module["_CONFIG_CHAT_INSTALL_NOTICE"] == _CONFIG_CHAT_INSTALL_NOTICE
         ), "wizard install notice must match verification record"
+    finally:
+        st.session_state.clear()
+
+
+def test_config_chat_heuristic_boundary_pins_missing_extra_labeling() -> None:
+    """Pin wizard heuristic boundary: only missing_optional_dependency adds missing_extra."""
+    st.session_state.clear()
+    try:
+        module = runpy.run_path("dashboard/pages/3_Scenario_Wizard.py")
+        config = get_default_config(AnalysisMode.RETURNS)
+        instruction = _CONFIG_CHAT_MISSING_EXTRA_VERIFICATION["instruction"]
+        with_missing = module["_heuristic_config_patch_result"](
+            instruction,
+            config=config,
+            missing_optional_dependency=True,
+        )
+        without_missing = module["_heuristic_config_patch_result"](
+            instruction,
+            config=config,
+            missing_optional_dependency=False,
+        )
+        assert "missing_extra" in with_missing.risk_flags
+        assert "missing_extra" not in without_missing.risk_flags
+        assert with_missing.patch.set.get("n_simulations") == without_missing.patch.set.get(
+            "n_simulations"
+        )
+        assert with_missing.summary == without_missing.summary
     finally:
         st.session_state.clear()
 
