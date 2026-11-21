@@ -224,8 +224,8 @@ def test_audit_reproduces_config_chat_unscoped_override_without_network(
     try:
         module = runpy.run_path("dashboard/pages/3_Scenario_Wizard.py")
         captured = []
-        module["_build_config_chat_llm_invoke"].__globals__["create_llm"] = (
-            lambda config: captured.append(config)
+        module["_build_config_chat_llm_invoke"].__globals__["create_llm"] = lambda config: (
+            captured.append(config)
         )
         st.session_state[module["_CONFIG_CHAT_API_KEY_KEY"]] = "synthetic-audit-openai"
         for provider in ("openai", "anthropic"):
