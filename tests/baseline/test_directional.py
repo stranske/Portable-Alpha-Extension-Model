@@ -3,10 +3,11 @@ simulation metric in the economically expected direction (variant vs baseline)."
 
 from __future__ import annotations
 
-import shlex
+import os
 import shutil
 import subprocess
 import tomllib
+from pathlib import Path
 
 import pytest
 from baseline_kit import evaluate_direction, load_catalog
@@ -20,27 +21,49 @@ _SCENARIOS = load_catalog(CATALOG_PATH)["scenarios"]
 _IDS = [s["id"] for s in _SCENARIOS]
 
 
-@pytest.mark.skipif(shutil.which("make") is None, reason="requires Make")
-def test_install_dev_selects_baseline_kit_extra():
+@pytest.mark.skipif(
+    os.name != "posix" or shutil.which("make") is None, reason="requires POSIX Make"
+)
+def test_install_dev_selects_baseline_kit_extra(tmp_path: Path):
     """The developer setup must request an extra that provides the baseline harness."""
-    recipe = subprocess.run(
-        ["make", "--dry-run", "install-dev"],
+    # Record the actual install arguments without changing the test environment.
+    pip = tmp_path / "pip"
+    pip.write_text(
+        "#!/bin/sh\n"
+        'if [ "${0##*/}" = python ]; then\n'
+        '    [ "$1" = -m ] && [ "$2" = pip ] || exit 2\n'
+        "    shift 2\n"
+        "fi\n"
+        '[ "$1" = install ] || exit 2\n'
+        'printf "%s\\n" "$@" ""\n',
+        encoding="utf-8",
+    )
+    pip.chmod(0o755)
+    (tmp_path / "python").symlink_to(pip)
+    result = subprocess.run(
+        ["make", "--silent", "--no-print-directory", "install-dev"],
         cwd=REPO_ROOT,
-        check=True,
+        env={**os.environ, "PATH": f"{tmp_path}{os.pathsep}{os.environ.get('PATH', os.defpath)}"},
         capture_output=True,
         text=True,
-    ).stdout
-    args = shlex.split(recipe)
-    editable = args[args.index("-e") + 1]
+        timeout=30,
+    )
+    assert result.returncode == 0, result.stderr
+    editable = []
+    for invocation in result.stdout.strip().split("\n\n"):
+        args = invocation.splitlines()
+        if "-e" in args:
+            editable.append(args[args.index("-e") + 1])
 
     project = tomllib.loads((REPO_ROOT / "pyproject.toml").read_text(encoding="utf-8"))["project"]
-    extras = Requirement(editable.replace(".", project["name"], 1)).extras
     dependencies = {
         canonicalize_name(Requirement(requirement).name)
-        for extra in extras
+        for target in editable
+        if target == "." or target.startswith(".[")
+        for extra in Requirement(project["name"] + target[1:]).extras
         for requirement in project["optional-dependencies"][extra]
     }
-    assert "app-baseline-kit" in dependencies, f"make install-dev uses {editable!r}"
+    assert "app-baseline-kit" in dependencies, f"make install-dev requested {editable!r}"
 
 
 def _variant_patch(scen) -> dict:
