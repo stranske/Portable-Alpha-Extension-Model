@@ -5,6 +5,7 @@ import sys
 from types import SimpleNamespace
 from typing import Any
 
+import pytest
 import streamlit as st
 
 import dashboard.components.config_chat as config_chat_module
@@ -81,6 +82,16 @@ def _matches_legacy_missing_extra_readback(preview: dict[str, Any]) -> bool:
         and set_ops.get("n_simulations") == 5000
         and preview.get("summary") == "Applied heuristic instruction parsing."
     )
+
+
+def _assert_missing_extra_install_contract(preview: dict[str, Any]) -> None:
+    """Post-fix contract: offline heuristics plus actionable install notice."""
+    assert preview["patch"]["set"]["n_simulations"] == 5000
+    assert preview["summary"] == "Applied heuristic instruction parsing."
+    assert preview["risk_flags"] == ["missing_extra"]
+    assert preview["install_notice"] == _CONFIG_CHAT_INSTALL_NOTICE
+    assert "llm_fallback_heuristic" not in preview["risk_flags"]
+    assert not _matches_legacy_missing_extra_readback(preview)
 
 
 def _mute_streamlit_ui(module: dict, monkeypatch) -> None:
@@ -232,16 +243,7 @@ def test_config_chat_missing_extra_explains_offline_fallback(monkeypatch) -> Non
 
         preview_fn = module["_preview_config_chat_instruction"]
         preview = preview_fn(_CONFIG_CHAT_INSTRUCTION)
-
-        assert preview["patch"]["set"]["n_simulations"] == 5000
-        assert preview["summary"] == "Applied heuristic instruction parsing."
-        assert preview["risk_flags"] == ["missing_extra"]
-        assert preview["install_notice"] == _CONFIG_CHAT_INSTALL_NOTICE
-        assert "llm_fallback_heuristic" not in preview["risk_flags"]
-        # Same fixture/input failed the pre-fix contract (silent offline heuristic).
-        assert preview["risk_flags"] != _LEGACY_MISSING_EXTRA_READBACK["risk_flags"]
-        assert preview.get("install_notice") != _LEGACY_MISSING_EXTRA_READBACK["install_notice"]
-        assert not _matches_legacy_missing_extra_readback(preview)
+        _assert_missing_extra_install_contract(preview)
 
         panel_fake = _ConfigChatPanelFakeStreamlit(
             button_values={"wizard_config_chat_preview": True},
@@ -303,6 +305,19 @@ def test_config_chat_missing_extra_explains_offline_fallback(monkeypatch) -> Non
         assert configured["summary"] == "Provider patch accepted."
     finally:
         st.session_state.clear()
+
+
+def test_config_chat_missing_extra_legacy_readback_fails_install_contract() -> None:
+    """Pre-fix (e1ec34c8) readback for the same instruction input violates the new contract."""
+    legacy_preview = {
+        "patch": {"set": {"n_simulations": 5000}, "merge": {}, "remove": []},
+        "summary": "Applied heuristic instruction parsing.",
+        "risk_flags": list(_LEGACY_MISSING_EXTRA_READBACK["risk_flags"]),
+        "install_notice": _LEGACY_MISSING_EXTRA_READBACK["install_notice"],
+    }
+    assert _matches_legacy_missing_extra_readback(legacy_preview)
+    with pytest.raises(AssertionError):
+        _assert_missing_extra_install_contract(legacy_preview)
 
 
 def test_audit_reproduces_config_chat_unscoped_override_without_network(
