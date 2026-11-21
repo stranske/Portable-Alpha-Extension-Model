@@ -1,10 +1,17 @@
 from __future__ import annotations
 
 import runpy
+import sys
+from types import SimpleNamespace
 
 import streamlit as st
 
+from pa_core.llm.config_patch import validate_patch_dict
+from pa_core.llm.config_patch_chain import ConfigPatchChainResult
 from pa_core.wizard_schema import AnalysisMode, get_default_config
+
+_CONFIG_CHAT_INSTRUCTION = "increase simulations to 5000"
+_CONFIG_CHAT_INSTALL_NOTICE = "LLM features unavailable. Install .[llm] to enable Config Chat."
 
 
 def _mute_streamlit_ui(module: dict, monkeypatch) -> None:
@@ -117,16 +124,86 @@ def test_wizard_initial_provider_honors_environment_and_tracing_only_has_no_clie
 
         # runpy returns the globals mapping used by the builder.
         module["_build_config_chat_llm_invoke"].__globals__["create_llm"] = factory
-        invoke, provider, _ = module["_build_config_chat_llm_invoke"]()
+        invoke, provider, _, missing_extra = module["_build_config_chat_llm_invoke"]()
         assert invoke is not None
         assert provider == "anthropic"
+        assert missing_extra is False
         assert captured[-1].credentials["api_key"] == "synthetic-anthropic"
         env.clear()
         env["LANGSMITH_API_KEY"] = "synthetic-tracing"
-        invoke, _, _ = module["_build_config_chat_llm_invoke"]()
+        invoke, _, _, missing_extra = module["_build_config_chat_llm_invoke"]()
+        assert missing_extra is False
         assert invoke is None
         assert len(captured) == 1
         assert socket_connect_guard[0] == []
+    finally:
+        st.session_state.clear()
+
+
+def test_config_chat_missing_extra_explains_offline_fallback(monkeypatch) -> None:
+    """Missing optional LLM deps keep heuristics and surface the install notice."""
+    st.session_state.clear()
+    try:
+        module = runpy.run_path("dashboard/pages/3_Scenario_Wizard.py")
+        config = get_default_config(AnalysisMode.RETURNS)
+        config.n_simulations = 1000
+        st.session_state["wizard_config"] = config
+        st.session_state[module["_CONFIG_CHAT_API_KEY_KEY"]] = "synthetic-openai"
+
+        globals_ = module["_build_config_chat_llm_invoke"].__globals__
+
+        def _raise_missing_extra(*_args, **_kwargs) -> None:
+            raise ModuleNotFoundError("langchain_openai")
+
+        globals_["create_llm"] = _raise_missing_extra
+        globals_["resolve_llm_provider_config"] = lambda **_kwargs: SimpleNamespace(
+            provider_name="openai",
+            model_name="gpt-4o-mini",
+        )
+
+        preview = module["_preview_config_chat_instruction"](_CONFIG_CHAT_INSTRUCTION)
+
+        assert preview["patch"]["set"]["n_simulations"] == 5000
+        assert preview["summary"] == "Applied heuristic instruction parsing."
+        assert preview["risk_flags"] == ["missing_extra"]
+        assert preview["install_notice"] == _CONFIG_CHAT_INSTALL_NOTICE
+        assert "llm_fallback_heuristic" not in preview["risk_flags"]
+
+        st.session_state.clear()
+        st.session_state["wizard_config"] = config
+
+        class Prompt:
+            @staticmethod
+            def from_messages(messages):
+                return Prompt()
+
+            def __or__(self, client):
+                return client
+
+        monkeypatch.setitem(
+            sys.modules, "langchain_core.prompts", SimpleNamespace(ChatPromptTemplate=Prompt)
+        )
+
+        run_globals = module["_run_config_chat_instruction"].__globals__
+        run_globals["create_llm"] = lambda _config: SimpleNamespace(
+            invoke=lambda _prompt: SimpleNamespace(content="{}")
+        )
+        patched = validate_patch_dict({"set": {"n_simulations": 8000}, "merge": {}, "remove": []})
+        run_globals["run_config_patch_chain"] = lambda **_kwargs: ConfigPatchChainResult(
+            patch=patched,
+            summary="Provider patch accepted.",
+            risk_flags=[],
+            unknown_output_keys=[],
+            trace_url=None,
+        )
+        st.session_state[module["_CONFIG_CHAT_API_KEY_KEY"]] = "synthetic-openai"
+
+        configured = module["_preview_config_chat_instruction"](_CONFIG_CHAT_INSTRUCTION)
+
+        assert configured.get("install_notice") is None
+        assert configured["risk_flags"] == []
+        assert configured["patch"]["set"]["n_simulations"] == 8000
+        assert configured["summary"] == "Provider patch accepted."
     finally:
         st.session_state.clear()
 

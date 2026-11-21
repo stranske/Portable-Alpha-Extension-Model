@@ -180,6 +180,10 @@ def _render_preview(preview: Any) -> None:
     if summary:
         st.markdown(f"**Summary:** {summary}")
 
+    install_notice = preview.get("install_notice")
+    if isinstance(install_notice, str) and install_notice.strip():
+        st.info(install_notice.strip())
+
     risk_flags = preview.get("risk_flags")
     if isinstance(risk_flags, list) and risk_flags:
         st.warning(f"Risk flags: {', '.join(str(flag) for flag in risk_flags)}")

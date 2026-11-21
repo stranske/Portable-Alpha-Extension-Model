@@ -79,6 +79,7 @@ _CONFIG_CHAT_PREVIEW_KEY = "wizard_config_chat_preview"
 _CONFIG_CHAT_PREVIEW_PATCH_KEY = "preview_patch"
 _CONFIG_CHAT_PREVIEW_UNIFIED_DIFF_KEY = "preview_unified_diff"
 _CONFIG_CHAT_PREVIEW_SIDEBYSIDE_DIFF_KEY = "preview_sidebyside_diff"
+_CONFIG_CHAT_INSTALL_NOTICE = "LLM features unavailable. Install .[llm] to enable Config Chat."
 _WIZARD_RUN_REQUESTED_KEY = "wizard_run_requested"
 _DEFAULT_EXTERNAL_PA_SHARE = 0.02
 _DEFAULT_ACTIVE_EXT_SHARE = 0.02
@@ -269,10 +270,13 @@ def _heuristic_config_patch_result(
     config: DefaultConfigView,
     rejected_patch_keys: list[str] | None = None,
     rejected_patch_paths: list[str] | None = None,
+    missing_optional_dependency: bool = False,
 ) -> ConfigPatchChainResult:
     text = instruction.strip().lower()
     set_ops: dict[str, Any] = {}
     risk_flags: list[str] = []
+    if missing_optional_dependency:
+        risk_flags.append("missing_extra")
 
     simulations_match = re.search(r"(?:simulations?|n_simulations)\D+(\d+)", text)
     if simulations_match:
@@ -309,7 +313,12 @@ def _heuristic_config_patch_result(
     )
 
 
-def _build_config_chat_llm_invoke() -> tuple[Callable[[str], str] | None, str | None, str | None]:
+def _build_config_chat_llm_invoke() -> tuple[
+    Callable[[str], str] | None,
+    str | None,
+    str | None,
+    bool,
+]:
     provider = (
         str(st.session_state.get(_CONFIG_CHAT_PROVIDER_KEY, default_provider())).strip().lower()
     )
@@ -317,7 +326,7 @@ def _build_config_chat_llm_invoke() -> tuple[Callable[[str], str] | None, str | 
     raw_key = st.session_state.get(_CONFIG_CHAT_API_KEY_KEY)
     resolved_key = resolve_api_key_input(raw_key) or default_api_key(provider)
     if not resolved_key:
-        return None, provider, model
+        return None, provider, model, False
 
     try:
         provider_config = resolve_llm_provider_config(
@@ -327,8 +336,10 @@ def _build_config_chat_llm_invoke() -> tuple[Callable[[str], str] | None, str | 
         )
         llm = create_llm(provider_config)
         from langchain_core.prompts import ChatPromptTemplate
+    except ModuleNotFoundError:
+        return None, provider, model, True
     except Exception:
-        return None, provider, model
+        return None, provider, model, False
 
     def _invoke(prompt: str) -> str:
         chain = ChatPromptTemplate.from_messages([("system", "{prompt}")]) | llm
@@ -336,7 +347,7 @@ def _build_config_chat_llm_invoke() -> tuple[Callable[[str], str] | None, str | 
         content = getattr(response, "content", None)
         return str(content or response)
 
-    return _invoke, provider_config.provider_name, provider_config.model_name
+    return _invoke, provider_config.provider_name, provider_config.model_name, False
 
 
 def _run_config_chat_instruction(
@@ -344,9 +355,13 @@ def _run_config_chat_instruction(
     *,
     config: DefaultConfigView,
 ) -> ConfigPatchChainResult:
-    invoke_llm, provider, model = _build_config_chat_llm_invoke()
+    invoke_llm, provider, model, missing_optional_dependency = _build_config_chat_llm_invoke()
     if invoke_llm is None:
-        return _heuristic_config_patch_result(instruction, config=config)
+        return _heuristic_config_patch_result(
+            instruction,
+            config=config,
+            missing_optional_dependency=missing_optional_dependency,
+        )
 
     try:
         return run_config_patch_chain(
@@ -407,6 +422,8 @@ def _preview_config_chat_instruction(instruction: str) -> dict[str, Any]:
     if not validation_result.is_valid and "round_trip_validation_failed" not in risk_flags:
         risk_flags.append("round_trip_validation_failed")
 
+    install_notice = _CONFIG_CHAT_INSTALL_NOTICE if "missing_extra" in risk_flags else None
+
     return {
         "patch": {
             "set": dict(result.patch.set),
@@ -424,6 +441,7 @@ def _preview_config_chat_instruction(instruction: str) -> dict[str, Any]:
         "sidebyside_diff": side_by_side_text,
         "before_text": before_text,
         "after_text": after_text,
+        "install_notice": install_notice,
     }
 
 
