@@ -18,6 +18,22 @@ _CONFIG_CHAT_INSTALL_NOTICE = "LLM features unavailable. Install .[llm] to enabl
 # Pre-fix readback at e1ec34c8: configured credentials + missing optional deps still
 # applied heuristics but omitted missing_extra labeling and the install notice.
 _LEGACY_MISSING_EXTRA_READBACK = {"risk_flags": [], "install_notice": None}
+# Recorded keepalive verification (input, observed missing-extra output, provider control).
+_CONFIG_CHAT_MISSING_EXTRA_VERIFICATION: dict[str, Any] = {
+    "instruction": _CONFIG_CHAT_INSTRUCTION,
+    "missing_extra_observed": {
+        "risk_flags": ["missing_extra"],
+        "install_notice": _CONFIG_CHAT_INSTALL_NOTICE,
+        "summary": "Applied heuristic instruction parsing.",
+        "n_simulations": 5000,
+    },
+    "configured_provider_control": {
+        "risk_flags": [],
+        "install_notice": None,
+        "summary": "Provider patch accepted.",
+        "n_simulations": 8000,
+    },
+}
 
 
 class _ConfigChatPanelColumnContext:
@@ -86,12 +102,21 @@ def _matches_legacy_missing_extra_readback(preview: dict[str, Any]) -> bool:
 
 def _assert_missing_extra_install_contract(preview: dict[str, Any]) -> None:
     """Post-fix contract: offline heuristics plus actionable install notice."""
-    assert preview["patch"]["set"]["n_simulations"] == 5000
-    assert preview["summary"] == "Applied heuristic instruction parsing."
-    assert preview["risk_flags"] == ["missing_extra"]
-    assert preview["install_notice"] == _CONFIG_CHAT_INSTALL_NOTICE
+    observed = _CONFIG_CHAT_MISSING_EXTRA_VERIFICATION["missing_extra_observed"]
+    assert preview["patch"]["set"]["n_simulations"] == observed["n_simulations"]
+    assert preview["summary"] == observed["summary"]
+    assert preview["risk_flags"] == observed["risk_flags"]
+    assert preview["install_notice"] == observed["install_notice"]
     assert "llm_fallback_heuristic" not in preview["risk_flags"]
     assert not _matches_legacy_missing_extra_readback(preview)
+
+
+def _assert_configured_provider_control(preview: dict[str, Any]) -> None:
+    control = _CONFIG_CHAT_MISSING_EXTRA_VERIFICATION["configured_provider_control"]
+    assert preview.get("install_notice") == control["install_notice"]
+    assert preview["risk_flags"] == control["risk_flags"]
+    assert preview["patch"]["set"]["n_simulations"] == control["n_simulations"]
+    assert preview["summary"] == control["summary"]
 
 
 def _mute_streamlit_ui(module: dict, monkeypatch) -> None:
@@ -297,21 +322,24 @@ def test_config_chat_missing_extra_explains_offline_fallback(monkeypatch) -> Non
         )
         st.session_state[module["_CONFIG_CHAT_API_KEY_KEY"]] = "synthetic-openai"
 
-        configured = module["_preview_config_chat_instruction"](_CONFIG_CHAT_INSTRUCTION)
+        configured = module["_preview_config_chat_instruction"](
+            _CONFIG_CHAT_MISSING_EXTRA_VERIFICATION["instruction"]
+        )
+        _assert_configured_provider_control(configured)
 
-        assert configured.get("install_notice") is None
-        assert configured["risk_flags"] == []
-        assert configured["patch"]["set"]["n_simulations"] == 8000
-        assert configured["summary"] == "Provider patch accepted."
+        assert (
+            module["_CONFIG_CHAT_INSTALL_NOTICE"] == _CONFIG_CHAT_INSTALL_NOTICE
+        ), "wizard install notice must match verification record"
     finally:
         st.session_state.clear()
 
 
 def test_config_chat_missing_extra_legacy_readback_fails_install_contract() -> None:
     """Pre-fix (e1ec34c8) readback for the same instruction input violates the new contract."""
+    observed = _CONFIG_CHAT_MISSING_EXTRA_VERIFICATION["missing_extra_observed"]
     legacy_preview = {
-        "patch": {"set": {"n_simulations": 5000}, "merge": {}, "remove": []},
-        "summary": "Applied heuristic instruction parsing.",
+        "patch": {"set": {"n_simulations": observed["n_simulations"]}, "merge": {}, "remove": []},
+        "summary": observed["summary"],
         "risk_flags": list(_LEGACY_MISSING_EXTRA_READBACK["risk_flags"]),
         "install_notice": _LEGACY_MISSING_EXTRA_READBACK["install_notice"],
     }
