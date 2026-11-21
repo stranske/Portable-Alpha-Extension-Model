@@ -26,6 +26,11 @@ _IDS = [s["id"] for s in _SCENARIOS]
 )
 def test_install_dev_selects_baseline_kit_extra(tmp_path: Path):
     """The developer setup must request an extra that provides the baseline harness."""
+    checkout = tmp_path / "checkout"
+    checkout.mkdir()
+    for filename in ("Makefile", "pyproject.toml"):
+        shutil.copy2(REPO_ROOT / filename, checkout / filename)
+
     # Record the actual install arguments without changing the test environment.
     pip = tmp_path / "pip"
     pip.write_text(
@@ -40,10 +45,14 @@ def test_install_dev_selects_baseline_kit_extra(tmp_path: Path):
     )
     pip.chmod(0o755)
     (tmp_path / "python").symlink_to(pip)
+    env = os.environ.copy()
+    env["PATH"] = f"{tmp_path}{os.pathsep}{os.environ.get('PATH', os.defpath)}"
+    for name in ("GNUMAKEFLAGS", "MAKEFLAGS", "MAKEFILES", "MFLAGS"):
+        env.pop(name, None)
     result = subprocess.run(
         ["make", "--silent", "--no-print-directory", "install-dev"],
-        cwd=REPO_ROOT,
-        env={**os.environ, "PATH": f"{tmp_path}{os.pathsep}{os.environ.get('PATH', os.defpath)}"},
+        cwd=checkout,
+        env=env,
         capture_output=True,
         text=True,
         timeout=30,
@@ -55,7 +64,8 @@ def test_install_dev_selects_baseline_kit_extra(tmp_path: Path):
         if "-e" in args:
             editable.append(args[args.index("-e") + 1])
 
-    project = tomllib.loads((REPO_ROOT / "pyproject.toml").read_text(encoding="utf-8"))["project"]
+    with (checkout / "pyproject.toml").open("rb") as metadata:
+        project = tomllib.load(metadata)["project"]
     dependencies = {
         canonicalize_name(Requirement(requirement).name)
         for target in editable
