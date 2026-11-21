@@ -329,6 +329,7 @@ def _run_grid_page(
     selection: Any = None,
     allow_rerun: bool = False,
     sweep_spy: list | None = None,
+    sweep_cfg_spy: list | None = None,
 ) -> tuple[_FakeStreamlit, _HeatmapRecorder]:
     """Run the real page (real sweep, bundled index) against a fake Streamlit."""
     fake_st = _FakeStreamlit(
@@ -348,12 +349,15 @@ def _run_grid_page(
     _patch_global(module, "apply_theme", lambda _path: None)
     _patch_global(module, "grid_heatmap", heatmap)
     _patch_global(module, "render_png_download", lambda *_a, **_k: None)
-    if sweep_spy is not None:
+    if sweep_spy is not None or sweep_cfg_spy is not None:
         real_sweep = module["run_parameter_sweep_cached"]
 
         def _spy(*args: Any, **kwargs: Any) -> Any:
+            if sweep_cfg_spy is not None and args:
+                sweep_cfg_spy.append(args[0])
             results = real_sweep(*args, **kwargs)
-            sweep_spy.extend(results)
+            if sweep_spy is not None:
+                sweep_spy.extend(results)
             return results
 
         _patch_global(module, "run_parameter_sweep_cached", _spy)
@@ -378,13 +382,18 @@ def test_funded_grid_totals_and_config_roundtrip(monkeypatch) -> None:
     """Four-cell bundled-index grid: funded sleeves, varying Total, valid export."""
     session: dict = {}
     sweep_results: list = []
+    sweep_cfgs: list = []
     fake_st, heatmap = _run_grid_page(
         monkeypatch,
         session,
         buttons={"Run sweep": True},
         sweep_spy=sweep_results,
+        sweep_cfg_spy=sweep_cfgs,
     )
     assert not fake_st.errors
+    assert len(sweep_cfgs) == 1
+    assert sweep_cfgs[0].external_pa_capital == 250.0
+    assert sweep_cfgs[0].active_ext_capital == 250.0
 
     # Funded ExternalPA/ActiveExt sleeves are present in every grid cell.
     assert len(sweep_results) == 4
@@ -486,6 +495,76 @@ def test_funded_grid_totals_and_config_roundtrip(monkeypatch) -> None:
                 assert abs(agents_by_name["ExternalPA"].extra["theta_extpa"] - theta) < 1e-9
                 assert agents_by_name["ActiveExt"].capital == 250.0
                 assert agents_by_name["ActiveExt"].extra["active_share"] == share
+
+    # Non-default sleeve allocation: verify funding controls propagate into the
+    # sweep config, portfolio Total metrics, and exported YAML/agents.
+    custom_numbers = {
+        "External PA sleeve capital [%]": 40.0,
+        "Active Extension sleeve capital [%]": 10.0,
+    }
+    custom_session: dict = {}
+    custom_cfgs: list = []
+    custom_results: list = []
+    custom_st, custom_heatmap = _run_grid_page(
+        monkeypatch,
+        custom_session,
+        buttons={"Run sweep": True},
+        number_values=custom_numbers,
+        sweep_spy=custom_results,
+        sweep_cfg_spy=custom_cfgs,
+    )
+    assert not custom_st.errors
+    assert len(custom_cfgs) == 1
+    assert custom_cfgs[0].external_pa_capital == 400.0
+    assert custom_cfgs[0].active_ext_capital == 100.0
+    assert len(custom_results) == 4
+    custom_grid = custom_heatmap.frames[-1]
+    assert custom_grid["terminal_AnnReturn"].nunique() == 4
+    assert not (
+        custom_grid["terminal_AnnReturn"]
+        .reset_index(drop=True)
+        .equals(grid["terminal_AnnReturn"].reset_index(drop=True))
+    )
+
+    custom_select = {"Y axis": "External alpha fraction (theta)", _X_LABEL: 1.0, _Y_LABEL: 0.5}
+    custom_click_state = dict(custom_session)
+    custom_click_st, _ = _run_grid_page(
+        monkeypatch,
+        custom_click_state,
+        buttons={},
+        number_values=custom_numbers,
+        selectbox_values=custom_select,
+        selection={"selection": {"points": [{"x": 1.0, "y": 0.5}]}},
+    )
+    custom_box_state = dict(custom_session)
+    _run_grid_page(
+        monkeypatch,
+        custom_box_state,
+        buttons={"Promote to session": True},
+        number_values=custom_numbers,
+        selectbox_values=custom_select,
+        allow_rerun=True,
+    )
+    custom_box_st, _ = _run_grid_page(
+        monkeypatch,
+        custom_box_state,
+        buttons={},
+        number_values=custom_numbers,
+        selectbox_values=custom_select,
+    )
+    for exported in (_scenario_download(custom_click_st), _scenario_download(custom_box_st)):
+        assert exported.financing_mode == "per_path"
+        assert exported.analysis_mode == "alpha_shares"
+        assert exported.active_share == 1.0
+        assert abs(exported.theta_extpa - 0.5) < 1e-9
+        assert exported.external_pa_capital == 400.0
+        assert exported.active_ext_capital == 100.0
+        agents_by_name = {agent.name: agent for agent in exported.agents}
+        assert {"ExternalPA", "ActiveExt"} <= agents_by_name.keys()
+        assert agents_by_name["ExternalPA"].capital == 400.0
+        assert abs(agents_by_name["ExternalPA"].extra["theta_extpa"] - 0.5) < 1e-9
+        assert agents_by_name["ActiveExt"].capital == 100.0
+        assert agents_by_name["ActiveExt"].extra["active_share"] == 1.0
 
 
 def test_promotion_paths_share_cached_capital_basis_and_handle_nonpositive_cache(
