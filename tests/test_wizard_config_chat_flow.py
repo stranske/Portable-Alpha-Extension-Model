@@ -89,6 +89,22 @@ class _ConfigChatPanelFakeStreamlit:
         self.messages.append(("code", body))
 
 
+def _heuristic_preview_dict(result: ConfigPatchChainResult) -> dict[str, Any]:
+    """Preview-shaped dict from a heuristic ConfigPatchChainResult (wizard install_notice rule)."""
+    risk_flags = list(result.risk_flags)
+    install_notice = _CONFIG_CHAT_INSTALL_NOTICE if "missing_extra" in risk_flags else None
+    return {
+        "patch": {
+            "set": dict(result.patch.set),
+            "merge": dict(result.patch.merge),
+            "remove": list(result.patch.remove),
+        },
+        "summary": result.summary,
+        "risk_flags": risk_flags,
+        "install_notice": install_notice,
+    }
+
+
 def _matches_legacy_missing_extra_readback(preview: dict[str, Any]) -> bool:
     """Silent heuristic fallback before missing_extra labeling (e1ec34c8 and earlier)."""
     set_ops = preview.get("patch", {}).get("set", {})
@@ -387,6 +403,43 @@ def test_config_chat_missing_extra_legacy_readback_fails_install_contract() -> N
     assert _matches_legacy_missing_extra_readback(legacy_preview)
     with pytest.raises(AssertionError):
         _assert_missing_extra_install_contract(legacy_preview)
+
+
+def test_config_chat_missing_extra_same_fixture_deliberate_break_readback(monkeypatch) -> None:
+    """Same verification input: pre-fix heuristic readback fails; live wizard path passes."""
+    instruction = _CONFIG_CHAT_MISSING_EXTRA_VERIFICATION["instruction"]
+    st.session_state.clear()
+    try:
+        module = runpy.run_path("dashboard/pages/3_Scenario_Wizard.py")
+        config = get_default_config(AnalysisMode.RETURNS)
+        st.session_state["wizard_config"] = config
+        st.session_state[module["_CONFIG_CHAT_API_KEY_KEY"]] = "synthetic-openai"
+
+        globals_ = module["_build_config_chat_llm_invoke"].__globals__
+
+        def _raise_missing_extra(*_args, **_kwargs) -> None:
+            raise ModuleNotFoundError("langchain_openai")
+
+        globals_["create_llm"] = _raise_missing_extra
+        globals_["resolve_llm_provider_config"] = lambda **_kwargs: SimpleNamespace(
+            provider_name="openai",
+            model_name="gpt-4o-mini",
+        )
+
+        live_preview = module["_preview_config_chat_instruction"](instruction)
+        _assert_missing_extra_install_contract(live_preview)
+
+        pre_fix = module["_heuristic_config_patch_result"](
+            instruction,
+            config=config,
+            missing_optional_dependency=False,
+        )
+        legacy_preview = _heuristic_preview_dict(pre_fix)
+        assert _matches_legacy_missing_extra_readback(legacy_preview)
+        with pytest.raises(AssertionError):
+            _assert_missing_extra_install_contract(legacy_preview)
+    finally:
+        st.session_state.clear()
 
 
 def test_audit_reproduces_config_chat_unscoped_override_without_network(
