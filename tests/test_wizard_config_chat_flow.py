@@ -387,6 +387,25 @@ def test_config_chat_heuristic_boundary_pins_missing_extra_labeling() -> None:
             "n_simulations"
         )
         assert with_missing.summary == without_missing.summary
+
+        st.session_state["wizard_config"] = config
+        st.session_state[module["_CONFIG_CHAT_API_KEY_KEY"]] = "synthetic-openai"
+        globals_ = module["_build_config_chat_llm_invoke"].__globals__
+
+        def _raise_missing_extra(*_args, **_kwargs) -> None:
+            raise ModuleNotFoundError("langchain_openai")
+
+        globals_["create_llm"] = _raise_missing_extra
+        globals_["resolve_llm_provider_config"] = lambda **_kwargs: SimpleNamespace(
+            provider_name="openai",
+            model_name="gpt-4o-mini",
+        )
+        wizard_preview = module["_preview_config_chat_instruction"](instruction)
+        assert wizard_preview["patch"]["set"]["n_simulations"] == 5000
+        assert wizard_preview["summary"] == with_missing.summary
+        assert "missing_extra" in wizard_preview["risk_flags"]
+        assert wizard_preview["install_notice"] == _CONFIG_CHAT_INSTALL_NOTICE
+        _assert_missing_extra_install_contract(wizard_preview)
     finally:
         st.session_state.clear()
 
