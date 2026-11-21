@@ -3,9 +3,11 @@ from __future__ import annotations
 import runpy
 import sys
 from types import SimpleNamespace
+from typing import Any
 
 import streamlit as st
 
+import dashboard.components.config_chat as config_chat_module
 from pa_core.llm.config_patch import validate_patch_dict
 from pa_core.llm.config_patch_chain import ConfigPatchChainResult
 from pa_core.wizard_schema import AnalysisMode, get_default_config
@@ -15,6 +17,70 @@ _CONFIG_CHAT_INSTALL_NOTICE = "LLM features unavailable. Install .[llm] to enabl
 # Pre-fix readback at e1ec34c8: configured credentials + missing optional deps still
 # applied heuristics but omitted missing_extra labeling and the install notice.
 _LEGACY_MISSING_EXTRA_READBACK = {"risk_flags": [], "install_notice": None}
+
+
+class _ConfigChatPanelColumnContext:
+    def __enter__(self) -> "_ConfigChatPanelColumnContext":
+        return self
+
+    def __exit__(self, exc_type, exc, tb) -> bool:
+        return False
+
+
+class _ConfigChatPanelFakeStreamlit:
+    """Minimal Streamlit stub for exercising render_config_chat_panel."""
+
+    def __init__(
+        self, *, button_values: dict[str, bool], session_state: dict[str, Any] | None = None
+    ):
+        self.button_values = dict(button_values)
+        self.session_state: dict[str, Any] = session_state or {}
+        self.messages: list[tuple[str, str]] = []
+
+    def subheader(self, message: str) -> None:
+        self.messages.append(("subheader", message))
+
+    def caption(self, message: str) -> None:
+        self.messages.append(("caption", message))
+
+    def text_area(self, label: str, value: str, key: str, help: str) -> str:
+        self.session_state.setdefault(key, value)
+        return str(self.session_state[key])
+
+    def columns(self, n: int) -> list[_ConfigChatPanelColumnContext]:
+        return [_ConfigChatPanelColumnContext() for _ in range(n)]
+
+    def button(self, label: str, key: str) -> bool:
+        return bool(self.button_values.get(key, False))
+
+    def warning(self, message: str) -> None:
+        self.messages.append(("warning", message))
+
+    def error(self, message: str) -> None:
+        self.messages.append(("error", message))
+
+    def success(self, message: str) -> None:
+        self.messages.append(("success", message))
+
+    def info(self, message: str) -> None:
+        self.messages.append(("info", message))
+
+    def markdown(self, message: str) -> None:
+        self.messages.append(("markdown", message))
+
+    def code(self, body: str, language: str | None = None) -> None:
+        self.messages.append(("code", body))
+
+
+def _matches_legacy_missing_extra_readback(preview: dict[str, Any]) -> bool:
+    """Silent heuristic fallback before missing_extra labeling (e1ec34c8 and earlier)."""
+    set_ops = preview.get("patch", {}).get("set", {})
+    return (
+        preview.get("install_notice") is None
+        and "missing_extra" not in preview.get("risk_flags", [])
+        and set_ops.get("n_simulations") == 5000
+        and preview.get("summary") == "Applied heuristic instruction parsing."
+    )
 
 
 def _mute_streamlit_ui(module: dict, monkeypatch) -> None:
@@ -175,6 +241,24 @@ def test_config_chat_missing_extra_explains_offline_fallback(monkeypatch) -> Non
         # Same fixture/input failed the pre-fix contract (silent offline heuristic).
         assert preview["risk_flags"] != _LEGACY_MISSING_EXTRA_READBACK["risk_flags"]
         assert preview.get("install_notice") != _LEGACY_MISSING_EXTRA_READBACK["install_notice"]
+        assert not _matches_legacy_missing_extra_readback(preview)
+
+        panel_fake = _ConfigChatPanelFakeStreamlit(
+            button_values={"wizard_config_chat_preview": True},
+            session_state={"wizard_config_chat_instruction": _CONFIG_CHAT_INSTRUCTION},
+        )
+        monkeypatch.setattr(config_chat_module, "st", panel_fake)
+        config_chat_module.render_config_chat_panel(
+            on_preview=module["_preview_config_chat_instruction"],
+            key_prefix="wizard",
+        )
+        assert any(
+            kind == "info" and _CONFIG_CHAT_INSTALL_NOTICE in message
+            for kind, message in panel_fake.messages
+        )
+        panel_preview = panel_fake.session_state.get("wizard_config_chat_preview")
+        assert isinstance(panel_preview, dict)
+        assert panel_preview.get("install_notice") == _CONFIG_CHAT_INSTALL_NOTICE
 
         wrapped = module["_preview_config_chat_change"](_CONFIG_CHAT_INSTRUCTION)
         assert wrapped["install_notice"] == preview["install_notice"]
