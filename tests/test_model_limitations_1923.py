@@ -27,7 +27,7 @@ def test_limitations_cover_required_caveats():
         "gross of fees",
         "total excludes base",
         "i.i.d",
-        "regimes apply in parameter sweeps",
+        "regimes apply to single runs and parameter sweeps",
         "broadcast",
         "not been backtested",
         "risk_metrics",
@@ -39,6 +39,9 @@ def test_limitations_cover_required_caveats():
     ):
         assert phrase in blob, f"missing caveat: {phrase}"
     assert "regimes are ignored" not in blob, "stale caveat: sweeps honor regimes"
+    assert (
+        "regimes apply in parameter sweeps" not in blob
+    ), "stale caveat: regimes apply to single runs as well as parameter sweeps"
 
 
 def test_limitations_markdown_is_a_bullet_list():
@@ -138,4 +141,4 @@ def test_regime_sweep_changes_metrics_when_configured():
     # caveat may claim sweeps ignore them.
     blob = " ".join(MODEL_LIMITATIONS).lower()
     assert "regimes are ignored" not in blob
-    assert "regimes apply in parameter sweeps" in blob
+    assert "regimes apply to single runs and parameter sweeps" in blob
