@@ -159,7 +159,7 @@ llm = [
 
 # Development dependencies
 dev = [
-    "ruff==0.17.5",
+    "ruff==0.17.6",
     "black==26.10.1",
     "isort==9.0.2",
     "mypy==2.4.1",
@@ -169,7 +169,7 @@ dev = [
     # Keep the shared harness here so the developer install can collect tests/baseline/.
     # The Git reference follows the upstream default branch.
     "app-baseline-kit @ git+https://github.com/stranske/Workflows.git#subdirectory=packages/app-baseline-kit",
-    "coverage==7.17.3",
+    "coverage==7.17.4",
     "hypothesis>=6.115.1",
     "pre-commit",
     "bandit",
